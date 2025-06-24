@@ -5,8 +5,9 @@ Control your game with Launchpad
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
-import keyboard # CAN BE USED IN LINUX WHEN RUNNING AS ROOT
-
+import keyboard 
+#TODO: Add root check on LINUX
+#TODO: Test on macOS
 
 class Launkey(toga.App): # pylint: disable=inherit-non-class
     def startup(self):
@@ -16,13 +17,7 @@ class Launkey(toga.App): # pylint: disable=inherit-non-class
         self.main_window.content = main_box
         self.main_window.show()
 
-        button = toga.Button("Click me", on_press=my_callback)
-        test_input = toga.TextInput(placeholder="Type here", style=Pack(flex=1))
-        main_box.add(button)
-        main_box.add(test_input)
-
-def my_callback(widget):
-    keyboard.press_and_release("tab")
+        #TODO: Add interface
 
 
 def main():
