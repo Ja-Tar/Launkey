@@ -5,7 +5,7 @@ Control your game with Launchpad
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
-import keyboard
+import keyboard # CAN BE USED IN LINUX WHEN RUNNING AS ROOT
 
 
 class Launkey(toga.App): # pylint: disable=inherit-non-class
