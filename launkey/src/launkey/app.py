@@ -5,21 +5,24 @@ Control your game with Launchpad
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
+import autoit
 
 
-class Launkey(toga.App):
+class Launkey(toga.App): # pylint: disable=inherit-non-class
     def startup(self):
-        """Construct and show the Toga application.
-
-        Usually, you would add your application to a main content box.
-        We then create a main window (with a name matching the app), and
-        show the main window.
-        """
-        main_box = toga.Box()
+        main_box = toga.Box(direction=COLUMN)
 
         self.main_window = toga.MainWindow(title=self.formal_name)
         self.main_window.content = main_box
         self.main_window.show()
+
+        button = toga.Button("Click me", on_press=my_callback)
+        test_input = toga.TextInput(placeholder="Type here", style=Pack(flex=1))
+        main_box.add(button)
+        main_box.add(test_input)
+
+def my_callback(widget):
+    autoit.send("{TAB}")
 
 
 def main():
