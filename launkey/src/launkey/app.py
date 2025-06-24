@@ -5,7 +5,7 @@ Control your game with Launchpad
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
-import autoit
+import keyboard
 
 
 class Launkey(toga.App): # pylint: disable=inherit-non-class
@@ -22,7 +22,7 @@ class Launkey(toga.App): # pylint: disable=inherit-non-class
         main_box.add(test_input)
 
 def my_callback(widget):
-    autoit.send("{TAB}")
+    keyboard.press_and_release("tab")
 
 
 def main():

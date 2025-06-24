@@ -22,8 +22,7 @@ test_sources = [
 
 requires = [
     "launchpad_py",
-    "pyautoit",
-    "pygame"
+    "keyboard"
 ]
 test_requires = [
     "pytest",
