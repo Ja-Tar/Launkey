@@ -25,7 +25,8 @@ requires = [
     "PySide6-Addons~=6.8",
     "launchpad_py",
     "keyboard",
-    "asyncio"
+    "asyncio",
+    "pygame",
 ]
 test_requires = [
     "pytest",

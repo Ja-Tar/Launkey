@@ -10,15 +10,14 @@ import asyncio
 
 from PySide6 import QtWidgets
 
+from .ui_mainwindow import Ui_MainWindow
+
 
 class Launkey(QtWidgets.QMainWindow):
     def __init__(self):
-        super().__init__()
-        self.init_ui()
-
-    def init_ui(self):
-        self.setWindowTitle("launkey")
-        self.show()
+        super(Launkey, self).__init__()
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
 
 def main():
@@ -32,12 +31,13 @@ def main():
     # with setApplicationName().
 
     # Find the name of the module that was used to start the app
-    app_module = sys.modules["__main__"].__package__
+    app_module = sys.modules["__main__"].__package__ 
     # Retrieve the app's metadata
-    metadata = importlib.metadata.metadata(app_module)
+    metadata = importlib.metadata.metadata(app_module or "launkey")
 
     QtWidgets.QApplication.setApplicationName(metadata["Launkey"])
 
     app = QtWidgets.QApplication(sys.argv)
     main_window = Launkey()
+    main_window.show()
     sys.exit(app.exec())
