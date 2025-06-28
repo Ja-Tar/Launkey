@@ -105,27 +105,111 @@
          <attribute name="verticalHeaderStretchLastSection">
           <bool>false</bool>
          </attribute>
-         <row/>
-         <row/>
-         <row/>
-         <row/>
-         <row/>
-         <row/>
-         <row/>
-         <row/>
-         <row/>
-         <column/>
-         <column/>
-         <column/>
-         <column/>
-         <column/>
-         <column/>
-         <column/>
-         <column/>
-         <column/>
-         <item row="0" column="0">
+         <row>
+          <property name="text">
+           <string>RoundButtons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Buttons</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>RoundButtons</string>
+          </property>
+         </column>
+         <item row="0" column="8">
           <property name="text">
            <string/>
+          </property>
+          <property name="background">
+           <brush brushstyle="DiagCrossPattern">
+            <color alpha="255">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable</set>
           </property>
          </item>
         </widget>
