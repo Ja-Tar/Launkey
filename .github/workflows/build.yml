@@ -61,7 +61,7 @@ jobs:
           ${{ matrix.pre-command }}
 
       - name: Change dir
-        run: cd launkey
+        run: cd launkey/launkey
 
       - name: tree
         run: tree
