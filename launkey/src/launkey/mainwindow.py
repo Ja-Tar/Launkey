@@ -27,8 +27,13 @@ def run_MainWindow(main_window: "Launkey"):
         main_window.ui.tableLaunchpad.setEnabled(True)
         main_window.lpclose = lp  
     else:
-        main_window.ui.statusbar.showMessage("Launchpad not found, close app and connect Launchpad")
+        main_window.ui.statusbar.showMessage("Launchpad not found")
         main_window.ui.tableLaunchpad.setEnabled(False)
+        QtWidgets.QMessageBox.critical(
+            main_window,
+            "Launchpad Error",
+            "Launchpad not found. Please close the app to connect to the Launchpad."
+        )
         return
     main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lp)))
     main_window.ui.buttonRun.setEnabled(True)
