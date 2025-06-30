@@ -60,7 +60,10 @@ jobs:
           echo JAVA_HOME="${JAVA_HOME_17_X64:-$JAVA_HOME_17_arm64}" | tee -a ${GITHUB_ENV}
           ${{ matrix.pre-command }}
 
-      - name: Tree
+      - name: Change dir
+        run: cd .\launkey
+
+      - name: tree
         run: tree
 
       - name: Build App
