@@ -19,22 +19,41 @@ def run_MainWindow(main_window: "Launkey"):
     Run the main window of the application.
     """
     lp = launchpad.Launchpad()
-    print(lp.ListAll("Launchpad"))
-    lp.Open()
+    if lp.Check():
+        lp.Open()
+        lp.Reset()
+        lp.ButtonFlush()
+        main_window.ui.statusbar.showMessage("Launchpad connected")
+        main_window.ui.tableLaunchpad.setEnabled(True)
+        main_window.lpclose = lp  
+    else:
+        main_window.ui.statusbar.showMessage("Launchpad not found, close app and connect Launchpad")
+        main_window.ui.tableLaunchpad.setEnabled(False)
+        return
+    main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lp)))
+    main_window.ui.buttonRun.setEnabled(True)
+
+async def buttonRun(main_window: "Launkey", lp: launchpad.Launchpad):
+    """
+    Handle the Run button click event.
+    """
+
+    if main_window.ui.buttonRun.text() == "Run":
+        main_window.ui.buttonRun.setText("Stop")
+        main_window.ui.statusbar.showMessage("Running...")
+        asyncio.create_task(async_test(lp), name="async_test_loop")
+        asyncio.create_task(sync_table(main_window), name="sync_table_loop")
+        print("Started Launkey controller")
+        return
+    main_window.ui.buttonRun.setText("Run")
+    main_window.ui.statusbar.showMessage("Stopped")
+    # Stop the async loop and reset the launchpad
+    for task in asyncio.all_tasks():
+        if task.get_name() in ["async_test_loop", "sync_table_loop"]:
+            task.cancel()
     lp.Reset()
     lp.ButtonFlush()
-    QtAsyncio.run(main_async_loop(lp, main_window))
-    print("Launkey started")
-
-async def main_async_loop(lp: launchpad.Launchpad, main_window: "Launkey"):
-    """
-    Main asynchronous loop for the application.
-    """
-    # Start the async test
-    asyncio.create_task(async_test(lp))
-    
-    # Start the sync table
-    asyncio.create_task(sync_table(main_window))
+    clear_table(main_window)
 
 def change_leds_rapid(lp: launchpad.Launchpad, frame: list[tuple], automap: Optional[list[tuple]] = None):
     """
@@ -50,7 +69,7 @@ def change_leds_rapid(lp: launchpad.Launchpad, frame: list[tuple], automap: Opti
     launchpad_display[:] = frame[:]
     launchpad_automap[:] = automap[:]
 
-async def async_test(lp: launchpad.Launchpad, anim_time: float = 0.1, automap_anim_time: float = 0.15):
+async def async_test(lp: launchpad.Launchpad, anim_time: float = 0.1):
     """
     Test the asynchronous functionality of the application.
     """
@@ -96,6 +115,10 @@ async def sync_table(main_window):
     """
     Synchronize the GUI table with the launchpad.
     """
+    # disable the table to prevent user interaction during updates
+    main_window.ui.tableLaunchpad.setEnabled(False)
+    main_window.ui.tableLaunchpad.clearSelection()
+
     while True:
         # Update the GUI table (move one row down)
         for row in range(8):
@@ -125,3 +148,16 @@ async def sync_table(main_window):
             main_window.ui.tableLaunchpad.setItem(0, col, item)
 
         await asyncio.sleep(0.05)
+
+def clear_table(main_window):
+    """
+    Clear the GUI table.
+    """
+    for row in range(9):
+        for col in range(9):
+            if row == 0 and col == 8:
+                continue
+            item = QtWidgets.QTableWidgetItem()
+            item.setBackground(QtGui.QColor(255, 255, 255, 0))
+            main_window.ui.tableLaunchpad.setItem(row, col, item)
+    main_window.ui.tableLaunchpad.setEnabled(True)

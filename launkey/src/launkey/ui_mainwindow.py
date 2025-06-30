@@ -27,6 +27,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(800, 600)
+        MainWindow.setMinimumSize(QSize(800, 600))
         self.actionSave = QAction(MainWindow)
         self.actionSave.setObjectName(u"actionSave")
         self.actionLoad = QAction(MainWindow)
@@ -112,6 +113,7 @@ class Ui_MainWindow(object):
         __qtablewidgetitem18.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEditable|Qt.ItemIsDragEnabled|Qt.ItemIsDropEnabled|Qt.ItemIsUserCheckable);
         self.tableLaunchpad.setItem(0, 8, __qtablewidgetitem18)
         self.tableLaunchpad.setObjectName(u"tableLaunchpad")
+        self.tableLaunchpad.setEnabled(False)
         sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         sizePolicy3.setHorizontalStretch(4)
         sizePolicy3.setVerticalStretch(0)
@@ -138,6 +140,12 @@ class Ui_MainWindow(object):
         self.tableLaunchpad.verticalHeader().setStretchLastSection(False)
 
         self.verticalLayout.addWidget(self.tableLaunchpad)
+
+        self.buttonRun = QPushButton(self.verticalFrame)
+        self.buttonRun.setObjectName(u"buttonRun")
+        self.buttonRun.setEnabled(False)
+
+        self.verticalLayout.addWidget(self.buttonRun)
 
 
         self.horizontalLayout.addWidget(self.verticalFrame)
@@ -236,6 +244,7 @@ class Ui_MainWindow(object):
         self.tableLaunchpad.setSortingEnabled(False)
         self.tableLaunchpad.setSortingEnabled(__sortingEnabled)
 
+        self.buttonRun.setText(QCoreApplication.translate("MainWindow", u"Run", None))
         self.groupPresets.setTitle(QCoreApplication.translate("MainWindow", u"Presets", None))
         self.buttonNew.setText(QCoreApplication.translate("MainWindow", u"New preset", None))
         self.menuKonfig.setTitle(QCoreApplication.translate("MainWindow", u"Configuration", None))
