@@ -4,13 +4,11 @@ Control your game with Launchpad
 
 import importlib.metadata
 import sys
-import keyboard
-import launchpad_py as launchpad
-import asyncio
 
 from PySide6 import QtWidgets
 
 from .ui_mainwindow import Ui_MainWindow
+from .mainwindow import run_MainWindow
 
 
 class Launkey(QtWidgets.QMainWindow):
@@ -40,4 +38,5 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     main_window = Launkey()
     main_window.show()
+    run_MainWindow(main_window)
     sys.exit(app.exec())
