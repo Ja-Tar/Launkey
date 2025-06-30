@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "type": "node-terminal",
+        "request": "launch",
+        "name": "Run Briefcase Dev Mode",
+        "command": "briefcase dev",
+        "cwd": "${workspaceFolder}/launkey/",
+        "env": {
+            "PYTHONPATH": "${workspaceFolder}/launkey/"
+        }
+    }
+  ]
+}
