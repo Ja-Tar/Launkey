@@ -68,7 +68,7 @@ jobs:
       - name: Setup Environment
         run: |
           # Use GitHub's preinstalled JDK 17 for Android builds
-          echo JAVA_HOME="${JAVA_HOME_17_X64:-$JAVA_HOME_17_arm64}" | tee -a ${GITHUB_ENV}
+          # echo JAVA_HOME="${JAVA_HOME_17_X64:-$JAVA_HOME_17_arm64}" | tee -a ${GITHUB_ENV}
           ${{ matrix.pre-command }}
 
       - name: Build App
