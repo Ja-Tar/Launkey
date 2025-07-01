@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: App-${{ matrix.target }}
-          path: dist
+          path: launkey/dist
           if-no-files-found: error
 
       - name: Upload Log
@@ -122,6 +122,6 @@ jobs:
         if: github.event_name == 'release' && github.event.action == 'created'
         uses: svenstaro/upload-release-action@v2
         with:
-          file: dist/${{ matrix.target }}/*.zip
-          asset_name: Launkey-${{ matrix.target }}.zip
+          file: launkey/dist/*
+          file_glob: true
           repo_token: ${{ secrets.GITHUB_TOKEN }}
