@@ -52,7 +52,8 @@ jobs:
         with:
           python-version: "3.13.3"  # update with your targeted Python version
 
-      - name: Cache Briefcase
+      - name: Cache Briefcase Linux
+        if: matrix.target != 'Windows'
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
