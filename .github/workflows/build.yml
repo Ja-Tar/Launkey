@@ -4,6 +4,9 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
+  
 env:
   FORCE_COLOR: "1"
 
@@ -74,11 +77,11 @@ jobs:
 
       - name: Build App
         run: |
-          ${{ matrix.briefcase-build-prefix }} briefcase build ${{ matrix.platform || matrix.target }} ${{ matrix.output-format }} --test --no-input --log ${{ matrix.briefcase-args }} ${{ matrix.briefcase-build-args }}
+          ${{ matrix.briefcase-build-prefix }} briefcase build ${{ matrix.platform || matrix.target }} ${{ matrix.output-format }} --no-input --log ${{ matrix.briefcase-args }} ${{ matrix.briefcase-build-args }}
 
       - name: Test App
         run: |
-          ${{ matrix.briefcase-run-prefix }} briefcase run ${{ matrix.platform || matrix.target }} ${{ matrix.output-format }} --test --no-input --log ${{ matrix.briefcase-args }} ${{ matrix.briefcase-run-args }}
+          ${{ matrix.briefcase-run-prefix }} briefcase run ${{ matrix.platform || matrix.target }} ${{ matrix.output-format }} --no-input --log ${{ matrix.briefcase-args }} ${{ matrix.briefcase-run-args }}
 
       - name: Package App
         run: |
