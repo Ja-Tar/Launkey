@@ -49,6 +49,14 @@ jobs:
         with:
           python-version: "3.13.3"  # update with your targeted Python version
 
+      - name: Cache Briefcase
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip
+
       - name: Install Briefcase
         run: |
           python -m pip install -U pip setuptools wheel
@@ -89,6 +97,9 @@ jobs:
             --update --adhoc-sign --no-input --log \
             ${{ matrix.briefcase-args }} \
             ${{ matrix.briefcase-package-args }}
+
+      - name: Tree
+        run: tree
 
       - name: Upload App
         uses: actions/upload-artifact@v4
