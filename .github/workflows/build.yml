@@ -15,6 +15,9 @@ jobs:
   ci:
     name: Test and Package
     runs-on: ${{ matrix.runs-on }}
+    defaults:
+      run:
+        working-directory: ./launkey
     strategy:
       fail-fast: false
       matrix:
@@ -67,6 +70,9 @@ jobs:
           # Use GitHub's preinstalled JDK 17 for Android builds
           echo JAVA_HOME="${JAVA_HOME_17_X64:-$JAVA_HOME_17_arm64}" | tee -a ${GITHUB_ENV}
           ${{ matrix.pre-command }}
+
+      - name: tree
+        run: tree
 
       - name: Build App
         run: |
