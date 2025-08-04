@@ -25,35 +25,35 @@ from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QApplicat
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
-            MainWindow.setObjectName(u"MainWindow")
+            MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
         MainWindow.setMinimumSize(QSize(800, 600))
         self.actionSave = QAction(MainWindow)
-        self.actionSave.setObjectName(u"actionSave")
+        self.actionSave.setObjectName("actionSave")
         self.actionLoad = QAction(MainWindow)
-        self.actionLoad.setObjectName(u"actionLoad")
+        self.actionLoad.setObjectName("actionLoad")
         self.actionAbout = QAction(MainWindow)
-        self.actionAbout.setObjectName(u"actionAbout")
+        self.actionAbout.setObjectName("actionAbout")
         self.actionSettings = QAction(MainWindow)
-        self.actionSettings.setObjectName(u"actionSettings")
+        self.actionSettings.setObjectName("actionSettings")
         self.centralwidget = QWidget(MainWindow)
-        self.centralwidget.setObjectName(u"centralwidget")
+        self.centralwidget.setObjectName("centralwidget")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
         self.centralwidget.setSizePolicy(sizePolicy)
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.verticalFrame = QFrame(self.centralwidget)
-        self.verticalFrame.setObjectName(u"verticalFrame")
+        self.verticalFrame.setObjectName("verticalFrame")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.verticalFrame.sizePolicy().hasHeightForWidth())
         self.verticalFrame.setSizePolicy(sizePolicy1)
         self.verticalLayout = QVBoxLayout(self.verticalFrame)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
         self.tableLaunchpad = QTableWidget(self.verticalFrame)
         if (self.tableLaunchpad.columnCount() < 9):
@@ -99,17 +99,17 @@ class Ui_MainWindow(object):
         brush = QBrush(QColor(0, 0, 0, 255))
         brush.setStyle(Qt.BrushStyle.DiagCrossPattern)
         __qtablewidgetitem18 = QTableWidgetItem()
-        __qtablewidgetitem18.setBackground(brush);
+        __qtablewidgetitem18.setBackground(brush)
         __qtablewidgetitem18.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEditable|Qt.ItemIsDragEnabled|Qt.ItemIsDropEnabled|Qt.ItemIsUserCheckable);
         self.tableLaunchpad.setItem(0, 8, __qtablewidgetitem18)
-        self.tableLaunchpad.setObjectName(u"tableLaunchpad")
+        self.tableLaunchpad.setObjectName("tableLaunchpad")
         self.tableLaunchpad.setEnabled(False)
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         sizePolicy2.setHorizontalStretch(4)
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.tableLaunchpad.sizePolicy().hasHeightForWidth())
         self.tableLaunchpad.setSizePolicy(sizePolicy2)
-        self.tableLaunchpad.viewport().setProperty(u"cursor", QCursor(Qt.CursorShape.ArrowCursor))
+        self.tableLaunchpad.viewport().setProperty("cursor", QCursor(Qt.CursorShape.ArrowCursor))
         self.tableLaunchpad.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tableLaunchpad.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tableLaunchpad.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
@@ -132,7 +132,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tableLaunchpad)
 
         self.buttonRun = QPushButton(self.verticalFrame)
-        self.buttonRun.setObjectName(u"buttonRun")
+        self.buttonRun.setObjectName("buttonRun")
         self.buttonRun.setEnabled(False)
 
         self.verticalLayout.addWidget(self.buttonRun)
@@ -141,7 +141,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.verticalFrame)
 
         self.groupPresets = QGroupBox(self.centralwidget)
-        self.groupPresets.setObjectName(u"groupPresets")
+        self.groupPresets.setObjectName("groupPresets")
         sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy3.setHorizontalStretch(2)
         sizePolicy3.setVerticalStretch(0)
@@ -153,16 +153,16 @@ class Ui_MainWindow(object):
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
-        self.statusbar.setObjectName(u"statusbar")
+        self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.menubar = QMenuBar(MainWindow)
-        self.menubar.setObjectName(u"menubar")
+        self.menubar.setObjectName("menubar")
         self.menubar.setEnabled(True)
         self.menubar.setGeometry(QRect(0, 0, 800, 24))
         self.menuKonfig = QMenu(self.menubar)
-        self.menuKonfig.setObjectName(u"menuKonfig")
+        self.menuKonfig.setObjectName("menuKonfig")
         self.menuHelp = QMenu(self.menubar)
-        self.menuHelp.setObjectName(u"menuHelp")
+        self.menuHelp.setObjectName("menuHelp")
         MainWindow.setMenuBar(self.menubar)
 
         self.menubar.addAction(self.menuKonfig.menuAction())
@@ -179,55 +179,55 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Launkey", None))
-        self.actionSave.setText(QCoreApplication.translate("MainWindow", u"Save", None))
-        self.actionLoad.setText(QCoreApplication.translate("MainWindow", u"Load", None))
-        self.actionAbout.setText(QCoreApplication.translate("MainWindow", u"About", None))
-        self.actionSettings.setText(QCoreApplication.translate("MainWindow", u"Settings", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", "Launkey", None))
+        self.actionSave.setText(QCoreApplication.translate("MainWindow", "Save", None))
+        self.actionLoad.setText(QCoreApplication.translate("MainWindow", "Load", None))
+        self.actionAbout.setText(QCoreApplication.translate("MainWindow", "About", None))
+        self.actionSettings.setText(QCoreApplication.translate("MainWindow", "Settings", None))
         ___qtablewidgetitem = self.tableLaunchpad.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem1 = self.tableLaunchpad.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem2 = self.tableLaunchpad.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem3 = self.tableLaunchpad.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem4 = self.tableLaunchpad.horizontalHeaderItem(4)
-        ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem5 = self.tableLaunchpad.horizontalHeaderItem(5)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem6 = self.tableLaunchpad.horizontalHeaderItem(6)
-        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem7 = self.tableLaunchpad.horizontalHeaderItem(7)
-        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem8 = self.tableLaunchpad.horizontalHeaderItem(8)
-        ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", u"RoundButtons", None));
+        ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", "RoundButtons", None));
         ___qtablewidgetitem9 = self.tableLaunchpad.verticalHeaderItem(0)
-        ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"RoundButtons", None));
+        ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", "RoundButtons", None));
         ___qtablewidgetitem10 = self.tableLaunchpad.verticalHeaderItem(1)
-        ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem11 = self.tableLaunchpad.verticalHeaderItem(2)
-        ___qtablewidgetitem11.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem11.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem12 = self.tableLaunchpad.verticalHeaderItem(3)
-        ___qtablewidgetitem12.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem12.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem13 = self.tableLaunchpad.verticalHeaderItem(4)
-        ___qtablewidgetitem13.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem13.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem14 = self.tableLaunchpad.verticalHeaderItem(5)
-        ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem15 = self.tableLaunchpad.verticalHeaderItem(6)
-        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem16 = self.tableLaunchpad.verticalHeaderItem(7)
-        ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
         ___qtablewidgetitem17 = self.tableLaunchpad.verticalHeaderItem(8)
-        ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Buttons", None));
+        ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", "Buttons", None));
 
         __sortingEnabled = self.tableLaunchpad.isSortingEnabled()
         self.tableLaunchpad.setSortingEnabled(False)
         self.tableLaunchpad.setSortingEnabled(__sortingEnabled)
 
-        self.buttonRun.setText(QCoreApplication.translate("MainWindow", u"Run", None))
-        self.groupPresets.setTitle(QCoreApplication.translate("MainWindow", u"Presets", None))
-        self.menuKonfig.setTitle(QCoreApplication.translate("MainWindow", u"Configuration", None))
-        self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
+        self.buttonRun.setText(QCoreApplication.translate("MainWindow", "Run", None))
+        self.groupPresets.setTitle(QCoreApplication.translate("MainWindow", "Presets", None))
+        self.menuKonfig.setTitle(QCoreApplication.translate("MainWindow", "Configuration", None))
+        self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", "Help", None))
     # retranslateUi
 
