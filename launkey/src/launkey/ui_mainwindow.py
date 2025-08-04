@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 )
 from .flowlayout import DynamicGridLayout  # Import the custom layout class
 
-class Ui_MainWindow(object):
+class Ui_MainWindow:
     def setupUi(self, MainWindow):
         # Main window setup
         MainWindow.setObjectName("MainWindow")
