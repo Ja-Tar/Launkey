@@ -17,10 +17,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QApplication, QFrame,
-    QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
-    QLayout, QListView, QMainWindow, QMenu,
-    QMenuBar, QPushButton, QSizePolicy, QStatusBar,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+    QGroupBox, QHBoxLayout, QHeaderView, QLayout,
+    QMainWindow, QMenu, QMenuBar, QPushButton,
+    QSizePolicy, QStatusBar, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -45,23 +45,13 @@ class Ui_MainWindow(object):
         self.centralwidget.setSizePolicy(sizePolicy)
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.listOptions = QListView(self.centralwidget)
-        self.listOptions.setObjectName(u"listOptions")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy1.setHorizontalStretch(2)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.listOptions.sizePolicy().hasHeightForWidth())
-        self.listOptions.setSizePolicy(sizePolicy1)
-
-        self.horizontalLayout.addWidget(self.listOptions)
-
         self.verticalFrame = QFrame(self.centralwidget)
         self.verticalFrame.setObjectName(u"verticalFrame")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.verticalFrame.sizePolicy().hasHeightForWidth())
-        self.verticalFrame.setSizePolicy(sizePolicy2)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.verticalFrame.sizePolicy().hasHeightForWidth())
+        self.verticalFrame.setSizePolicy(sizePolicy1)
         self.verticalLayout = QVBoxLayout(self.verticalFrame)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
@@ -114,11 +104,11 @@ class Ui_MainWindow(object):
         self.tableLaunchpad.setItem(0, 8, __qtablewidgetitem18)
         self.tableLaunchpad.setObjectName(u"tableLaunchpad")
         self.tableLaunchpad.setEnabled(False)
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-        sizePolicy3.setHorizontalStretch(4)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.tableLaunchpad.sizePolicy().hasHeightForWidth())
-        self.tableLaunchpad.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        sizePolicy2.setHorizontalStretch(4)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.tableLaunchpad.sizePolicy().hasHeightForWidth())
+        self.tableLaunchpad.setSizePolicy(sizePolicy2)
         self.tableLaunchpad.viewport().setProperty(u"cursor", QCursor(Qt.CursorShape.ArrowCursor))
         self.tableLaunchpad.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tableLaunchpad.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -152,21 +142,12 @@ class Ui_MainWindow(object):
 
         self.groupPresets = QGroupBox(self.centralwidget)
         self.groupPresets.setObjectName(u"groupPresets")
-        sizePolicy1.setHeightForWidth(self.groupPresets.sizePolicy().hasHeightForWidth())
-        self.groupPresets.setSizePolicy(sizePolicy1)
-        self.gridLayout = QGridLayout(self.groupPresets)
-        self.gridLayout.setObjectName(u"gridLayout")
-        self.buttonNew = QPushButton(self.groupPresets)
-        self.buttonNew.setObjectName(u"buttonNew")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.buttonNew.sizePolicy().hasHeightForWidth())
-        self.buttonNew.setSizePolicy(sizePolicy4)
-        self.buttonNew.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-        self.gridLayout.addWidget(self.buttonNew, 0, 0, 1, 1)
-
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        sizePolicy3.setHorizontalStretch(2)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.groupPresets.sizePolicy().hasHeightForWidth())
+        self.groupPresets.setSizePolicy(sizePolicy3)
+        self.groupPresets.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout.addWidget(self.groupPresets)
 
@@ -177,7 +158,7 @@ class Ui_MainWindow(object):
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
         self.menubar.setEnabled(True)
-        self.menubar.setGeometry(QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QRect(0, 0, 800, 24))
         self.menuKonfig = QMenu(self.menubar)
         self.menuKonfig.setObjectName(u"menuKonfig")
         self.menuHelp = QMenu(self.menubar)
@@ -246,7 +227,6 @@ class Ui_MainWindow(object):
 
         self.buttonRun.setText(QCoreApplication.translate("MainWindow", u"Run", None))
         self.groupPresets.setTitle(QCoreApplication.translate("MainWindow", u"Presets", None))
-        self.buttonNew.setText(QCoreApplication.translate("MainWindow", u"New preset", None))
         self.menuKonfig.setTitle(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
     # retranslateUi
