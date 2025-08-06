@@ -1,5 +1,7 @@
 from PySide6.QtWidgets import QGridLayout
+from PySide6.QtCore import Qt
 
+# From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
     def __init__(self, parent=None, min_col_width=360, min_row_height=116):
         super().__init__(parent)
@@ -42,3 +44,44 @@ class DynamicGridLayout(QGridLayout):
             if col >= self.num_cols:
                 col = 0
                 row += 1
+
+class CenterGridLayout(QGridLayout):
+    """
+    A layout that aligns widgets in a centered grid
+    with one item in the middle that is always centered,
+    other items aligned around it, and plus buttons on the edges.
+    Rows and columns are automatically determined based on the number of items.
+    """
+    def __init__(self, parent=None, mainWidget=None):
+        super().__init__(parent)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setSpacing(0)
+        self.rows = 3
+        self.cols = 3
+        self.mainItem = mainWidget  # central widget, x and y is (0, 0)
+        # x and y are relative to the main item
+        self.otherItems = []  # (widget, x, y)
+        self.plusButtons = [] # (widget, x, y)
+
+    def addWidget(self, widget, x, y):
+        """Dodaje widget na określonej pozycji."""
+        if x == 0 and y == 0:
+            self.mainItem = widget
+        else:
+            self.otherItems.append((widget, x, y))
+        self.update_layout()
+
+    def clear(self):
+        self.otherItems = []
+        self.plusButtons = []
+        self.update_layout()
+
+    def update_layout(self):
+        if self.mainItem is None and not self.otherItems:
+            return
+
+        pass
+
+    def autoAddPlusButtons(self, plusButtonFactory):
+        """Dodaje plusy na wszystkich brzegach siatki."""
+        pass

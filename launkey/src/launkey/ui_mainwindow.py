@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ################################################################################
 # MainWindow UI setup for Launkey
 # This file is no longer auto-generated. You can safely edit it.
@@ -13,7 +11,7 @@ from PySide6.QtWidgets import (
     QStatusBar, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
     QScrollArea, QGridLayout
 )
-from .flowlayout import DynamicGridLayout  # Import the custom layout class
+from .custom_layouts import DynamicGridLayout  # Import the custom layout class
 
 class Ui_MainWindow:
     def setupUi(self, MainWindow):
@@ -127,7 +125,7 @@ class Ui_MainWindow:
 
         # Add "add preset" button
         self.buttonAddPreset = QPushButton()
-        self.buttonAddPreset.setObjectName("addPresetButton")
+        self.buttonAddPreset.setObjectName("buttonAddPreset")
         self.gridLayoutPresets.addWidget(self.buttonAddPreset)
 
         # Status bar
