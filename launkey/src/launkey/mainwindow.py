@@ -18,6 +18,12 @@ def run_MainWindow(main_window: "Launkey"):
     """
     Run the main window of the application.
     """
+    # REMOVE for testing popup
+    openTemplatePopup(main_window)
+    return
+
+    main_window.ui.buttonAddPreset.clicked.connect(lambda: openTemplatePopup(main_window))
+
     lp = launchpad.Launchpad()
     if lp.Check():
         lp.Open()
@@ -166,3 +172,15 @@ def clear_table(main_window):
             item.setBackground(QtGui.QColor(255, 255, 255, 0))
             main_window.ui.tableLaunchpad.setItem(row, col, item)
     main_window.ui.tableLaunchpad.setEnabled(True)
+
+def openTemplatePopup(main_window: "Launkey"):
+    """
+    Open the template management dialog.
+    """
+    from .ui_dialogtemplates import Ui_Dialog
+    dialog = QtWidgets.QDialog(main_window)
+    ui = Ui_Dialog()
+    ui.setupUi(dialog)
+    
+    dialog.setWindowTitle("Template Management")
+    dialog.show()
