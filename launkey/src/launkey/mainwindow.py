@@ -11,13 +11,9 @@ if TYPE_CHECKING:
     from .app import Launkey
 
 class LaunchpadWrapper:
-    def __init__(self):
+    def __init__(self, main_window: "Launkey"):
         self.lp = launchpad.Launchpad()
-        # (red, green) tuples for each LED on the launchpad
-        # intensity from 0 to 3 for each color
-        self.launchpad_display = [(0, 0)] * 64 
-        self.launchpad_automap = [(0, 0)] * 16
-        # first 8 LEDs are on the left and the next 8 LEDs are on the top
+        self.guiTable = GUITable(main_window)
 
     def connect(self) -> bool:
         if self.lp.Check():
@@ -27,26 +23,37 @@ class LaunchpadWrapper:
             return True
         return False
 
-    def changeLedsRapid(self, frame: list[tuple], automap: Optional[list[tuple]] = None):
-        if automap is None:
-            automap = [(0, 0)] * 16
-        combined_frame = frame + automap
+    def changeLedsRapid(self, frame: list[tuple], autoMap: Optional[list[tuple]] = None):
+        if autoMap is None:
+            autoMap = [(0, 0)] * 16
+        combined_frame = frame + autoMap
         # format the frame for rapid update with LedGetColor()
         formatted_frame = [self.lp.LedGetColor(x, y) for x, y in combined_frame]
         self.lp.LedCtrlRawRapid(formatted_frame)
         self.lp.LedCtrlRawRapidHome()
-        self.launchpad_display[:] = frame[:]
-        self.launchpad_automap[:] = automap[:]
+        self.guiTable.frame[:] = frame[:]
+        self.guiTable.autoMap[:] = autoMap[:]
 
     def reset(self):
         self.lp.Reset()
         self.lp.ButtonFlush()
 
+    def stop(self):
+        self.reset()
+        self.guiTable.frame = [(0, 0)] * 64
+        self.guiTable.autoMap = [(0, 0)] * 16
+        self.guiTable.clearAndEnable()
+
 class GUITable:
     def __init__(self, main_window: "Launkey"):
         self.main_window = main_window
+        # (red, green) tuples for each LED on the launchpad
+        # intensity from 0 to 3 for each color
+        self.frame = [(0, 0)] * 64 
+        self.autoMap = [(0, 0)] * 16
+        # first 8 LEDs are on the left and the next 8 LEDs are on the top
 
-    async def sync(self, frame: list[tuple], automap: list[tuple]):
+    async def sync(self):
         # disable the table to prevent user interaction during updates
         self.main_window.ui.tableLaunchpad.setEnabled(False)
         self.main_window.ui.tableLaunchpad.clearSelection()
@@ -55,24 +62,24 @@ class GUITable:
             # Update the GUI table (move one row down)
             for row in range(8):
                 for col in range(8):
-                    value = frame[row * 8 + col]
+                    value = self.frame[row * 8 + col]
                     item = QtWidgets.QTableWidgetItem()
                     # Set background color based on value (red, green)
                     r, g = value
                     color = QtGui.QColor(85 * r, 85 * g, 0)
                     item.setBackground(color)
                     self.main_window.ui.tableLaunchpad.setItem(row + 1, col, item)
-            # Update the GUI table with automap values (right column)
+            # Update the GUI table with autoMap values (right column)
             for row in range(8):
-                value = automap[row]
+                value = self.autoMap[row]
                 item = QtWidgets.QTableWidgetItem()
                 r, g = value
                 color = QtGui.QColor(85 * r, 85 * g, 0)
                 item.setBackground(color)
                 self.main_window.ui.tableLaunchpad.setItem(row + 1, 8, item)
-            # Update the GUI table with automap values (top row)
+            # Update the GUI table with autoMap values (top row)
             for col in range(8):
-                value = automap[col + 8]
+                value = self.autoMap[col + 8]
                 item = QtWidgets.QTableWidgetItem()
                 r, g = value
                 color = QtGui.QColor(85 * r, 85 * g, 0)
@@ -81,7 +88,7 @@ class GUITable:
 
             await asyncio.sleep(0.05)
 
-    def clear(self):
+    def clearAndEnable(self):
         for row in range(9):
             for col in range(9):
                 if row == 0 and col == 8:
@@ -98,7 +105,7 @@ def mainWindowScript(main_window: "Launkey"):
 
     main_window.ui.buttonAddPreset.clicked.connect(lambda: openEditTemplatePopup(main_window))
 
-    lpWrapper = LaunchpadWrapper()
+    lpWrapper = LaunchpadWrapper(main_window)
     if lpWrapper.connect():
         main_window.ui.statusbar.showMessage("Launchpad connected")
         main_window.ui.tableLaunchpad.setEnabled(True)
@@ -116,12 +123,11 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonRun.setEnabled(True)
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
-    gui_table = GUITable(main_window)
     if main_window.ui.buttonRun.text() == "Run":
         main_window.ui.buttonRun.setText("Stop")
         main_window.ui.statusbar.showMessage("Running...")
         asyncio.create_task(async_test(lpWrapper), name="async_test_loop") # REMOVE
-        asyncio.create_task(gui_table.sync(), name="sync_table_loop")
+        asyncio.create_task(lpWrapper.guiTable.sync(), name="sync_table_loop")
         print("Started Launkey controller")
         return
     main_window.ui.buttonRun.setText("Run")
@@ -130,8 +136,7 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     for task in asyncio.all_tasks():
         if task.get_name() in ["async_test_loop", "sync_table_loop"]:
             task.cancel()
-    lpWrapper.reset()
-    gui_table.clear()
+    lpWrapper.stop()
 
 async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
     arrow_up_red = [
@@ -144,11 +149,11 @@ async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
         0, 0, 0, 3, 3, 0, 0, 0
     ]
 
-    # Automap animation: przesuwający się pasek
-    automap_length = 16
-    automap_color = (0, 3)  # Zielony pasek
-    automap_off = (0, 0)
-    automap_pos = 0
+    # autoMap animation: przesuwający się pasek
+    autoMap_length = 16
+    autoMap_color = (0, 3)  # Zielony pasek
+    autoMap_off = (0, 0)
+    autoMap_pos = 0
 
     while True:
         # Animate arrow moving up from bottom to top
@@ -162,13 +167,13 @@ async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
                         arrow_idx = i * 8 + j
                         if arrow_up_red[arrow_idx]:
                             frame[dx] = (arrow_up_red[arrow_idx], 0)
-            # Animacja automap: przesuwający się pojedynczy "piksel"
-            automap = [(0, 0)] * automap_length
+            # Animacja autoMap: przesuwający się pojedynczy "piksel"
+            autoMap = [(0, 0)] * autoMap_length
             # Ustaw pasek na odpowiedniej pozycji
-            automap = [automap_color if i == automap_pos else automap_off for i in range(automap_length)]
-            lpWrapper.changeLedsRapid(frame, automap)
+            autoMap = [autoMap_color if i == autoMap_pos else autoMap_off for i in range(autoMap_length)]
+            lpWrapper.changeLedsRapid(frame, autoMap)
             await asyncio.sleep(anim_time)
-            automap_pos = (automap_pos + 1) % automap_length
+            autoMap_pos = (autoMap_pos + 1) % autoMap_length
         await asyncio.sleep(0.5)
         lpWrapper.reset()
 
