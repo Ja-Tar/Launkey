@@ -9,7 +9,7 @@ from PySide6 import QtWidgets, QtAsyncio
 import launchpad_py as launchpad
 
 from .ui_mainwindow import Ui_MainWindow
-from .mainwindow import run_MainWindow
+from .mainwindow import mainWindowScript
 
 
 class Launkey(QtWidgets.QMainWindow):
@@ -54,5 +54,5 @@ def main():
     QtWidgets.QApplication(sys.argv)
     main_window = Launkey()
     main_window.show()
-    run_MainWindow(main_window)
+    mainWindowScript(main_window)
     sys.exit(QtAsyncio.run())
