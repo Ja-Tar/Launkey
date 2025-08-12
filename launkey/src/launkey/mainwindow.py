@@ -20,9 +20,6 @@ class LaunchpadWrapper:
         # first 8 LEDs are on the left and the next 8 LEDs are on the top
 
     def connect(self) -> bool:
-        """
-        Connect to the launchpad.
-        """
         if self.lp.Check():
             self.lp.Open()
             self.lp.Reset()
@@ -31,9 +28,6 @@ class LaunchpadWrapper:
         return False
 
     def changeLedsRapid(self, frame: list[tuple], automap: Optional[list[tuple]] = None):
-        """
-        Change the LEDs on the launchpad rapidly.
-        """
         if automap is None:
             automap = [(0, 0)] * 16
         combined_frame = frame + automap
@@ -45,9 +39,6 @@ class LaunchpadWrapper:
         self.launchpad_automap[:] = automap[:]
 
     def reset(self):
-        """
-        Reset the launchpad screen.
-        """
         self.lp.Reset()
         self.lp.ButtonFlush()
 
@@ -56,9 +47,6 @@ class GUITable:
         self.main_window = main_window
 
     async def sync(self, frame: list[tuple], automap: list[tuple]):
-        """
-        Synchronize the GUI table with the launchpad.
-        """
         # disable the table to prevent user interaction during updates
         self.main_window.ui.tableLaunchpad.setEnabled(False)
         self.main_window.ui.tableLaunchpad.clearSelection()
@@ -104,9 +92,6 @@ class GUITable:
         self.main_window.ui.tableLaunchpad.setEnabled(True)
 
 def mainWindowScript(main_window: "Launkey"):
-    """
-    Run the main window of the application.
-    """
     # REMOVE for testing popup
     #openEditTemplatePopup(main_window)
     #return
@@ -131,9 +116,6 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonRun.setEnabled(True)
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
-    """
-    Handle the Run button click event.
-    """
     gui_table = GUITable(main_window)
     if main_window.ui.buttonRun.text() == "Run":
         main_window.ui.buttonRun.setText("Stop")
@@ -152,9 +134,6 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     gui_table.clear()
 
 async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
-    """
-    Test the asynchronous functionality of the application.
-    """
     arrow_up_red = [
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 1, 1, 0, 0, 0,
