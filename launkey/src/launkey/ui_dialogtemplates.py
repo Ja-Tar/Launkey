@@ -39,33 +39,32 @@ class Ui_Dialog:
         self.separator.setFrameShadow(QFrame.Shadow.Sunken)
         self.mainLayout.addWidget(self.separator)
 
-        # Scroll area for template details
-        self.scrollArea = QScrollArea(dialog)
-        self.scrollArea.setObjectName("scrollArea")
-        scrollAreaPolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-        scrollAreaPolicy.setHorizontalStretch(10)
-        self.scrollArea.setSizePolicy(scrollAreaPolicy)
-        self.scrollArea.setWidgetResizable(True)
+        # Main action button (center, square)
+        self.mainActionButton = QPushButton()
+        self.mainActionButton.setObjectName("mainActionButton")
+        mainActionPolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        self.mainActionButton.setSizePolicy(mainActionPolicy)
+        self.mainActionButton.setText("Action")
 
-        # Widget inside scroll area
-        self.scrollAreaWidget = QWidget()
-        self.scrollAreaWidget.setObjectName("scrollAreaWidget")
-        self.gridLayout = CenterGridLayout(self.scrollAreaWidget)
-        self.scrollAreaWidget.setLayout(self.gridLayout)
+        # Editor frame (right side)
+        self.editorFrame = QFrame()
+        self.editorFrame.setObjectName("editorFrame")
+        self.editorFrame.setFrameShape(QFrame.Shape.StyledPanel)
+
+        # Editor frame size policy
+        editorFrameSizePolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        editorFrameSizePolicy.setHorizontalStretch(10)
+        editorFrameSizePolicy.setVerticalStretch(0)
+        self.editorFrame.setSizePolicy(editorFrameSizePolicy)
+
+        # Centered grid layout for editor frame
+        self.gridLayout = CenterGridLayout(self.mainActionButton, self.editorFrame)
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName("gridLayout")
+        self.gridLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.editorFrame.setLayout(self.gridLayout)
 
-        # Main action button (center)
-        self.mainActionButton = QPushButton(self.scrollAreaWidget)
-        self.mainActionButton.setObjectName("mainActionButton")
-        mainActionPolicy = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
-        self.mainActionButton.setSizePolicy(mainActionPolicy)
-        self.mainActionButton.setMaximumSize(QSize(200, 200))
-        self.mainActionButton.setText("Action")
-        self.gridLayout.addWidget(self.mainActionButton, 0, 0)
-
-        self.scrollArea.setWidget(self.scrollAreaWidget)
-        self.mainLayout.addWidget(self.scrollArea)
+        self.mainLayout.addWidget(self.editorFrame)
 
         self.retranslateUi(dialog)
         QMetaObject.connectSlotsByName(dialog)
