@@ -115,8 +115,8 @@ class GUITable:
 
 def mainWindowScript(main_window: "Launkey"):
     # REMOVE for testing popup
-    #openEditTemplatePopup(main_window)
-    #return
+    openEditTemplatePopup(main_window)
+    return
 
     main_window.ui.buttonAddPreset.clicked.connect(lambda: openEditTemplatePopup(main_window))
 
