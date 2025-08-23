@@ -1,10 +1,16 @@
+import importlib.metadata
+import sys
 import asyncio
-from typing import TYPE_CHECKING, Optional
 import keyboard
-import launchpad_py as launchpad
-#from PySide6 import QtAsyncio
-from PySide6 import QtWidgets, QtGui
 
+from typing import TYPE_CHECKING, Optional
+from PySide6 import QtAsyncio
+from PySide6.QtCore import (QEvent)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QTableWidgetItem, QMessageBox, QDialog)
+from PySide6.QtGui import (QColor)
+import launchpad_py as launchpad
+
+from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
 
 if TYPE_CHECKING:
@@ -14,6 +20,7 @@ class LaunchpadWrapper:
     def __init__(self, main_window: "Launkey"):
         self.lp = launchpad.Launchpad()
         self.guiTable = GUITable(main_window)
+        self._sync_task = None
 
     def connect(self) -> bool:
         if self.lp.Check():
@@ -23,16 +30,19 @@ class LaunchpadWrapper:
             return True
         return False
 
-    def changeLedsRapid(self, frame: list[tuple], autoMap: Optional[list[tuple]] = None):
+    def start_sync(self):
+        if self._sync_task is None:
+            self._sync_task = asyncio.create_task(self.guiTable.sync())
+
+    def changeLedsRapid(self, frame: list[tuple[int, int]], autoMap: Optional[list[tuple[int, int]]] = None):
         if autoMap is None:
             autoMap = [(0, 0)] * 16
         combined_frame = frame + autoMap
-        # format the frame for rapid update with LedGetColor()
         formatted_frame = [self.lp.LedGetColor(x, y) for x, y in combined_frame]
         self.lp.LedCtrlRawRapid(formatted_frame)
         self.lp.LedCtrlRawRapidHome()
-        self.guiTable.frame[:] = frame[:]
-        self.guiTable.autoMap[:] = autoMap[:]
+        # Aktualizuj GUI tylko jeśli dane się zmieniły
+        self.guiTable.update_frame(frame, autoMap)
 
     def reset(self):
         self.lp.Reset()
@@ -40,18 +50,23 @@ class LaunchpadWrapper:
 
     def stop(self):
         self.reset()
-        self.guiTable.frame = [(0, 0)] * 64
-        self.guiTable.autoMap = [(0, 0)] * 16
         self.guiTable.clearAndEnable()
+        if self._sync_task:
+            self._sync_task.cancel()
+        self._sync_task = None
 
 class GUITable:
     def __init__(self, main_window: "Launkey"):
-        self.main_window = main_window
+        self.main_window: Launkey = main_window
         # (red, green) tuples for each LED on the launchpad
         # intensity from 0 to 3 for each color
-        self.frame = [(0, 0)] * 64 
-        self.autoMap = [(0, 0)] * 16
+        self.frame: list[tuple[int, int]] = [(0, 0)] * 64 
+        self.autoMap: list[tuple[int, int]] = [(0, 0)] * 16
         # first 8 LEDs are on the left and the next 8 LEDs are on the top
+
+    def update_frame(self, frame, autoMap):
+        self.frame[:] = frame[:]
+        self.autoMap[:] = autoMap[:]
 
     async def sync(self):
         # disable the table to prevent user interaction during updates
@@ -63,26 +78,26 @@ class GUITable:
             for row in range(8):
                 for col in range(8):
                     value = self.frame[row * 8 + col]
-                    item = QtWidgets.QTableWidgetItem()
+                    item = QTableWidgetItem()
                     # Set background color based on value (red, green)
                     r, g = value
-                    color = QtGui.QColor(85 * r, 85 * g, 0)
+                    color = QColor(85 * r, 85 * g, 0)
                     item.setBackground(color)
                     self.main_window.ui.tableLaunchpad.setItem(row + 1, col, item)
             # Update the GUI table with autoMap values (right column)
             for row in range(8):
                 value = self.autoMap[row]
-                item = QtWidgets.QTableWidgetItem()
+                item = QTableWidgetItem()
                 r, g = value
-                color = QtGui.QColor(85 * r, 85 * g, 0)
+                color = QColor(85 * r, 85 * g, 0)
                 item.setBackground(color)
                 self.main_window.ui.tableLaunchpad.setItem(row + 1, 8, item)
             # Update the GUI table with autoMap values (top row)
             for col in range(8):
                 value = self.autoMap[col + 8]
-                item = QtWidgets.QTableWidgetItem()
+                item = QTableWidgetItem()
                 r, g = value
-                color = QtGui.QColor(85 * r, 85 * g, 0)
+                color = QColor(85 * r, 85 * g, 0)
                 item.setBackground(color)
                 self.main_window.ui.tableLaunchpad.setItem(0, col, item)
 
@@ -93,15 +108,15 @@ class GUITable:
             for col in range(9):
                 if row == 0 and col == 8:
                     continue
-                item = QtWidgets.QTableWidgetItem()
-                item.setBackground(QtGui.QColor(255, 255, 255, 0))
+                item = QTableWidgetItem()
+                item.setBackground(QColor(255, 255, 255, 0))
                 self.main_window.ui.tableLaunchpad.setItem(row, col, item)
         self.main_window.ui.tableLaunchpad.setEnabled(True)
 
 def mainWindowScript(main_window: "Launkey"):
     # REMOVE for testing popup
-    openEditTemplatePopup(main_window)
-    return
+    #openEditTemplatePopup(main_window)
+    #return
 
     main_window.ui.buttonAddPreset.clicked.connect(lambda: openEditTemplatePopup(main_window))
 
@@ -113,7 +128,7 @@ def mainWindowScript(main_window: "Launkey"):
     else:
         main_window.ui.statusbar.showMessage("Launchpad not found")
         main_window.ui.tableLaunchpad.setEnabled(False)
-        QtWidgets.QMessageBox.critical(
+        QMessageBox.critical(
             main_window,
             "Launchpad Error",
             "Launchpad not found. Please close the app to connect to the Launchpad."
@@ -126,8 +141,8 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     if main_window.ui.buttonRun.text() == "Run":
         main_window.ui.buttonRun.setText("Stop")
         main_window.ui.statusbar.showMessage("Running...")
+        lpWrapper.start_sync()
         asyncio.create_task(async_test(lpWrapper), name="async_test_loop") # REMOVE
-        asyncio.create_task(lpWrapper.guiTable.sync(), name="sync_table_loop")
         print("Started Launkey controller")
         return
     main_window.ui.buttonRun.setText("Run")
@@ -178,7 +193,7 @@ async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
         lpWrapper.reset()
 
 def openEditTemplatePopup(main_window: "Launkey"):
-    dialog = QtWidgets.QDialog(main_window)
+    dialog = QDialog(main_window)
     ui = Ui_Dialog()
     ui.setupUi(dialog)
     dialog.setWindowTitle("Edit Template")

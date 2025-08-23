@@ -1,18 +1,18 @@
 """
 Control your game with Launchpad
 """
-
 import importlib.metadata
 import sys
 
-from PySide6 import QtWidgets, QtAsyncio
+from PySide6 import QtAsyncio
+from PySide6.QtCore import (QEvent)
+from PySide6.QtWidgets import (QApplication, QMainWindow)
 import launchpad_py as launchpad
 
 from .ui_mainwindow import Ui_MainWindow
 from .mainwindow import mainWindowScript
 
-
-class Launkey(QtWidgets.QMainWindow):
+class Launkey(QMainWindow):
     def __init__(self):
         super(Launkey, self).__init__()
         self.ui = Ui_MainWindow()
@@ -22,7 +22,7 @@ class Launkey(QtWidgets.QMainWindow):
     def set_close(self, close_flag: launchpad.Launchpad):
         self.lpclose = close_flag
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QEvent):
         # Zamknij launchpada przed zamknięciem aplikacji
         if self.lpclose is not None:
             try:
@@ -49,9 +49,9 @@ def main():
     # Retrieve the app's metadata
     metadata = importlib.metadata.metadata(app_module or "launkey")
 
-    QtWidgets.QApplication.setApplicationName(metadata["Launkey"])
+    QApplication.setApplicationName(metadata["Launkey"])
 
-    QtWidgets.QApplication(sys.argv)
+    QApplication(sys.argv)
     main_window = Launkey()
     main_window.show()
     mainWindowScript(main_window)
