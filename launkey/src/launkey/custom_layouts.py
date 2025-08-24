@@ -175,7 +175,8 @@ class CenterGridLayout(QGridLayout):
     def checkIfOutOfBounds(self, x: int, y: int) -> bool:
         return x < 0 or y < 0 or x >= self.cols or y >= self.rows
 
-    def outOfBoundsDirection(self, x: int, y: int) -> tuple[int, int]:
+    @staticmethod
+    def outOfBoundsDirection(x: int, y: int) -> tuple[int, int]:
         # Determine the direction of the out-of-bounds position
         # Input: (-5, 2) -> (-1, 1)
         return (x < 0) * -1, (y < 0) * -1
