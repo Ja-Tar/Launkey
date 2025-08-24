@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QSizePolicy, QWidget
 )
 from .custom_layouts import CenterGridLayout
+from .custom_widgets import SquareButton, PlusButton
 
 class Ui_Dialog:
     """
@@ -40,11 +41,8 @@ class Ui_Dialog:
         self.mainLayout.addWidget(self.separator)
 
         # Main action button (center, square)
-        self.mainActionButton = QPushButton()
+        self.mainActionButton = SquareButton("Action")
         self.mainActionButton.setObjectName("mainActionButton")
-        mainActionPolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        self.mainActionButton.setSizePolicy(mainActionPolicy)
-        self.mainActionButton.setText("Action")
 
         # Editor frame (right side)
         self.editorFrame = QFrame()
@@ -59,9 +57,6 @@ class Ui_Dialog:
 
         # Centered grid layout for editor frame
         self.gridLayout = CenterGridLayout(self.mainActionButton, self.editorFrame)
-        self.gridLayout.setSpacing(0)
-        self.gridLayout.setObjectName("gridLayout")
-        self.gridLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.editorFrame.setLayout(self.gridLayout)
 
         self.mainLayout.addWidget(self.editorFrame)

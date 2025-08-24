@@ -1,5 +1,7 @@
-from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton, QSizePolicy, QSpacerItem
 from PySide6.QtCore import Qt, QSize
+
+from .custom_widgets import PlusButton, SquareButton
 
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
@@ -50,57 +52,37 @@ class CenterGridLayout(QGridLayout):
         super().__init__(parent)
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)
+        self.setObjectName("gridLayout")
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.rows = 3
         self.cols = 3
         self.mainWidget = mainWidget
         self.mainWidgetLocation = (1, 1) # default on 3x3
-        super().addWidget(self.mainWidget, *self.mainWidgetLocation)
-        self.setMinimumCellSize(self._minCellSize())
+        super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignCenter)
 
         self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (x, y))
         self.plusButtonWidgets: list[tuple[QPushButton, tuple[int, int]]] = []  # (button, (x, y))
-        self.autoAddPlusButtons()
-    
-    def heightForWidth(self, arg__1: int) -> int:
-        height = arg__1
-        return height
-
-    def hasHeightForWidth(self) -> bool:
-        return True
+        self.update_layout()
 
     def addWidget(self, widget: QWidget, x: int, y: int):
         if (x, y) == self.mainWidgetLocation:
             raise ValueError("Cannot add widget at the main widget location.")
-        
-        super().addWidget(widget, x, y)
-        self.otherWidgets.append((widget, (x, y)))
-        self.update_layout()
 
-    def clear(self):
-        self.otherWidgets = []
-        self.clearPlusButtons()
+        super().addWidget(widget, x, y, Qt.AlignmentFlag.AlignCenter)
+        self.otherWidgets.append((widget, (x, y)))
         self.update_layout()
 
     def update_layout(self):
         if self.mainWidget is None:
             return
-
-        self.setMinimumCellSize(self._minCellSize())
-        self.moveAllWidgets()
+        self.stretchToFill()
         self.autoAddPlusButtons()
-
-    def moveAllWidgets(self):
-        for widget, (x, y) in self.otherWidgets + self.plusButtonWidgets + [(self.mainWidget, self.mainWidgetLocation)]:
-            self.removeWidget(widget)
-            super().addWidget(widget, x, y)
 
     def autoAddPlusButtons(self):
         widgetsList: list[tuple[QWidget, tuple[int, int]]] = [
             (self.mainWidget, self.mainWidgetLocation)
         ] + self.otherWidgets
-
-        buttonsSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
         for widget, (x, y) in widgetsList:
             # add buttons to 8 places around widget
@@ -108,12 +90,11 @@ class CenterGridLayout(QGridLayout):
                 for dy in [-1, 0, 1]:
                     if dx == 0 and dy == 0:
                         continue
-                    if self.checkCellIfEmpty(x + dx, y + dy):
-                        plusButton = QPushButton("+", self.parentWidget())
-                        plusButton.setSizePolicy(buttonsSizePolicy)
-                        dynamicSize = self._minCellSize()
-                        plusButton.setMinimumSize(QSize(50, 50))
-                        plusButton.setMaximumSize(dynamicSize.width() // 4, dynamicSize.height() // 4)
+                    if self.checkIfOutOfBounds(x + dx, y + dy):
+                        print(f"Out of bounds: {(x + dx, y + dy)}")
+                        continue
+                    if self.checkIfEmpty(x + dx, y + dy):
+                        plusButton = PlusButton(self.parentWidget())
                         plusButton.clicked.connect(lambda _, btn=plusButton: self._plusButtonAction(btn))
                         self.plusButtonWidgets.append((plusButton, (x + dx, y + dy)))
                         super().addWidget(plusButton, x + dx, y + dy, Qt.AlignmentFlag.AlignCenter)
@@ -130,14 +111,13 @@ class CenterGridLayout(QGridLayout):
         btnRelativePosition = self.getRelativePosition(button)
         btnNumber = len(self.otherWidgets) + 1
 
-        newActionButton = QPushButton(self.parentWidget())
+        newActionButton = SquareButton(f"Action{btnNumber}", self.parentWidget())
         newActionButton.setObjectName(f"newActionButton{btnNumber}")
         newActionButton.setText(f"Action{btnNumber}")
-        newActionPolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        newActionButton.setSizePolicy(newActionPolicy)
 
         self.replaceWithWidget(button, newActionButton)
-        self.growGridIfMinus(btnRelativePosition)
+        self.update_layout()
+        #self.growGridIfMinus(btnRelativePosition)
 
     def growGridIfMinus(self, direction: tuple[int, int]):
         # Grow the grid in the negative direction
@@ -174,19 +154,17 @@ class CenterGridLayout(QGridLayout):
 
         return (0, 0)
 
-    def checkCellIfEmpty(self, x: int, y: int) -> bool:
+    def checkIfOutOfBounds(self, x: int, y: int) -> bool:
+        return x < 0 or y < 0 or x >= self.cols or y >= self.rows
+
+    def checkIfEmpty(self, x: int, y: int) -> bool:
         for widget, pos in self.otherWidgets + [(self.mainWidget, self.mainWidgetLocation)] + self.plusButtonWidgets:
             if pos[0] == x and pos[1] == y:
                 return False
         return True
 
-    def _minCellSize(self):
-        currentSize = self.parentWidget().size() if self.parentWidget() else QSize(800, 600)
-        squareSize = min(currentSize.width() // self.cols, currentSize.height() // self.rows)
-        return QSize(squareSize, squareSize)
-    
-    def setMinimumCellSize(self, cellSize: QSize):
+    def stretchToFill(self):
         for i in range(self.cols):
-            self.setColumnMinimumWidth(i, cellSize.width())
+            self.setColumnStretch(i, 1)
         for i in range(self.rows):
-            self.setRowMinimumHeight(i, cellSize.height())
+            self.setRowStretch(i, 1)
