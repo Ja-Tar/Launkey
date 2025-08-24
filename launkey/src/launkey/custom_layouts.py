@@ -41,7 +41,7 @@ class DynamicGridLayout(QGridLayout):
             self.num_cols = new_num_cols
 
         row = col = 0
-        for widget, rowSpan, colSpan, alignment in self.items:
+        for widget, rowSpan, colSpan, _ in self.items:
             widget.setFixedHeight(
                 item_width * self.min_row_height // self.min_col_width
             )
@@ -107,7 +107,7 @@ class CenterGridLayout(QGridLayout):
 
     def autoAddPlusButtons(self):
         widgetsList = self.getAllWidgets()
-        for widget, (x, y) in widgetsList:
+        for _, (x, y) in widgetsList:
             # add buttons to 8 places around widget
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
@@ -182,7 +182,7 @@ class CenterGridLayout(QGridLayout):
         return (x < 0) * -1, (y < 0) * -1
 
     def checkIfEmpty(self, x: int, y: int) -> bool:
-        for widget, pos in self.getAllWidgets() + self.plusButtonWidgets:
+        for _, pos in self.getAllWidgets() + self.plusButtonWidgets:
             if pos[0] == x and pos[1] == y:
                 return False
         return True
