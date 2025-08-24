@@ -1,4 +1,4 @@
-briefcase==0.3.23
+briefcase==0.3.24
 keyboard==0.13.5
 launchpad_py==0.9.1
 pygame==2.6.1
