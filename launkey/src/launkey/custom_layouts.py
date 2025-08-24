@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt
 
 from .custom_widgets import PlusButton, SquareButton
 
+
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
     def __init__(self, parent=None, min_col_width=360, min_row_height=116):
@@ -17,7 +18,8 @@ class DynamicGridLayout(QGridLayout):
 
     def eventFilter(self, obj, event):
         from PySide6.QtCore import QEvent
-        if obj is self.parentWidget() and event.type() == QEvent.Resize: # type: ignore
+
+        if obj is self.parentWidget() and event.type() == QEvent.Resize:  # type: ignore
             self.update_layout()
         return super().eventFilter(obj, event)
 
@@ -40,15 +42,18 @@ class DynamicGridLayout(QGridLayout):
 
         row = col = 0
         for widget, rowSpan, colSpan, alignment in self.items:
-            widget.setFixedHeight(item_width * self.min_row_height // self.min_col_width)
+            widget.setFixedHeight(
+                item_width * self.min_row_height // self.min_col_width
+            )
             super().addWidget(widget, row, col, rowSpan, colSpan)
             col += 1
             if col >= self.num_cols:
                 col = 0
                 row += 1
 
+
 class CenterGridLayout(QGridLayout):
-    def __init__(self, mainWidget: QWidget, parent = None):
+    def __init__(self, mainWidget: QWidget, parent=None):
         super().__init__(parent)
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)
@@ -58,14 +63,14 @@ class CenterGridLayout(QGridLayout):
         self.rows = 3
         self.cols = 3
         self.mainWidget = mainWidget
-        self.mainWidgetLocation = (1, 1) # default on 3x3
+        self.mainWidgetLocation = (1, 1)  # default on 3x3
         super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignBaseline)
 
         self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (x, y))
         self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (x, y))
         self.updateLayout()
 
-    def getAllWidgets(self) -> list[tuple[QWidget, tuple[int, int]]]: 
+    def getAllWidgets(self) -> list[tuple[QWidget, tuple[int, int]]]:
         # Plus buttons are automatically generated so only main and other widgets are included
         return [(self.mainWidget, self.mainWidgetLocation)] + self.otherWidgets
 
@@ -75,7 +80,7 @@ class CenterGridLayout(QGridLayout):
         x: int,
         y: int,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignBaseline,
-        addToList: list[tuple[QWidget, tuple[int, int]]] | None = None
+        addToList: list[tuple[QWidget, tuple[int, int]]] | None = None,
     ):
         if (x, y) == self.mainWidgetLocation:
             raise ValueError("Cannot add widget at the main widget location.")
@@ -86,7 +91,9 @@ class CenterGridLayout(QGridLayout):
 
         if self.checkIfOutOfBounds(x, y):
             outOfBoundsDirection = self.outOfBoundsDirection(x, y)
-            print(f"Widget {widget} is out of bounds at ({x}, {y}). Direction: {outOfBoundsDirection}")
+            print(
+                f"Widget {widget} is out of bounds at ({x}, {y}). Direction: {outOfBoundsDirection}"
+            )
             # ADD MORE LOGIC HERE
             # ONLY HERE USE super().addWidget
         else:
@@ -105,9 +112,17 @@ class CenterGridLayout(QGridLayout):
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
                     plusButton = PlusButton()
-                    plusButton.clicked.connect(lambda _, btn=plusButton: self._plusButtonAction(btn))
+                    plusButton.clicked.connect(
+                        lambda _, btn=plusButton: self._plusButtonAction(btn)
+                    )
                     try:
-                        self.addWidget(plusButton, x + dx, y + dy, Qt.AlignmentFlag.AlignCenter, self.plusButtonWidgets)
+                        self.addWidget(
+                            plusButton,
+                            x + dx,
+                            y + dy,
+                            Qt.AlignmentFlag.AlignCenter,
+                            self.plusButtonWidgets,
+                        )
                     except ValueError:
                         continue
 
@@ -116,10 +131,18 @@ class CenterGridLayout(QGridLayout):
         newActionButton = SquareButton(f"Action{btnNumber}")
         newActionButton.setObjectName(f"newActionButton{btnNumber}")
         newActionButton.setText(f"Action{btnNumber}")
-        self.replaceWidget(button, newActionButton, self.plusButtonWidgets, self.otherWidgets)
+        self.replaceWidget(
+            button, newActionButton, self.plusButtonWidgets, self.otherWidgets
+        )
         self.updateLayout()
 
-    def replaceWidget(self, from_: QWidget, to: QWidget, fromList: list[tuple[QWidget, tuple[int, int]]], toList: list[tuple[QWidget, tuple[int, int]]]) -> bool:
+    def replaceWidget(
+        self,
+        from_: QWidget,
+        to: QWidget,
+        fromList: list[tuple[QWidget, tuple[int, int]]],
+        toList: list[tuple[QWidget, tuple[int, int]]],
+    ) -> bool:
         oldWidgetLocation = self.getPositionOfWidget(from_)
         if oldWidgetLocation:
             from_.deleteLater()
@@ -144,11 +167,14 @@ class CenterGridLayout(QGridLayout):
         widgetPos = self.getPositionOfWidget(widget)
         if widgetPos is None:
             return None
-        return (widgetPos[0] - self.mainWidgetLocation[0], widgetPos[1] - self.mainWidgetLocation[1])
-    
+        return (
+            widgetPos[0] - self.mainWidgetLocation[0],
+            widgetPos[1] - self.mainWidgetLocation[1],
+        )
+
     def checkIfOutOfBounds(self, x: int, y: int) -> bool:
         return x < 0 or y < 0 or x >= self.cols or y >= self.rows
-    
+
     def outOfBoundsDirection(self, x: int, y: int) -> tuple[int, int]:
         # Determine the direction of the out-of-bounds position
         # Input: (-5, 2) -> (-1, 1)
