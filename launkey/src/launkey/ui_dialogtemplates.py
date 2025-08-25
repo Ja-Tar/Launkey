@@ -19,7 +19,7 @@ class Ui_Dialog:
         if not dialog.objectName():
             dialog.setObjectName("Dialog")
         dialog.resize(800, 600)
-        dialog.setMinimumSize(QSize(800, 600))
+        dialog.setMinimumSize(QSize(1000, 600))
 
         # Main horizontal layout
         self.mainLayout = QHBoxLayout(dialog)

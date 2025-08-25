@@ -54,7 +54,7 @@ class DynamicGridLayout(QGridLayout):
 
 
 class CenterGridLayout(QGridLayout):
-    def __init__(self, mainWidget: QWidget, parent=None):
+    def __init__(self, mainWidget: QWidget, parent=None, maxRows: int = 8, maxCols: int = 8):
         super().__init__(parent)
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)
@@ -63,6 +63,8 @@ class CenterGridLayout(QGridLayout):
 
         self.rows = 3
         self.cols = 3
+        self.maxRows = maxRows
+        self.maxCols = maxCols
         self.mainWidget = mainWidget
         self.mainWidgetLocation = (1, 1)  # default on 3x3
         super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignBaseline)
@@ -89,8 +91,10 @@ class CenterGridLayout(QGridLayout):
             addToList = self.otherWidgets
         if not self.checkIfEmpty(x, y):
             return # Cannot add widget at occupied position.
+        if self.checkIfOutOfTable(x, y):
+            return # Cannot add widget out of table bounds.
 
-        if self.checkIfOutOfBounds(x, y):
+        if self.checkIfOutOfCurrentBounds(x, y):
             direction = self.getDirection(x, y)
             if not self.canAddInDirection(direction):
                 # Handle the case where the widget cannot be added in the desired direction
@@ -131,7 +135,7 @@ class CenterGridLayout(QGridLayout):
             # add buttons to 8 places around widget
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
-                    if not self.checkIfEmpty(x + dx, y + dy): # Faster
+                    if not self.checkIfEmpty(x + dx, y + dy) or self.checkIfOutOfTable(x + dx, y + dy): # Faster
                         continue
                     plusButton = PlusButton()
                     plusButton.clicked.connect(
@@ -191,8 +195,11 @@ class CenterGridLayout(QGridLayout):
             widgetPos[1] - self.mainWidgetLocation[1],
         )
 
-    def checkIfOutOfBounds(self, x: int, y: int) -> bool:
+    def checkIfOutOfCurrentBounds(self, x: int, y: int) -> bool:
         return x < 0 or y < 0 or x >= self.rows or y >= self.cols
+
+    def checkIfOutOfTable(self, x: int, y: int) -> bool:
+        return x < 0 or y < 0 or x >= self.maxRows or y >= self.maxCols
 
     def getDirection(self, x: int, y: int) -> tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]:
         # Determine the direction of the out-of-bounds position
