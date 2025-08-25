@@ -114,11 +114,11 @@ class GUITable:
         self.main_window.ui.tableLaunchpad.setEnabled(True)
 
 def mainWindowScript(main_window: "Launkey"):
+    main_window.ui.buttonAddPreset.clicked.connect(lambda: openEditTemplatePopup(main_window))
+
     # REMOVE for testing popup
     openEditTemplatePopup(main_window)
     return
-
-    main_window.ui.buttonAddPreset.clicked.connect(lambda: openEditTemplatePopup(main_window))
 
     lpWrapper = LaunchpadWrapper(main_window)
     if lpWrapper.connect():
