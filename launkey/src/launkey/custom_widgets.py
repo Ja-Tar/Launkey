@@ -7,12 +7,10 @@ class SquareButton(QPushButton):
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.setMinimumSize(QSize(10, 10))
 
-    @staticmethod
-    def hasHeightForWidth() -> bool:
+    def hasHeightForWidth(self) -> bool:
         return True
 
-    @staticmethod
-    def heightForWidth(arg__1: int) -> int:
+    def heightForWidth(self, arg__1: int) -> int:
         return arg__1
 
 class PlusButton(SquareButton):

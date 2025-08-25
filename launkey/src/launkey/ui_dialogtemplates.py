@@ -64,7 +64,6 @@ class Ui_Dialog:
         self.retranslateUi(dialog)
         QMetaObject.connectSlotsByName(dialog)
         
-    @staticmethod
-    def retranslateUi(dialog: QDialog):
+    def retranslateUi(self, dialog: QDialog):
         dialog.setWindowTitle(QCoreApplication.translate("Dialog", "Templates", None))
         # Button texts are set directly in setupUi for clarity
