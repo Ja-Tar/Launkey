@@ -1,5 +1,4 @@
 from typing import Literal
-import logging
 from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton
 from PySide6.QtCore import Qt
 
@@ -91,21 +90,50 @@ class CenterGridLayout(QGridLayout):
             addToList = self.otherWidgets
         if not self.checkIfEmpty(x, y):
             return # Cannot add widget at occupied position.
-        if self.checkIfOutOfTable(x, y):
-            return # Cannot add widget out of table bounds.
 
         if self.checkIfOutOfCurrentBounds(x, y):
             direction = self.getDirection(x, y)
+            if self.checkIfOutOfTable(direction):
+                return # Cannot add widget out of table bounds.
             if not self.canAddInDirection(direction):
                 # Handle the case where the widget cannot be added in the desired direction
                 print(f"Cannot add widget {widget} in direction {direction}.")
+                direction = self.moveWidgets(direction) # direction to add column/row
                 return
             self.addRowOrColumnToList(direction)
 
         super().addWidget(widget, x, y, alignment=alignment)
         if addToList is not None:
             addToList.append((widget, (x, y)))
-        self.updateLayout()
+        #self.updateLayout()
+
+    def moveWidgets(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]:
+        if direction[0] > 0 or direction[1] > 0 or direction == (0, 0):
+            raise RuntimeError(f"Cannot move widgets in {direction} direction.")
+        addedDirection = (0, 0)
+        if direction[0] == -1:
+            # move to widgets right
+            addedDirection = (addedDirection[0] + 1, addedDirection[1])
+        if direction[1] == -1:
+            # move to widgets down
+            addedDirection = (addedDirection[0], addedDirection[1] + 1)
+        for i, (widget, pos) in enumerate(self.otherWidgets):
+            pos = (pos[0] + addedDirection[0], pos[1] + addedDirection[1])
+            self.otherWidgets[i] = (widget, pos)
+        for i, (widget, pos) in enumerate(self.plusButtonWidgets):
+            pos = (pos[0] + addedDirection[0], pos[1] + addedDirection[1])
+            self.plusButtonWidgets[i] = (widget, pos)
+        self.mainWidgetLocation = (
+            self.mainWidgetLocation[0] + addedDirection[0],
+            self.mainWidgetLocation[1] + addedDirection[1],
+        )
+        self.updateWidgetPositions()
+        return addedDirection
+
+    def updateWidgetPositions(self):
+        for i, (widget, pos) in enumerate(self.getAllWidgets()):
+            widget.deleteLater()
+            self.addWidget(widget, pos[0], pos[1])
 
     def canAddInDirection(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> bool:
         if direction == (0, 0):
@@ -135,7 +163,7 @@ class CenterGridLayout(QGridLayout):
             # add buttons to 8 places around widget
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
-                    if not self.checkIfEmpty(x + dx, y + dy) or self.checkIfOutOfTable(x + dx, y + dy): # Faster
+                    if not self.checkIfEmpty(x + dx, y + dy): # Faster
                         continue
                     plusButton = PlusButton()
                     plusButton.clicked.connect(
@@ -197,9 +225,15 @@ class CenterGridLayout(QGridLayout):
 
     def checkIfOutOfCurrentBounds(self, x: int, y: int) -> bool:
         return x < 0 or y < 0 or x >= self.rows or y >= self.cols
-
-    def checkIfOutOfTable(self, x: int, y: int) -> bool:
-        return x < 0 or y < 0 or x >= self.maxRows or y >= self.maxCols
+    
+    def checkIfOutOfTable(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> bool:
+        # if rows are the same as maxRows and we are moving down or up
+        if self.rows >= self.maxRows and direction[0] != 0:
+            return True
+        # if cols are the same as maxCols and we are moving right or left
+        if self.cols >= self.maxCols and direction[1] != 0:
+            return True
+        return False
 
     def getDirection(self, x: int, y: int) -> tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]:
         # Determine the direction of the out-of-bounds position
