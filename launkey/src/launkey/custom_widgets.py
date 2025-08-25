@@ -5,7 +5,7 @@ class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget = None): # type: ignore
         super().__init__(text, parent)
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        self.setMinimumSize(QSize(10, 10))
+        self.setMinimumSize(QSize(60, 60))
 
     def hasHeightForWidth(self) -> bool: # skipcq: PYL-R0201
         return True
@@ -16,3 +16,5 @@ class SquareButton(QPushButton):
 class PlusButton(SquareButton):
     def __init__(self, parent: QWidget = None): # type: ignore
         super().__init__("+", parent)
+        self.setMinimumSize(QSize(30, 30))
+        self.setMaximumSize(QSize(50, 50))

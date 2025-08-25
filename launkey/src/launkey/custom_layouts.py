@@ -1,8 +1,11 @@
+from typing import Literal
+import logging
 from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton
 from PySide6.QtCore import Qt
 
 from .custom_widgets import PlusButton, SquareButton
 
+log = logging.getLogger("rich")
 
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
@@ -83,27 +86,46 @@ class CenterGridLayout(QGridLayout):
         addToList: list[tuple[QWidget, tuple[int, int]]] | None = None,
     ):
         if (x, y) == self.mainWidgetLocation:
-            raise ValueError("Cannot add widget at the main widget location.")
+            return # Cannot add widget at the main widget location.
         if addToList is None:
             addToList = self.otherWidgets
         if not self.checkIfEmpty(x, y):
-            raise ValueError("Cannot add widget at occupied position.")
+            return # Cannot add widget at occupied position.
 
         if self.checkIfOutOfBounds(x, y):
-            outOfBoundsDirection = self.outOfBoundsDirection(x, y)
-            print(
-                f"Widget {widget} is out of bounds at ({x}, {y}). Direction: {outOfBoundsDirection}"
-            )
-            # ADD MORE LOGIC HERE
-            # ONLY HERE USE super().addWidget
-        else:
-            super().addWidget(widget, x, y, alignment=alignment)
-            if addToList is not None:
-                addToList.append((widget, (x, y)))
+            direction = self.getDirection(x, y)
+            if not self.canAddInDirection(direction):
+                # Handle the case where the widget cannot be added in the desired direction
+                log.debug(f"Cannot add widget {widget} in direction {direction}.")
+                return
+            self.addRowOrColumnToList(direction)
+
+        super().addWidget(widget, x, y, alignment=alignment)
+        if addToList is not None:
+            addToList.append((widget, (x, y)))
+        self.updateLayout()
+
+    def canAddInDirection(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> bool:
+        if direction == (0, 0):
+            raise RuntimeError("Widget is out of bounds but direction is (0,0).")
+        if direction[0] == -1 or direction[1] == -1:
+            # Add row above, or column to the left
+            return False
+        elif direction[0] == 1 or direction[1] == 1:
+            # Add row below, or column to the right
+            return True
+        raise ValueError("Unknown direction")
+
+    def addRowOrColumnToList(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]):
+        if direction in [(-1, 0), (0, -1), (-1, -1)]:
+            raise RuntimeError("Invalid direction")
+        self.rows += direction[0] # Update row count
+        self.cols += direction[1] # Update column count
 
     def updateLayout(self):
         self.stretchToFill()
         self.autoAddPlusButtons()
+        self.alignButtonsToWidgets()
 
     def autoAddPlusButtons(self):
         widgetsList = self.getAllWidgets()
@@ -111,20 +133,19 @@ class CenterGridLayout(QGridLayout):
             # add buttons to 8 places around widget
             for dx in [-1, 0, 1]:
                 for dy in [-1, 0, 1]:
+                    if not self.checkIfEmpty(x + dx, y + dy): # Faster
+                        continue
                     plusButton = PlusButton()
                     plusButton.clicked.connect(
                         lambda _, btn=plusButton: self._plusButtonAction(btn)
                     )
-                    try:
-                        self.addWidget(
-                            plusButton,
-                            x + dx,
-                            y + dy,
-                            Qt.AlignmentFlag.AlignCenter,
-                            self.plusButtonWidgets,
-                        )
-                    except ValueError:
-                        continue
+                    self.addWidget(
+                        plusButton,
+                        x + dx,
+                        y + dy,
+                        Qt.AlignmentFlag.AlignCenter,
+                        self.plusButtonWidgets,
+                    )
 
     def _plusButtonAction(self, button: QPushButton):
         btnNumber = len(self.otherWidgets) + 1
@@ -173,13 +194,17 @@ class CenterGridLayout(QGridLayout):
         )
 
     def checkIfOutOfBounds(self, x: int, y: int) -> bool:
-        return x < 0 or y < 0 or x >= self.cols or y >= self.rows
+        return x < 0 or y < 0 or x >= self.rows or y >= self.cols
 
-    @staticmethod
-    def outOfBoundsDirection(x: int, y: int) -> tuple[int, int]:
+    def getDirection(self, x: int, y: int) -> tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]:
         # Determine the direction of the out-of-bounds position
-        # Input: (-5, 2) -> (-1, 1)
-        return (x < 0) * -1, (y < 0) * -1
+        # Input: (-5, 2) -> (-1, 0)
+        # Input: (2, -5) -> (0, -1)
+        dx = -1 if x < 0 else (1 if x >= self.rows else 0)
+        dy = -1 if y < 0 else (1 if y >= self.cols else 0)
+        if dx == 0 and dy == 0:
+            raise RuntimeError("Position is not out of bounds")
+        return (dx, dy)
 
     def checkIfEmpty(self, x: int, y: int) -> bool:
         for _, pos in self.getAllWidgets() + self.plusButtonWidgets:
@@ -192,6 +217,28 @@ class CenterGridLayout(QGridLayout):
             self.setColumnStretch(i, 1)
         for i in range(self.rows):
             self.setRowStretch(i, 1)
+
+    def alignButtonsToWidgets(self):
+        for widget, (x, y) in self.plusButtonWidgets:
+            has_bottom = not self.checkIfEmpty(x - 1, y)
+            has_top = not self.checkIfEmpty(x + 1, y)
+            has_right = not self.checkIfEmpty(x, y - 1)
+            has_left = not self.checkIfEmpty(x, y + 1)
+
+            halign = Qt.AlignmentFlag.AlignHCenter
+            valign = Qt.AlignmentFlag.AlignVCenter
+
+            if has_left and not has_right:
+                halign = Qt.AlignmentFlag.AlignRight
+            elif has_right and not has_left:
+                halign = Qt.AlignmentFlag.AlignLeft
+
+            if has_top and not has_bottom:
+                valign = Qt.AlignmentFlag.AlignBottom
+            elif has_bottom and not has_top:
+                valign = Qt.AlignmentFlag.AlignTop
+
+            self.setAlignment(widget, halign | valign)
 
     # REMOVE =========== OLD FUNCTIONS =================
 

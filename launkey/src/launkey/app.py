@@ -3,14 +3,24 @@ Control your game with Launchpad
 """
 import importlib.metadata
 import sys
+import logging
 
 from PySide6 import QtAsyncio
 from PySide6.QtCore import (QEvent)
 from PySide6.QtWidgets import (QApplication, QMainWindow)
 import launchpad_py as launchpad
+from rich.logging import RichHandler
 
 from .ui_mainwindow import Ui_MainWindow
 from .mainwindow import mainWindowScript
+
+logging.basicConfig(
+    level=logging.DEBUG, # REMOVE 'DEBUG' and CHANGE TO 'INFO'
+    format="%(message)s",
+    handlers=[RichHandler(rich_tracebacks=True, show_time=False)],
+)
+
+log = logging.getLogger("rich")
 
 class Launkey(QMainWindow):
     def __init__(self):
@@ -28,9 +38,9 @@ class Launkey(QMainWindow):
             try:
                 self.lpclose.Reset()
                 self.lpclose.Close()
-                print("Launchpad disconnected successfully.")
+                log.info("Launchpad disconnected successfully.")
             except Exception as e:
-                print(f"Błąd przy zamykaniu Launchpada: {e}")
+                log.error(f"Błąd przy zamykaniu Launchpada: {e}")
         event.accept()
 
 
