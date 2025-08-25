@@ -17,8 +17,6 @@ from .ui_dialogtemplates import Ui_Dialog
 if TYPE_CHECKING:
     from .app import Launkey
 
-log = logging.getLogger("rich")
-
 class LaunchpadWrapper:
     def __init__(self, main_window: "Launkey"):
         self.lp = launchpad.Launchpad()
@@ -146,7 +144,7 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
         main_window.ui.statusbar.showMessage("Running...")
         lpWrapper.start_sync()
         asyncio.create_task(async_test(lpWrapper), name="async_test_loop") # REMOVE
-        log.info("Started Launkey controller")
+        print("Started Launkey controller")
         return
     main_window.ui.buttonRun.setText("Run")
     main_window.ui.statusbar.showMessage("Stopped")

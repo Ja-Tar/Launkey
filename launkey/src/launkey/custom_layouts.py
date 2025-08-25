@@ -5,8 +5,6 @@ from PySide6.QtCore import Qt
 
 from .custom_widgets import PlusButton, SquareButton
 
-log = logging.getLogger("rich")
-
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
     def __init__(self, parent=None, min_col_width=360, min_row_height=116):
@@ -96,7 +94,7 @@ class CenterGridLayout(QGridLayout):
             direction = self.getDirection(x, y)
             if not self.canAddInDirection(direction):
                 # Handle the case where the widget cannot be added in the desired direction
-                log.debug(f"Cannot add widget {widget} in direction {direction}.")
+                print(f"Cannot add widget {widget} in direction {direction}.")
                 return
             self.addRowOrColumnToList(direction)
 
