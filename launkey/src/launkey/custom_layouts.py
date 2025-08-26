@@ -130,7 +130,7 @@ class CenterGridLayout(QGridLayout):
         self.updateWidgetPositions()
         return addedDirection
 
-    def updateWidgetPositions(self):
+    def updateWidgetPositions(self): # TODO use takeAt()
         for i, (widget, pos) in enumerate(self.getAllWidgets()):
             widget.deleteLater()
             self.addWidget(widget, pos[0], pos[1])
