@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QSizePolicy, QWidget
 )
 from .custom_layouts import TemplateGridLayout
-from .custom_widgets import SquareButton, PlusButton
+from .custom_widgets import ToggleButton
 
 class Ui_Dialog:
     """
@@ -41,7 +41,7 @@ class Ui_Dialog:
         self.mainLayout.addWidget(self.separator)
 
         # Main action button (center, square)
-        self.mainActionButton = SquareButton("Action")
+        self.mainActionButton = ToggleButton("ActionMain", "Action")
         self.mainActionButton.setObjectName("mainActionButton")
 
         # Editor frame (right side)
@@ -57,7 +57,6 @@ class Ui_Dialog:
 
         # Centered grid layout for editor frame
         self.gridLayout = TemplateGridLayout(self.mainActionButton, self.editorFrame)
-        print(self.gridLayout)
         self.editorFrame.setLayout(self.gridLayout)
 
         self.mainLayout.addWidget(self.editorFrame)

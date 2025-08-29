@@ -3,7 +3,7 @@ from warnings import deprecated
 from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton
 from PySide6.QtCore import Qt
 
-from .custom_widgets import PlusButton, SquareButton
+from .custom_widgets import PlusButton, ToggleButton
 
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
@@ -54,7 +54,7 @@ class DynamicGridLayout(QGridLayout):
 
 
 class TemplateGridLayout(QGridLayout):
-    def __init__(self, mainWidget: QWidget, parent=None, rows: int = 8, cols: int = 8):
+    def __init__(self, mainWidget: ToggleButton, parent=None, rows: int = 8, cols: int = 8):
         super().__init__(parent)
         self.setContentsMargins(5, 5, 5, 5)
         self.setSpacing(0)
@@ -66,6 +66,7 @@ class TemplateGridLayout(QGridLayout):
         self.mainWidget = mainWidget
         center = rows // 2, cols // 2
         self.mainWidgetLocation = center
+        self.mainWidget.clicked.connect(lambda _: self._actionButtonClick(self.mainWidget.getToggleId()))
         super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignBaseline)
         self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (row, col))
         self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (row, col))
@@ -79,8 +80,10 @@ class TemplateGridLayout(QGridLayout):
             for col in range(self.cols):
                 if (row, col) == self.mainWidgetLocation:
                     layout_str += "[M] "
-                elif (row, col) in self.getOccupiedPositions():
-                    layout_str += "[X] "
+                elif (row, col) in self.getWidgetsPositions():
+                    layout_str += "[W] "
+                elif (row, col) in self.getAddButtonsPositions():
+                    layout_str += "[+] "
                 else:
                     layout_str += "[ ] "
             layout_str += "\n"
@@ -95,25 +98,28 @@ class TemplateGridLayout(QGridLayout):
             for addRow, addCol in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                 if ((row + addRow, col + addCol) not in self.getOccupiedPositions() and (row + addRow, col + addCol) != self.mainWidgetLocation and row + addRow >= 0 and col + addCol >= 0 and row + addRow < self.rows and col + addCol < self.cols):
                     button = PlusButton()
-                    button.clicked.connect(lambda _, r=row + addRow, c=col + addCol: self._plusButtonAction(r, c))
+                    button.clicked.connect(lambda _, r=row + addRow, c=col + addCol: self._plusButtonClick(r, c))
                     super().addWidget(button, row + addRow, col + addCol, Qt.AlignmentFlag.AlignCenter)
                     self.plusButtonWidgets.append((button, (row + addRow, col + addCol)))
 
-    def _plusButtonAction(self, rowBtn: int, colBtn: int):
-        newWidget = SquareButton(f"Action{rowBtn},{colBtn}")
+    def _plusButtonClick(self, rowBtn: int, colBtn: int):
+        newWidget = ToggleButton(f"Btn{rowBtn}{colBtn}", f"Action{rowBtn},{colBtn}")
         # remove widget on right click
         newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        newWidget.customContextMenuRequested.connect(lambda pos: self._actionButtonRemove(rowBtn, colBtn))
+        newWidget.customContextMenuRequested.connect(lambda _: self._actionButtonRemove(rowBtn, colBtn))
+        newWidget.clicked.connect(lambda _: self._actionButtonClick(newWidget.getToggleId()))
         self.addWidget(newWidget, rowBtn, colBtn, alignment=Qt.AlignmentFlag.AlignBaseline)
         self.updateLayout()
 
-    def _actionButtonRemove(self, rowBtn: int, colBtn: int):
-        self.clearPlusButtons()
-        for widget, pos in self.otherWidgets:
-            if pos == (rowBtn, colBtn):
-                widget.setStyleSheet("background-color: darkred;")
-                break
+    def _actionButtonClick(self, toggleId: str):
+        self._unToggleOtherButtons(toggleId)
 
+    def _unToggleOtherButtons(self, toggleId: str):
+        for button, _ in self.getAllWidgets():
+            if isinstance(button, ToggleButton):
+                button.unToggle(toggleId)
+
+    def _actionButtonRemove(self, rowBtn: int, colBtn: int):
         self.clearPlusButtons()
         for widget, pos in self.otherWidgets:
             if pos == (rowBtn, colBtn):
@@ -148,7 +154,6 @@ class TemplateGridLayout(QGridLayout):
         super().addWidget(widget, row, col, rowSpan, colSpan, alignment)
         self.otherWidgets.append((widget, (row, col)))
         self.updateLayout()
-        print(self.__str__())  # REMOVE
 
     def getAllWidgets(self):
         # Plus buttons are automatically generated so only main and other widgets are included
@@ -156,6 +161,12 @@ class TemplateGridLayout(QGridLayout):
 
     def getOccupiedPositions(self) -> set[tuple[int, int]]:
         return {self.mainWidgetLocation} | {pos for _, pos in self.otherWidgets} | {pos for _, pos in self.plusButtonWidgets}
+
+    def getWidgetsPositions(self) -> set[tuple[int, int]]:
+        return {pos for _, pos in self.otherWidgets} | {self.mainWidgetLocation}
+
+    def getAddButtonsPositions(self) -> set[tuple[int, int]]:
+        return {pos for _, pos in self.plusButtonWidgets}
 
     def stretchOccupied(self):
         # Set stretch 1 for occupied, 0 for not occupied
