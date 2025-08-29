@@ -95,12 +95,33 @@ class TemplateGridLayout(QGridLayout):
             for addRow, addCol in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                 if ((row + addRow, col + addCol) not in self.getOccupiedPositions() and (row + addRow, col + addCol) != self.mainWidgetLocation and row + addRow >= 0 and col + addCol >= 0 and row + addRow < self.rows and col + addCol < self.cols):
                     button = PlusButton()
+                    button.clicked.connect(lambda _, r=row + addRow, c=col + addCol: self._plusButtonAction(r, c))
                     super().addWidget(button, row + addRow, col + addCol, Qt.AlignmentFlag.AlignCenter)
                     self.plusButtonWidgets.append((button, (row + addRow, col + addCol)))
 
-    def _plusButtonAction(self):
-        # Define the action for plus buttons
-        pass
+    def _plusButtonAction(self, rowBtn: int, colBtn: int):
+        newWidget = SquareButton(f"Action{rowBtn},{colBtn}")
+        # remove widget on right click
+        newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        newWidget.customContextMenuRequested.connect(lambda pos: self._actionButtonRemove(rowBtn, colBtn))
+        self.addWidget(newWidget, rowBtn, colBtn, alignment=Qt.AlignmentFlag.AlignBaseline)
+        self.updateLayout()
+
+    def _actionButtonRemove(self, rowBtn: int, colBtn: int):
+        self.clearPlusButtons()
+        for widget, pos in self.otherWidgets:
+            if pos == (rowBtn, colBtn):
+                widget.setStyleSheet("background-color: darkred;")
+                break
+
+        self.clearPlusButtons()
+        for widget, pos in self.otherWidgets:
+            if pos == (rowBtn, colBtn):
+                self.removeWidget(widget)
+                widget.deleteLater()
+                self.otherWidgets.remove((widget, pos))
+                break
+        self.updateLayout()
 
     def clearPlusButtons(self):
         for button, pos in self.plusButtonWidgets:
@@ -137,9 +158,14 @@ class TemplateGridLayout(QGridLayout):
         return {self.mainWidgetLocation} | {pos for _, pos in self.otherWidgets} | {pos for _, pos in self.plusButtonWidgets}
 
     def stretchOccupied(self):
-        for row, col in self.getOccupiedPositions():
-            self.setRowStretch(row, 1)
-            self.setColumnStretch(col, 1)
+        # Set stretch 1 for occupied, 0 for not occupied
+        occupied = self.getOccupiedPositions()
+        for row in range(self.rows):
+            self.setRowStretch(row, 1 if any(pos[0] == row for pos in occupied) else 0)
+        for col in range(self.cols):
+            self.setColumnStretch(col, 1 if any(pos[1] == col for pos in occupied) else 0)
+        
+
 
 @deprecated("Use LauncherGridLayout instead")
 class CenterGridLayout(QGridLayout):
