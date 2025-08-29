@@ -16,5 +16,6 @@ class SquareButton(QPushButton):
 class PlusButton(SquareButton):
     def __init__(self, parent: QWidget = None): # type: ignore
         super().__init__("+", parent)
+        self.setObjectName("plusButton")
         self.setMinimumSize(QSize(30, 30))
         self.setMaximumSize(QSize(50, 50))

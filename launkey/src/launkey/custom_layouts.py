@@ -1,4 +1,5 @@
 from typing import Literal
+from warnings import deprecated
 from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton
 from PySide6.QtCore import Qt
 
@@ -52,11 +53,100 @@ class DynamicGridLayout(QGridLayout):
                 row += 1
 
 
+class TemplateGridLayout(QGridLayout):
+    def __init__(self, mainWidget: QWidget, parent=None, rows: int = 8, cols: int = 8):
+        super().__init__(parent)
+        self.setContentsMargins(5, 5, 5, 5)
+        self.setSpacing(0)
+        self.setObjectName("launcherGridLayout")
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.rows = rows
+        self.cols = cols
+        self.mainWidget = mainWidget
+        center = rows // 2, cols // 2
+        self.mainWidgetLocation = center
+        super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignBaseline)
+        self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (row, col))
+        self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (row, col))
+        self.updateLayout()
+
+    def __str__(self) -> str:
+        # Custom string representation for debugging
+        layout_str = f"LauncherGridLayout({self.rows}x{self.cols})\n"
+        # print table
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if (row, col) == self.mainWidgetLocation:
+                    layout_str += "[M] "
+                elif (row, col) in self.getOccupiedPositions():
+                    layout_str += "[X] "
+                else:
+                    layout_str += "[ ] "
+            layout_str += "\n"
+        return layout_str
+
+    def updateLayout(self):
+        self.autoAddPlusButtons()
+        self.stretchOccupied()
+
+    def autoAddPlusButtons(self):
+        for _, (row, col) in self.getAllWidgets():
+            for addRow, addCol in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                if ((row + addRow, col + addCol) not in self.getOccupiedPositions() and (row + addRow, col + addCol) != self.mainWidgetLocation and row + addRow >= 0 and col + addCol >= 0 and row + addRow < self.rows and col + addCol < self.cols):
+                    button = PlusButton()
+                    super().addWidget(button, row + addRow, col + addCol, Qt.AlignmentFlag.AlignCenter)
+                    self.plusButtonWidgets.append((button, (row + addRow, col + addCol)))
+
+    def _plusButtonAction(self):
+        # Define the action for plus buttons
+        pass
+
+    def clearPlusButtons(self):
+        for button, pos in self.plusButtonWidgets:
+            super().removeWidget(button)
+            button.deleteLater()
+        self.plusButtonWidgets.clear()
+
+    def addWidget(
+        self,
+        widget: QWidget,
+        row: int,
+        col: int,
+        rowSpan: int = 1,
+        colSpan: int = 1,
+        alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignCenter,
+    ):
+        self.clearPlusButtons()
+
+        if (row, col) == self.mainWidgetLocation:
+            return  # Cannot add widget at the main widget location.
+        if (row, col) in self.getOccupiedPositions():
+            return  # Cannot add widget at occupied position.
+
+        super().addWidget(widget, row, col, rowSpan, colSpan, alignment)
+        self.otherWidgets.append((widget, (row, col)))
+        self.updateLayout()
+        print(self.__str__())  # REMOVE
+
+    def getAllWidgets(self):
+        # Plus buttons are automatically generated so only main and other widgets are included
+        return [(self.mainWidget, self.mainWidgetLocation)] + self.otherWidgets
+
+    def getOccupiedPositions(self) -> set[tuple[int, int]]:
+        return {self.mainWidgetLocation} | {pos for _, pos in self.otherWidgets} | {pos for _, pos in self.plusButtonWidgets}
+
+    def stretchOccupied(self):
+        for row, col in self.getOccupiedPositions():
+            self.setRowStretch(row, 1)
+            self.setColumnStretch(col, 1)
+
+@deprecated("Use LauncherGridLayout instead")
 class CenterGridLayout(QGridLayout):
     def __init__(self, mainWidget: QWidget, parent=None, maxRows: int = 8, maxCols: int = 8):
         super().__init__(parent)
         self.setContentsMargins(0, 0, 0, 0)
-        self.setSpacing(0)
+        self.setSpacing(5)
         self.setObjectName("gridLayout")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -71,6 +161,12 @@ class CenterGridLayout(QGridLayout):
         self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (x, y))
         self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (x, y))
         self.updateLayout()
+        self.test_function()
+
+    def test_function(self):
+        print("Test function called")
+        self.addWidget(QPushButton("Test Button"), 0, 0)
+        self.addWidget(QPushButton("Test Button 2"), -1, 0)
 
     def getAllWidgets(self) -> list[tuple[QWidget, tuple[int, int]]]:
         # Plus buttons are automatically generated so only main and other widgets are included
@@ -99,6 +195,7 @@ class CenterGridLayout(QGridLayout):
                 # Handle the case where the widget cannot be added in the desired direction
                 print(f"Cannot add widget {widget} in direction {direction}.")
                 direction = self.moveWidgets(direction) # direction to add column/row
+                self.rows, self.cols = self.getNewRowColCounts(direction)
                 return
             self.addRowOrColumnToList(direction)
 
@@ -106,6 +203,17 @@ class CenterGridLayout(QGridLayout):
         if addToList is not None:
             addToList.append((widget, (x, y)))
         #self.updateLayout()
+
+    def getNewRowColCounts(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> tuple[int, int]:
+        if direction == (1, 0):
+            return self.rows + 1, self.cols
+        elif direction == (0, 1):
+            return self.rows, self.cols + 1
+        elif direction == (-1, 0):
+            return self.rows - 1, self.cols
+        elif direction == (0, -1):
+            return self.rows, self.cols - 1
+        raise ValueError("Unknown direction")
 
     def moveWidgets(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]:
         if direction[0] > 0 or direction[1] > 0 or direction == (0, 0):
@@ -131,9 +239,9 @@ class CenterGridLayout(QGridLayout):
         return addedDirection
 
     def updateWidgetPositions(self): # TODO use takeAt()
-        for i, (widget, pos) in enumerate(self.getAllWidgets()):
-            widget.deleteLater()
-            self.addWidget(widget, pos[0], pos[1])
+        for widget, pos in self.getAllWidgets() + self.plusButtonWidgets:
+            pass
+
 
     def canAddInDirection(self, direction: tuple[Literal[-1, 0, 1], Literal[-1, 0, 1]]) -> bool:
         if direction == (0, 0):
@@ -154,28 +262,26 @@ class CenterGridLayout(QGridLayout):
 
     def updateLayout(self):
         self.stretchToFill()
-        self.autoAddPlusButtons()
-        self.alignButtonsToWidgets()
+        # self.autoAddPlusButtons()
+        # self.alignButtonsToWidgets()
 
     def autoAddPlusButtons(self):
         widgetsList = self.getAllWidgets()
         for _, (x, y) in widgetsList:
             # add buttons to 8 places around widget
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    if not self.checkIfEmpty(x + dx, y + dy): # Faster
-                        continue
-                    plusButton = PlusButton()
-                    plusButton.clicked.connect(
-                        lambda _, btn=plusButton: self._plusButtonAction(btn)
-                    )
-                    self.addWidget(
-                        plusButton,
-                        x + dx,
-                        y + dy,
-                        Qt.AlignmentFlag.AlignCenter,
-                        self.plusButtonWidgets,
-                    )
+            for dx, dy in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                plusButton = PlusButton()
+                plusButton.clicked.connect(
+                    lambda _, btn=plusButton: self._plusButtonAction(btn)
+                )
+                plusButton.setObjectName(f"plusButton_{x + dx}_{y + dy}")
+                self.addWidget(
+                    plusButton,
+                    x + dx,
+                    y + dy,
+                    Qt.AlignmentFlag.AlignCenter,
+                    self.plusButtonWidgets,
+                )
 
     def _plusButtonAction(self, button: QPushButton):
         btnNumber = len(self.otherWidgets) + 1
@@ -210,18 +316,9 @@ class CenterGridLayout(QGridLayout):
 
     def getPositionOfWidget(self, widget: QWidget) -> tuple[int, int] | None:
         for w, pos in self.getAllWidgets() + self.plusButtonWidgets:
-            if w == widget:
+            if w is widget:
                 return pos
         return None
-
-    def getRelativePosition(self, widget: QWidget) -> tuple[int, int] | None:
-        widgetPos = self.getPositionOfWidget(widget)
-        if widgetPos is None:
-            return None
-        return (
-            widgetPos[0] - self.mainWidgetLocation[0],
-            widgetPos[1] - self.mainWidgetLocation[1],
-        )
 
     def checkIfOutOfCurrentBounds(self, x: int, y: int) -> bool:
         return x < 0 or y < 0 or x >= self.rows or y >= self.cols

@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QDialog, QFrame, QGridLayout, QHBoxLayout, QListWidget, QPushButton,
     QScrollArea, QSizePolicy, QWidget
 )
-from .custom_layouts import CenterGridLayout
+from .custom_layouts import TemplateGridLayout
 from .custom_widgets import SquareButton, PlusButton
 
 class Ui_Dialog:
@@ -56,7 +56,8 @@ class Ui_Dialog:
         self.editorFrame.setSizePolicy(editorFrameSizePolicy)
 
         # Centered grid layout for editor frame
-        self.gridLayout = CenterGridLayout(self.mainActionButton, self.editorFrame)
+        self.gridLayout = TemplateGridLayout(self.mainActionButton, self.editorFrame)
+        print(self.gridLayout)
         self.editorFrame.setLayout(self.gridLayout)
 
         self.mainLayout.addWidget(self.editorFrame)
