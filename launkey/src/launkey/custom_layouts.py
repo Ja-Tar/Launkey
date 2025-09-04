@@ -74,10 +74,9 @@ class TemplateGridLayout(QGridLayout):
         self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (row, col))
 
         self.optionsList = optionsList
-        self.optionsList.addChild(self.mainWidget.getButtonID(), self.getWidgetPositionRelativeToMain(self.mainWidget), main=True)  # Add initial child
 
         self.updateLayout()
-        self._actionButtonClick(self.mainWidget.getButtonID())
+        self._checkToggleOtherButtons(self.mainWidget.getButtonID())
 
     def __str__(self) -> str:
         # Custom string representation for debugging
@@ -95,6 +94,11 @@ class TemplateGridLayout(QGridLayout):
                     layout_str += "[ ] "
             layout_str += "\n"
         return layout_str
+    
+    def setupOptionsListConnection(self):
+        self.optionsList.gridLayout = self
+        self.optionsList.addChild(self.mainWidget.getButtonID(), self.getWidgetPositionRelativeToMain(self.mainWidget), main=True)  # Add initial child
+        self.optionsList.selectChild(self.mainWidget.getButtonID())
 
     def updateLayout(self):
         self.autoAddPlusButtons()

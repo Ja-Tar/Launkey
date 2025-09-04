@@ -104,7 +104,7 @@ class Ui_Dialog:
 
         # Centered grid layout for editor frame
         self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame)
-        self.optionsList.gridLayout = self.gridLayout  # Link back to options list
+        self.gridLayout.setupOptionsListConnection()
         self.editorFrame.setLayout(self.gridLayout)
 
         self.mainLayout.addWidget(self.editorFrame)

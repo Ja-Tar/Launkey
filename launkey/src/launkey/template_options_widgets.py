@@ -32,13 +32,12 @@ class StringEditWidget(QLineEdit):
             self.editingFinished.emit()
 
 class NameEditWidget(StringEditWidget):
-
     def __init__(
         self,
         text: str,
         property: str,
         objectToChange: object,
-        gridLayout: "TemplateGridLayout",
+        gridLayout: Optional["TemplateGridLayout"] = None,
         parent: QWidget | None = None,
     ):
         super().__init__(text, property, objectToChange, parent)
@@ -52,10 +51,16 @@ class NameEditWidget(StringEditWidget):
             print("Name cannot be empty.")
             self.setText(getattr(objectToChange, property))
             return
-        super().changeObjectProperty(objectToChange, property, newValue)
+        elif not self.gridLayout:
+            print("Grid layout not set, cannot update button text.")
+            return
+        elif newValue == getattr(objectToChange, property):
+            return  # No change
+        setattr(objectToChange, property, newValue)
         button_id = getattr(objectToChange, "buttonID", None)
         if button_id:
             self.gridLayout.updateButtonText(button_id, newValue)
+            print(f"Updated button text for {button_id} to {newValue}")
 
 
 class EnumEditWidget(QComboBox):
@@ -138,16 +143,16 @@ class TemplateOptionsList(QTreeWidget):
         self.setExpandsOnDoubleClick(True)
 
         self.gridLayout: Optional["TemplateGridLayout"] = None
-        self.loadDefaultOptions(template_type)
 
         self.template: Template
         self.templateChildren: dict[str, object] = {}
         self.selectedChildID: str = ""
         self.mainChildID: str = ""
         self.templateType = template_type
+        self.loadDefaultOptions()
 
     def getWidgetForType(self, objectToChange: object, property: str, value: Any) -> QWidget:
-        if property == "name" and self.gridLayout is not None:
+        if property == "name":
             return NameEditWidget(value, property, objectToChange, self.gridLayout)
         elif isinstance(value, str):
             return StringEditWidget(value, property, objectToChange)
@@ -180,7 +185,7 @@ class TemplateOptionsList(QTreeWidget):
     def childTypeOptions(self, child: object) -> None:
         self._addOptions(child, f"{type(child).__name__} settings")
 
-    def loadDefaultOptions(self, template_type: Template.Type) -> None:
+    def loadDefaultOptions(self) -> None:
         # get options from template class
         self.clear()
         self.setStyleSheet(
@@ -196,7 +201,7 @@ class TemplateOptionsList(QTreeWidget):
             """
         )
 
-        self.template = Template(name="Example", type=template_type)
+        self.template = Template(name="Example", type=self.templateType)
         self.templateTypeOptions(self.template)
         self.resizeColumnToContents(0)
         self.header().setStretchLastSection(True)
