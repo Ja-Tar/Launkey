@@ -116,7 +116,7 @@ class GUITable:
         self.main_window.ui.tableLaunchpad.setEnabled(True)
 
 def mainWindowScript(main_window: "Launkey"):
-    main_window.ui.buttonAddPreset.clicked.connect(lambda: newTemplatePopup(main_window))
+    main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
 
     # REMOVE | for testing popup
     newTemplatePopup(main_window)

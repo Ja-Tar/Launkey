@@ -94,39 +94,39 @@ class Ui_MainWindow:
 
         self.horizontalLayout.addWidget(self.verticalFrame)
 
-        # Right panel: Presets group
-        self.groupPresets = QGroupBox(self.centralwidget)
-        self.groupPresets.setObjectName("groupPresets")
+        # Right panel: Template group
+        self.groupTemplates = QGroupBox(self.centralwidget)
+        self.groupTemplates.setObjectName("groupTemplates")
         sizePolicy3 = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         sizePolicy3.setHorizontalStretch(2)
-        self.groupPresets.setSizePolicy(sizePolicy3)
-        self.groupPresets.setAlignment(Qt.AlignTop)
-        # Add layout to groupPresets
-        self.groupPresetsLayout = QVBoxLayout(self.groupPresets)
-        self.groupPresetsLayout.setObjectName("groupPresetsLayout")
-        self.groupPresetsLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.addWidget(self.groupPresets)
+        self.groupTemplates.setSizePolicy(sizePolicy3)
+        self.groupTemplates.setAlignment(Qt.AlignTop)
+        # Add layout to groupTemplates
+        self.groupTemplatesLayout = QVBoxLayout(self.groupTemplates)
+        self.groupTemplatesLayout.setObjectName("groupTemplatesLayout")
+        self.groupTemplatesLayout.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout.addWidget(self.groupTemplates)
 
         MainWindow.setCentralWidget(self.centralwidget)
 
-        # Scroll area for presets
-        self.scrollAreaPresets = QScrollArea(self.groupPresets)
-        self.scrollAreaPresets.setObjectName("scrollAreaPresets")
-        self.scrollAreaPresets.setWidgetResizable(True)
-        self.groupPresetsLayout.addWidget(self.scrollAreaPresets)
+        # Scroll area for templates
+        self.scrollAreaTemplates = QScrollArea(self.groupTemplates)
+        self.scrollAreaTemplates.setObjectName("scrollAreaTemplates")
+        self.scrollAreaTemplates.setWidgetResizable(True)
+        self.groupTemplatesLayout.addWidget(self.scrollAreaTemplates)
 
-        # Add FlowLayout to groupPresets
-        self.contentPresets = QWidget()
-        self.contentPresets.setObjectName("contentPresets")
-        self.gridLayoutPresets = DynamicGridLayout(self.contentPresets, min_col_width=150, min_row_height=130)
-        self.gridLayoutPresets.setSpacing(4)
-        self.contentPresets.setLayout(self.gridLayoutPresets)
-        self.scrollAreaPresets.setWidget(self.contentPresets)
+        # Add FlowLayout to groupTemplates
+        self.contentTemplates = QWidget()
+        self.contentTemplates.setObjectName("contentTemplates")
+        self.gridLayoutTemplates = DynamicGridLayout(self.contentTemplates, min_col_width=150, min_row_height=130)
+        self.gridLayoutTemplates.setSpacing(4)
+        self.contentTemplates.setLayout(self.gridLayoutTemplates)
+        self.scrollAreaTemplates.setWidget(self.contentTemplates)
 
-        # Add "add preset" button
-        self.buttonAddPreset = QPushButton()
-        self.buttonAddPreset.setObjectName("buttonAddPreset")
-        self.gridLayoutPresets.addWidget(self.buttonAddPreset)
+        # Add "add template" button
+        self.buttonAddTemplate = QPushButton()
+        self.buttonAddTemplate.setObjectName("buttonAddTemplate")
+        self.gridLayoutTemplates.addWidget(self.buttonAddTemplate)
 
         # Status bar
         self.statusbar = QStatusBar(MainWindow)
@@ -172,8 +172,8 @@ class Ui_MainWindow:
             self.tableLaunchpad.verticalHeaderItem(i).setText(QCoreApplication.translate("MainWindow", "Button"))
         # Button and group titles
         self.buttonRun.setText(QCoreApplication.translate("MainWindow", "Run"))
-        self.buttonAddPreset.setText(QCoreApplication.translate("MainWindow", "Add Preset"))
-        self.groupPresets.setTitle(QCoreApplication.translate("MainWindow", "Presets"))
+        self.buttonAddTemplate.setText(QCoreApplication.translate("MainWindow", "Add Template"))
+        self.groupTemplates.setTitle(QCoreApplication.translate("MainWindow", "Templates"))
         self.menuConfig.setTitle(QCoreApplication.translate("MainWindow", "Configuration"))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", "Help"))
     # retranslateUi
