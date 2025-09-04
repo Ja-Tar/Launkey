@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 from typing import Any
 from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem, QComboBox, QLineEdit
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QPainter, QColor, QIcon
+from PySide6.QtGui import QPixmap, QPainter, QColor, QIcon, QFocusEvent
 
 from .templates import Template, LED, Button
 
@@ -20,6 +20,16 @@ class StringEditWidget(QLineEdit):
     def changeObjectProperty(self, objectToChange: object, property: str, newValue: Any):
         print(f"Changing string {property} to {newValue}")
         setattr(objectToChange, property, newValue)
+    
+    def focusOutEvent(self, event: QFocusEvent) -> None:
+        if event.reason() == Qt.FocusReason.OtherFocusReason:
+            event.ignore()
+            self.setModified(False)
+            self.setFocus()
+            return
+        super().focusOutEvent(event)
+        if self.isModified():
+            self.editingFinished.emit()
 
 class NameEditWidget(StringEditWidget):
 
@@ -122,6 +132,7 @@ class TemplateOptionsList(QTreeWidget):
         self.setAlternatingRowColors(True)
         self.setSelectionMode(QTreeWidget.SelectionMode.NoSelection)
         self.setEditTriggers(QTreeWidget.EditTrigger.NoEditTriggers)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setRootIsDecorated(True)
         self.setItemsExpandable(True)
         self.setExpandsOnDoubleClick(True)

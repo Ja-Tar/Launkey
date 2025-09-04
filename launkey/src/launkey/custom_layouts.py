@@ -110,8 +110,8 @@ class TemplateGridLayout(QGridLayout):
                     self.plusButtonWidgets.append((button, (row + addRow, col + addCol)))
 
     def _plusButtonClick(self, rowBtn: int, colBtn: int):
-        newWidget = ToggleButton(f"Action{rowBtn},{colBtn}", f"Btn{rowBtn}{colBtn}")
-        
+        newWidget = ToggleButton(f"Button {len(self.otherWidgets) + 2}", f"Btn{rowBtn}{colBtn}")
+
         newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         newWidget.customContextMenuRequested.connect(lambda _: self._actionButtonRemove(rowBtn, colBtn))
         newWidget.clicked.connect(lambda _: self._actionButtonClick(newWidget.getButtonID()))
