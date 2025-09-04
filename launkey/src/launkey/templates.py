@@ -14,6 +14,9 @@ class Button:
         self.keyColor: Tuple[LED, LED] = (LED.OFF, LED.OFF)
         self.keyboardCombo = keyboardCombo
 
+    def __str__(self) -> str:
+        return f"Button(name={self.name}, launchpadKey={self.launchpadKey}, keyColor={self.keyColor}, keyboardCombo={self.keyboardCombo})"
+
 class Template:
     class Type(Enum):
         "This is main template type enum"

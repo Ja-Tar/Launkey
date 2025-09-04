@@ -188,7 +188,7 @@ async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
             autoMap = [(0, 0)] * autoMap_length
             # Ustaw pasek na odpowiedniej pozycji
             autoMap = [autoMap_color if i == autoMap_pos else autoMap_off for i in range(autoMap_length)]
-            lpWrapper.changeLedsRapid(frame, autoMap)
+            lpWrapper.changeLedsRapid(frame, autoMap) # type: ignore
             await asyncio.sleep(anim_time)
             autoMap_pos = (autoMap_pos + 1) % autoMap_length
         await asyncio.sleep(0.5)
@@ -229,6 +229,6 @@ def editTemplatePopup(main_window: "Launkey"):
     # TODO load template data into the dialog
     dialog = QDialog(main_window)
     ui = Ui_Dialog()
-    ui.setupUi(dialog)
+    ui.setupUi(dialog) # FIX
     dialog.setWindowTitle("Edit Template")
     dialog.show()

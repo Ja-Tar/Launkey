@@ -3,7 +3,8 @@ from warnings import deprecated
 from PySide6.QtWidgets import QGridLayout, QWidget
 from PySide6.QtCore import Qt
 
-from .custom_widgets import PlusButton, ToggleButton, TemplateOptionsList
+from .custom_widgets import PlusButton, ToggleButton
+from .template_options_widgets import TemplateOptionsList
 
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):

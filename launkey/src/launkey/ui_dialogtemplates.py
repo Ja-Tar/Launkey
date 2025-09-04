@@ -9,7 +9,8 @@ from PySide6.QtWidgets import (
     QSizePolicy, QWidget, QVBoxLayout, QSplitter
 )
 from .custom_layouts import TemplateGridLayout
-from .custom_widgets import ToggleButton, TemplateOptionsList
+from .custom_widgets import ToggleButton
+from .template_options_widgets import TemplateOptionsList
 from .templates import Template
 
 class Ui_Dialog:
@@ -50,7 +51,7 @@ class Ui_Dialog:
         self.mainLayout.addWidget(self.optionsPanel)
 
         # List of templates
-        self.optionsList = TemplateOptionsList(self.optionsPanel)
+        self.optionsList = TemplateOptionsList(template_type, self.optionsPanel)
         optionsPanelLayout.addWidget(self.optionsList)  # type: ignore
 
         # Button separator
