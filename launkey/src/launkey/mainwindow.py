@@ -6,13 +6,14 @@ import logging
 
 from typing import TYPE_CHECKING, Optional
 from PySide6 import QtAsyncio
-from PySide6.QtCore import (QEvent)
-from PySide6.QtWidgets import (QApplication, QMainWindow, QTableWidgetItem, QMessageBox, QDialog)
+from PySide6.QtCore import (QEvent, Qt)
+from PySide6.QtWidgets import (QApplication, QInputDialog, QTableWidgetItem, QMessageBox, QDialog)
 from PySide6.QtGui import (QColor)
 import launchpad_py as launchpad
 
 from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
+from .templates import Template
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -115,10 +116,10 @@ class GUITable:
         self.main_window.ui.tableLaunchpad.setEnabled(True)
 
 def mainWindowScript(main_window: "Launkey"):
-    main_window.ui.buttonAddPreset.clicked.connect(lambda: openEditTemplatePopup(main_window))
+    main_window.ui.buttonAddPreset.clicked.connect(lambda: newTemplatePopup(main_window))
 
     # REMOVE | for testing popup
-    openEditTemplatePopup(main_window)
+    newTemplatePopup(main_window)
     return
 
     lpWrapper = LaunchpadWrapper(main_window)
@@ -193,7 +194,39 @@ async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
         await asyncio.sleep(0.5)
         lpWrapper.reset()
 
-def openEditTemplatePopup(main_window: "Launkey"):
+def selectTemplateTypePopup(main_window: "Launkey"):
+    popup = QInputDialog(main_window)
+    template_type, ok = popup.getItem(
+        main_window,
+        "Select Template Type",
+        "Select the type of template you want to create:",
+        template_types := [t.name for t in Template.Type],
+        current=0,
+        editable=False,
+        flags=Qt.WindowType.WindowStaysOnTopHint
+    )
+
+    if not ok:
+        return None
+    return Template.Type[template_type]
+
+def newTemplatePopup(main_window: "Launkey"):
+    template_type = selectTemplateTypePopup(main_window)
+    if template_type is None:
+        return
+
+    dialog = QDialog(main_window)
+    ui = Ui_Dialog()
+    ui.setupUi(dialog, template_type)
+    dialog.setWindowTitle("New Template")
+    dialog.show()
+
+    if dialog.exec() == QDialog.DialogCode.Accepted:
+        # TODO create new template based on ui.optionsList data
+        print("Template saved")
+
+def editTemplatePopup(main_window: "Launkey"):
+    # TODO load template data into the dialog
     dialog = QDialog(main_window)
     ui = Ui_Dialog()
     ui.setupUi(dialog)

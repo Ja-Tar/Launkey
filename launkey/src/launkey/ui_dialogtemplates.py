@@ -3,19 +3,32 @@
 # This file is no longer auto-generated. You can safely edit it.
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt
+from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent
 from PySide6.QtWidgets import (
-    QDialog, QFrame, QGridLayout, QHBoxLayout, QListWidget, QPushButton,
-    QScrollArea, QSizePolicy, QWidget, QVBoxLayout, QSplitter
+    QDialog, QFrame, QMessageBox, QHBoxLayout, QPushButton, 
+    QSizePolicy, QWidget, QVBoxLayout, QSplitter
 )
 from .custom_layouts import TemplateGridLayout
 from .custom_widgets import ToggleButton, TemplateOptionsList
+from .templates import Template
 
 class Ui_Dialog:
     """
     Main dialog UI for template management in Launkey.
     """
-    def setupUi(self, dialog: QDialog):
+    def __init__(self):
+        self.mainLayout: QHBoxLayout
+        self.optionsPanel: QWidget
+        self.optionsList: TemplateOptionsList
+        self.buttonSeparator: QSplitter
+        self.closeButton: QPushButton
+        self.saveButton: QPushButton
+        self.separator: QFrame
+        self.mainActionButton: ToggleButton
+        self.editorFrame: QFrame
+        self.gridLayout: TemplateGridLayout
+
+    def setupUi(self, dialog: QDialog, template_type: Template.Type):
         if not dialog.objectName():
             dialog.setObjectName("Dialog")
         dialog.resize(800, 600)
@@ -49,7 +62,9 @@ class Ui_Dialog:
         # Close button
         self.closeButton = QPushButton("Close", dialog)
         self.closeButton.setObjectName("closeButton")
+        self.closeButton.setAutoDefault(False)
         self.buttonSeparator.addWidget(self.closeButton)
+        self.closeButton.clicked.connect(lambda: self.closeTemplateEditor(dialog))
 
         # Close button custom style
         self.closeButton.setStyleSheet("background-color: darkred; color: white;")
@@ -57,7 +72,9 @@ class Ui_Dialog:
         # Save button
         self.saveButton = QPushButton("Save", dialog)
         self.saveButton.setObjectName("saveButton")
+        self.saveButton.setAutoDefault(False)
         self.buttonSeparator.addWidget(self.saveButton)
+        self.saveButton.clicked.connect(self.saveTemplate)
 
         # Save button custom style
         self.saveButton.setStyleSheet("background-color: darkgreen; color: white;")
@@ -92,7 +109,34 @@ class Ui_Dialog:
 
         self.retranslateUi(dialog)
         QMetaObject.connectSlotsByName(dialog)
-        
+
+        dialog.closeEvent = lambda event: self.onXButtonClick(event, dialog)
+
     def retranslateUi(self, dialog: QDialog): # skipcq: PYL-R0201
         dialog.setWindowTitle(QCoreApplication.translate("Dialog", "Templates", None))
         # Button texts are set directly in setupUi for clarity
+
+    def saveTemplate(self):
+        # Placeholder for save functionality
+        for obj in self.optionsList.getObjects():
+            print(obj)
+
+    def onXButtonClick(self, event: QEvent, dialog: QDialog):
+        self.closeTemplateEditor(dialog)
+        event.setAccepted(False)
+
+    def closeTemplateEditor(self, dialog: QDialog):
+        areYouSureBox = QMessageBox()
+        areYouSureBox.setIcon(QMessageBox.Icon.Warning)
+        areYouSureBox.setWindowTitle("Close without saving?")
+        areYouSureBox.setText("Are you sure you want to close the editor without saving?")
+        areYouSureBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        areYouSureBox.setDefaultButton(QMessageBox.StandardButton.No)
+        areYouSureBox.setEscapeButton(QMessageBox.StandardButton.No)
+        areYouSureBox.setWindowModality(Qt.WindowModality.ApplicationModal)
+        areYouSureBox.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
+        ret = areYouSureBox.exec()
+        if ret == QMessageBox.StandardButton.Yes:
+            dialog.reject()
+        else:
+            pass

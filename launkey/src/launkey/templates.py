@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Any, Tuple
 from enum import Enum
 
 class LED(Enum):
@@ -16,9 +16,13 @@ class Button:
 
 class Template:
     class Type(Enum):
-        BUTTON = Button
+        "This is main template type enum"
+        BUTTONS = Button
         # TODO Add more types as needed
 
     def __init__(self, name: str, type: Type):
-        self.name = name
-        self.type = type
+        self.name: str = name
+        self.type: Template.Type = type
+
+    def __str__(self) -> str:
+        return f"Template(name={self.name}, type={self.type})"
