@@ -70,9 +70,11 @@ class TemplateGridLayout(QGridLayout):
         self.mainWidget.clicked.connect(lambda _: self._actionButtonClick(self.mainWidget.getButtonID()))
         super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignBaseline)
 
-        self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (row, col))
+        self.otherWidgets: list[tuple[ToggleButton, tuple[int, int]]] = []  # (widget, (row, col))
         self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (row, col))
+
         self.optionsList = optionsList
+        self.optionsList.addChild(self.mainWidget.getButtonID(), self.getWidgetPositionRelativeToMain(self.mainWidget), main=True)  # Add initial child
 
         self.updateLayout()
         self._actionButtonClick(self.mainWidget.getButtonID())
@@ -116,9 +118,11 @@ class TemplateGridLayout(QGridLayout):
         
         self.addWidget(newWidget, rowBtn, colBtn, alignment=Qt.AlignmentFlag.AlignBaseline)
         self.updateLayout()
+        self.optionsList.addChild(newWidget.getButtonID(), self.getWidgetPositionRelativeToMain(newWidget))
 
     def _actionButtonClick(self, buttonID: str):
         self._checkToggleOtherButtons(buttonID)
+        self.optionsList.selectChild(buttonID)
 
     def _checkToggleOtherButtons(self, buttonID: str):
         for button, _ in self.getAllWidgets():
@@ -130,11 +134,13 @@ class TemplateGridLayout(QGridLayout):
         for widget, pos in self.otherWidgets:
             if pos == (rowBtn, colBtn):
                 self._checkToggleOtherButtons(self.mainWidget.getButtonID())
+                self.optionsList.deleteChild(widget.getButtonID())
                 self.removeWidget(widget)
                 widget.deleteLater()
                 self.otherWidgets.remove((widget, pos))
                 break
         self.updateLayout()
+        self.optionsList.selectChild(self.mainWidget.getButtonID())
 
     def clearPlusButtons(self):
         for button, pos in self.plusButtonWidgets:
@@ -144,7 +150,7 @@ class TemplateGridLayout(QGridLayout):
 
     def addWidget(
         self,
-        widget: QWidget,
+        widget: ToggleButton,
         row: int,
         col: int,
         rowSpan: int = 1,
@@ -174,6 +180,18 @@ class TemplateGridLayout(QGridLayout):
 
     def getAddButtonsPositions(self) -> set[tuple[int, int]]:
         return {pos for _, pos in self.plusButtonWidgets}
+    
+    def getWidgetPositionRelativeToMain(self, widget: QWidget) -> tuple[int, int]:
+        for w, pos in self.getAllWidgets():
+            if w == widget:
+                return (pos[0] - self.mainWidgetLocation[0], pos[1] - self.mainWidgetLocation[1])
+        raise ValueError("Widget not found in layout")
+    
+    def updateButtonText(self, buttonID: str, newText: str):
+        for widget, _ in self.getAllWidgets():
+            if isinstance(widget, ToggleButton) and widget.getButtonID() == buttonID:
+                widget.setText(newText)
+                break
 
     def stretchOccupied(self):
         # Set stretch 1 for occupied, 0 for not occupied

@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog
 from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QKeySequence
 
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget = None): # type: ignore
@@ -42,3 +43,13 @@ class ToggleButton(SquareButton):
             self.setChecked(False)
         else:
             self.setChecked(True)
+
+class QDialogNoDefault(QDialog):
+    def __init__(self, parent: QWidget = None): # type: ignore
+        super().__init__(parent)
+
+    def keyPressEvent(self, event):
+        if event.matches(QKeySequence.StandardKey.Cancel):
+            self.reject()
+        else:
+            event.ignore()

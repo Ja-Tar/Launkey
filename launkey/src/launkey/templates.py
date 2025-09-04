@@ -8,14 +8,16 @@ class LED(Enum):
     OFF = 0
 
 class Button:
-    def __init__(self, name: str, launchpadKey: Tuple[int, int], keyboardCombo: str):
+    def __init__(self, name: str, buttonID: str, location: Tuple[int, int]):
         self.name = name
-        self.launchpadKey = launchpadKey
-        self.keyColor: Tuple[LED, LED] = (LED.OFF, LED.OFF)
-        self.keyboardCombo = keyboardCombo
+        self.buttonID = buttonID
+        self.location = location
+        self.normalColor: Tuple[LED, LED] = (LED.FULL, LED.OFF)
+        self.pushedColor: Tuple[LED, LED] = (LED.OFF, LED.FULL)
+        self.keyboardCombo: str = ""
 
     def __str__(self) -> str:
-        return f"Button(name={self.name}, launchpadKey={self.launchpadKey}, keyColor={self.keyColor}, keyboardCombo={self.keyboardCombo})"
+        return f"Button(name={self.name}, location={self.location}, normalColor={self.normalColor}, pushedColor={self.pushedColor}, keyboardCombo={self.keyboardCombo})"
 
 class Template:
     class Type(Enum):

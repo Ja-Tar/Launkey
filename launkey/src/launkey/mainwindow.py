@@ -13,6 +13,7 @@ import launchpad_py as launchpad
 
 from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
+from .custom_widgets import QDialogNoDefault
 from .templates import Template
 
 if TYPE_CHECKING:
@@ -215,19 +216,19 @@ def newTemplatePopup(main_window: "Launkey"):
     if template_type is None:
         return
 
-    dialog = QDialog(main_window)
+    dialog = QDialogNoDefault(main_window)
     ui = Ui_Dialog()
     ui.setupUi(dialog, template_type)
     dialog.setWindowTitle("New Template")
     dialog.show()
 
-    if dialog.exec() == QDialog.DialogCode.Accepted:
+    if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
         # TODO create new template based on ui.optionsList data
         print("Template saved")
 
 def editTemplatePopup(main_window: "Launkey"):
     # TODO load template data into the dialog
-    dialog = QDialog(main_window)
+    dialog = QDialogNoDefault(main_window)
     ui = Ui_Dialog()
     ui.setupUi(dialog) # FIX
     dialog.setWindowTitle("Edit Template")
