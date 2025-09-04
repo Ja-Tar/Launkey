@@ -1,9 +1,9 @@
 from typing import Literal
 from warnings import deprecated
-from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton
+from PySide6.QtWidgets import QGridLayout, QWidget
 from PySide6.QtCore import Qt
 
-from .custom_widgets import PlusButton, ToggleButton
+from .custom_widgets import PlusButton, ToggleButton, TemplateOptionsList
 
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
@@ -54,7 +54,7 @@ class DynamicGridLayout(QGridLayout):
 
 
 class TemplateGridLayout(QGridLayout):
-    def __init__(self, mainWidget: ToggleButton, parent=None, rows: int = 8, cols: int = 8):
+    def __init__(self, mainWidget: ToggleButton, optionsList: TemplateOptionsList, parent=None, rows: int = 8, cols: int = 8):
         super().__init__(parent)
         self.setContentsMargins(5, 5, 5, 5)
         self.setSpacing(0)
@@ -66,11 +66,15 @@ class TemplateGridLayout(QGridLayout):
         self.mainWidget = mainWidget
         center = rows // 2, cols // 2
         self.mainWidgetLocation = center
-        self.mainWidget.clicked.connect(lambda _: self._actionButtonClick(self.mainWidget.getToggleId()))
+        self.mainWidget.clicked.connect(lambda _: self._actionButtonClick(self.mainWidget.getButtonID()))
         super().addWidget(self.mainWidget, *self.mainWidgetLocation, Qt.AlignmentFlag.AlignBaseline)
+
         self.otherWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (widget, (row, col))
         self.plusButtonWidgets: list[tuple[QWidget, tuple[int, int]]] = []  # (button, (row, col))
+        self.optionsList = optionsList
+
         self.updateLayout()
+        self._actionButtonClick(self.mainWidget.getButtonID())
 
     def __str__(self) -> str:
         # Custom string representation for debugging
@@ -103,26 +107,28 @@ class TemplateGridLayout(QGridLayout):
                     self.plusButtonWidgets.append((button, (row + addRow, col + addCol)))
 
     def _plusButtonClick(self, rowBtn: int, colBtn: int):
-        newWidget = ToggleButton(f"Btn{rowBtn}{colBtn}", f"Action{rowBtn},{colBtn}")
-        # remove widget on right click
+        newWidget = ToggleButton(f"Action{rowBtn},{colBtn}", f"Btn{rowBtn}{colBtn}")
+        
         newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         newWidget.customContextMenuRequested.connect(lambda _: self._actionButtonRemove(rowBtn, colBtn))
-        newWidget.clicked.connect(lambda _: self._actionButtonClick(newWidget.getToggleId()))
+        newWidget.clicked.connect(lambda _: self._actionButtonClick(newWidget.getButtonID()))
+        
         self.addWidget(newWidget, rowBtn, colBtn, alignment=Qt.AlignmentFlag.AlignBaseline)
         self.updateLayout()
 
-    def _actionButtonClick(self, toggleId: str):
-        self._unToggleOtherButtons(toggleId)
+    def _actionButtonClick(self, buttonID: str):
+        self._checkToggleOtherButtons(buttonID)
 
-    def _unToggleOtherButtons(self, toggleId: str):
+    def _checkToggleOtherButtons(self, buttonID: str):
         for button, _ in self.getAllWidgets():
             if isinstance(button, ToggleButton):
-                button.unToggle(toggleId)
+                button.checkToggle(buttonID)
 
     def _actionButtonRemove(self, rowBtn: int, colBtn: int):
         self.clearPlusButtons()
         for widget, pos in self.otherWidgets:
             if pos == (rowBtn, colBtn):
+                self._checkToggleOtherButtons(self.mainWidget.getButtonID())
                 self.removeWidget(widget)
                 widget.deleteLater()
                 self.otherWidgets.remove((widget, pos))

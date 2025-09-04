@@ -6,10 +6,10 @@
 from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt
 from PySide6.QtWidgets import (
     QDialog, QFrame, QGridLayout, QHBoxLayout, QListWidget, QPushButton,
-    QScrollArea, QSizePolicy, QWidget
+    QScrollArea, QSizePolicy, QWidget, QVBoxLayout, QSplitter
 )
 from .custom_layouts import TemplateGridLayout
-from .custom_widgets import ToggleButton
+from .custom_widgets import ToggleButton, TemplateOptionsList
 
 class Ui_Dialog:
     """
@@ -25,13 +25,42 @@ class Ui_Dialog:
         self.mainLayout = QHBoxLayout(dialog)
         self.mainLayout.setObjectName("mainLayout")
 
+        # Left panel for options
+        self.optionsPanel = QWidget(dialog)
+        self.optionsPanel.setObjectName("optionsPanel")
+        optionsPanelSizePolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        optionsPanelSizePolicy.setHorizontalStretch(6)
+        self.optionsPanel.setSizePolicy(optionsPanelSizePolicy)
+        optionsPanelLayout = QVBoxLayout()
+        optionsPanelLayout.setContentsMargins(0, 0, 0, 0)
+        self.optionsPanel.setLayout(optionsPanelLayout)
+        self.mainLayout.addWidget(self.optionsPanel)
+
         # List of templates
-        self.templateList = QListWidget(dialog)
-        self.templateList.setObjectName("templateList")
-        templateListPolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        templateListPolicy.setHorizontalStretch(7)
-        self.templateList.setSizePolicy(templateListPolicy)
-        self.mainLayout.addWidget(self.templateList)
+        self.optionsList = TemplateOptionsList(self.optionsPanel)
+        optionsPanelLayout.addWidget(self.optionsList)  # type: ignore
+
+        # Button separator
+        self.buttonSeparator = QSplitter(dialog)
+        self.buttonSeparator.setOrientation(Qt.Orientation.Horizontal)
+        self.buttonSeparator.setObjectName("buttonSeparator")
+        optionsPanelLayout.addWidget(self.buttonSeparator)
+
+        # Close button
+        self.closeButton = QPushButton("Close", dialog)
+        self.closeButton.setObjectName("closeButton")
+        self.buttonSeparator.addWidget(self.closeButton)
+
+        # Close button custom style
+        self.closeButton.setStyleSheet("background-color: darkred; color: white;")
+
+        # Save button
+        self.saveButton = QPushButton("Save", dialog)
+        self.saveButton.setObjectName("saveButton")
+        self.buttonSeparator.addWidget(self.saveButton)
+
+        # Save button custom style
+        self.saveButton.setStyleSheet("background-color: darkgreen; color: white;")
 
         # Vertical separator
         self.separator = QFrame(dialog)
@@ -56,7 +85,7 @@ class Ui_Dialog:
         self.editorFrame.setSizePolicy(editorFrameSizePolicy)
 
         # Centered grid layout for editor frame
-        self.gridLayout = TemplateGridLayout(self.mainActionButton, self.editorFrame)
+        self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame)
         self.editorFrame.setLayout(self.gridLayout)
 
         self.mainLayout.addWidget(self.editorFrame)

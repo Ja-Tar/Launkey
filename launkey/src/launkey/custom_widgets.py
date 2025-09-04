@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton, QSizePolicy, QSpacerItem
+from PySide6.QtWidgets import QGridLayout, QWidget, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem
 from PySide6.QtCore import Qt, QSize
 
 class SquareButton(QPushButton):
@@ -21,7 +21,7 @@ class PlusButton(SquareButton):
         self.setMaximumSize(QSize(50, 50))
 
 class ToggleButton(SquareButton):
-    def __init__(self, text: str, toggleId: str, parent: QWidget = None): # type: ignore
+    def __init__(self, text: str, buttonID: str, parent: QWidget = None): # type: ignore
         super().__init__(text, parent)
         self.setObjectName("toggleButton")
         self.setCheckable(True)
@@ -29,14 +29,33 @@ class ToggleButton(SquareButton):
         self.setStyleSheet("border-color: darkgray; border-width: 1px;")
         self.toggled.connect(self.onToggled)
 
-        self.toggleId = toggleId
+        self.buttonID = buttonID
 
     def onToggled(self, checked: bool):
         self.setStyleSheet("border: 5px solid lightblue; border-width: 5px;" if checked else "border-color: darkgray; border-width: 1px;")
 
-    def getToggleId(self) -> str:
-        return self.toggleId
+    def getButtonID(self) -> str:
+        return self.buttonID
 
-    def unToggle(self, toggleId: str):
-        if self.toggleId != toggleId:
+    def checkToggle(self, buttonID: str):
+        if self.buttonID != buttonID:
             self.setChecked(False)
+        else:
+            self.setChecked(True)
+
+class TemplateOptionsList(QTreeWidget):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        optionsListPolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        optionsListPolicy.setHorizontalStretch(7)
+        self.setSizePolicy(optionsListPolicy)
+        self.setObjectName("optionsList")
+
+        self.setHeaderLabels(["Option", "Value"])
+        self.setAlternatingRowColors(True)
+        self.setSelectionBehavior(QTreeWidget.SelectionBehavior.SelectRows)
+        self.setEditTriggers(QTreeWidget.EditTrigger.NoEditTriggers)
+        self.setRootIsDecorated(True)
+
+    def loadDefaultOptions(self):
+        pass
