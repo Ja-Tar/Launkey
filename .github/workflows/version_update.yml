@@ -1,0 +1,31 @@
+name: Version Update
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version number'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Update Version
+        run: |
+          python .github/workflows/updateversion.py ${{ github.event.inputs.version }}
+
+      - name: Git Auto Commit
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "chore: update version to ${{ github.event.inputs.version }}"
+          file_pattern: "launkey/pyproject.toml"
+          branch: main
+          commit_author: GitHub Actions <actions@github.com>
