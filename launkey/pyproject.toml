@@ -2,7 +2,7 @@
 [tool.briefcase]
 project_name = "Launkey"
 bundle = "com.example"
-version = "0.0.1"
+version = "0.0.3"
 url = "https://example.com/launkey"
 license.file = "LICENSE"
 author = "Ja Tar"
