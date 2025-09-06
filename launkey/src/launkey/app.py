@@ -8,8 +8,10 @@ import logging
 from PySide6 import QtAsyncio
 from PySide6.QtCore import (QEvent)
 from PySide6.QtWidgets import (QApplication, QMainWindow)
+from PySide6.QtGui import (QIcon, QPixmap)
 import launchpad_py as launchpad
 
+from .icon import icon
 from .ui_mainwindow import Ui_MainWindow
 from .mainwindow import mainWindowScript
 
@@ -54,6 +56,13 @@ def main():
 
     QApplication(sys.argv)
     main_window = Launkey()
+    loadAppIcon(main_window)
     main_window.show()
     mainWindowScript(main_window)
     sys.exit(QtAsyncio.run())
+
+def loadAppIcon(main_window):
+    pixmap = QPixmap()
+    pixmap.loadFromData(icon)
+    appIcon = QIcon(pixmap)
+    main_window.setWindowIcon(appIcon)

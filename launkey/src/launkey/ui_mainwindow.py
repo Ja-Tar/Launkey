@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
 
 class Ui_MainWindow:
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow: QMainWindow):
         # Main window setup
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
