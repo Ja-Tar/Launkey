@@ -15,7 +15,29 @@ defaults:
     shell: bash
 
 jobs:
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Update Version
+        env:
+          NEW_VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          python .github/workflows/updateversion.py
+      
+      - name: Git Auto Commit
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "chore: update version to ${{ github.event.release.tag_name }}"
+          file_pattern: "launkey/pyproject.toml"
+          branch: main
+          commit_author: GitHub Actions <actions@github.com>
+
   ci:
+    needs: update-version
     name: Test and Package
     runs-on: ${{ matrix.runs-on }}
     defaults:
