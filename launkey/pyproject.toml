@@ -21,12 +21,12 @@ test_sources = [
 ]
 
 requires = [
-    "PySide6-Essentials~=6.8",
-    "PySide6-Addons~=6.8",
+    "PySide6-Essentials~=6.9",
+    "PySide6-Addons~=6.9",
     "launchpad_py",
     "keyboard",
-    "asyncio",
     "pygame",
+    "regex",
 ]
 test_requires = [
     "pytest",
