@@ -1,7 +1,7 @@
 import os
 import re
 
-PYPROJECT_PATH = "/launkey/pyproject.toml"
+PYPROJECT_PATH = "./launkey/pyproject.toml"
 
 def update_version(new_version):
     with open(PYPROJECT_PATH, "r", encoding="utf-8") as f:
