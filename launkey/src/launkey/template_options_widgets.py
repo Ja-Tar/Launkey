@@ -1,9 +1,11 @@
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 from typing import Any
+
+import regex as re
 from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem, QComboBox, QLineEdit
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QPainter, QColor, QIcon, QFocusEvent
+from PySide6.QtGui import QPixmap, QColor, QIcon, QFocusEvent
 
 from .templates import Template, LED, Button
 
@@ -57,7 +59,7 @@ class NameEditWidget(StringEditWidget):
         elif newValue == getattr(objectToChange, property):
             return  # No change
         setattr(objectToChange, property, newValue)
-        button_id = getattr(objectToChange, "buttonID", None)
+        button_id = getattr(objectToChange, "buttonID")
         if button_id:
             self.gridLayout.updateButtonText(button_id, newValue)
             print(f"Updated button text for {button_id} to {newValue}")
@@ -72,6 +74,12 @@ class EnumEditWidget(QComboBox):
         enumType = type(currentValue)
         for value in enumType:
             self.addItem(value.name, value)
+        
+        if self.count() <= 0:
+            self.setDisabled(True)
+            raise ValueError(f"No enum values found for {enumType}")
+        elif self.count() == 1:
+            self.setDisabled(True)
 
         self.setCurrentText(currentValue.name)
         self.currentIndexChanged.connect(lambda _: self.changeObjectProperty(objectToChange, property, self.currentData()))
@@ -173,17 +181,18 @@ class TemplateOptionsList(QTreeWidget):
 
         for option, value in objVars.items():
             widget = self.getWidgetForType(obj, option, value)
-            item = QTreeWidgetItem([option], type=1)
+            optionName = re.sub( r"([A-Z])", r" \1", option).replace("_", " ").capitalize()
+            item = QTreeWidgetItem([optionName], type=1)
             topWidget.addChild(item)
             self.setItemWidget(item, 1, widget)
 
         self.expandItem(topWidget)
 
     def templateTypeOptions(self, template: Template) -> None:
-        self._addOptions(template, "Template settings")
+        self._addOptions(template, "Template")
 
     def childTypeOptions(self, child: object) -> None:
-        self._addOptions(child, f"{type(child).__name__} settings")
+        self._addOptions(child, f"{type(child).__name__}")
 
     def loadDefaultOptions(self) -> None:
         # get options from template class
@@ -201,7 +210,7 @@ class TemplateOptionsList(QTreeWidget):
             """
         )
 
-        self.template = Template(name="Example", type=self.templateType)
+        self.template = Template(displayName="Example", type=self.templateType)
         self.templateTypeOptions(self.template)
         self.resizeColumnToContents(0)
         self.header().setStretchLastSection(True)
@@ -233,3 +242,6 @@ class TemplateOptionsList(QTreeWidget):
 
     def getObjects(self) -> list[object]:
         return [self.template] + list(self.templateChildren.values())
+    
+    def getTemplateName(self) -> str:
+        return self.template.displayName.strip()

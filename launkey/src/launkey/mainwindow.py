@@ -223,11 +223,11 @@ def newTemplatePopup(main_window: "Launkey"):
     dialog.show()
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
-        # TODO create new template based on ui.optionsList data
+        # TODO load template data into the main window
         print("Template saved")
 
 def editTemplatePopup(main_window: "Launkey"):
-    # TODO load template data into the dialog
+    # TODO load template data into the dialog, with the ability to edit and save changes
     dialog = QDialogNoDefault(main_window)
     ui = Ui_Dialog()
     ui.setupUi(dialog) # FIX

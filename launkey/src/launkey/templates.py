@@ -25,9 +25,9 @@ class Template:
         BUTTONS = Button
         # TODO Add more types as needed
 
-    def __init__(self, name: str, type: Type):
-        self.name: str = name
+    def __init__(self, displayName: str, type: Type):
+        self.displayName: str = displayName
         self.type: Template.Type = type
 
     def __str__(self) -> str:
-        return f"Template(name={self.name}, type={self.type})"
+        return f"Template(displayName={self.displayName}, type={self.type})"

@@ -3,11 +3,15 @@
 # This file is no longer auto-generated. You can safely edit it.
 ################################################################################
 
-from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent
+import pickle
+import os
+
+from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent, QTimer
 from PySide6.QtWidgets import (
     QDialog, QFrame, QMessageBox, QHBoxLayout, QPushButton, 
-    QSizePolicy, QWidget, QVBoxLayout, QSplitter
+    QSizePolicy, QWidget, QVBoxLayout, QSplitter, QProgressDialog
 )
+
 from .custom_layouts import TemplateGridLayout
 from .custom_widgets import ToggleButton
 from .template_options_widgets import TemplateOptionsList
@@ -75,7 +79,7 @@ class Ui_Dialog:
         self.saveButton.setObjectName("saveButton")
         self.saveButton.setAutoDefault(False)
         self.buttonSeparator.addWidget(self.saveButton)
-        self.saveButton.clicked.connect(self.saveTemplate)
+        self.saveButton.clicked.connect(lambda: self.saveTemplate(dialog))
 
         # Save button custom style
         self.saveButton.setStyleSheet("background-color: darkgreen; color: white;")
@@ -118,11 +122,79 @@ class Ui_Dialog:
         dialog.setWindowTitle(QCoreApplication.translate("Dialog", "Templates", None))
         # Button texts are set directly in setupUi for clarity
 
-    def saveTemplate(self):
-        # Placeholder for save functionality
-        for obj in self.optionsList.getObjects():
-            print(obj)
+    def saveTemplate(self, dialog: QDialog):
+        self.ensureTemplatesFolderExists()
+        self.disableUIForSaving()
 
+        templateFileName = self.sterilizeTemplateName(self.optionsList.getTemplateName())
+        if self.isTemplateFilePresent(templateFileName):
+            if not self.askForFileOverwrite(templateFileName):
+                self.enableUIAfterSaving()
+                return
+
+        progress = QProgressDialog("Saving template...", "Cancel", 0, 100, minimumDuration=500)
+        progress.setWindowTitle("Saving")
+
+        self.savePickleData(templateFileName, progress)
+
+        progress.setValue(100)
+
+        dialog.accept()
+
+    def ensureTemplatesFolderExists(self):
+        folder_name = "Templates"
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+            print(f"Created folder: {folder_name}")
+
+    def sterilizeTemplateName(self, name: str) -> str:
+        # Replace spaces to underscores and remove invalid characters
+        name = name.strip().replace(" ", "_")
+        name = "".join(c for c in name if c.isalnum() or c in ('_', '-')).rstrip()
+        return name
+    
+    def isTemplateFilePresent(self, template_name: str) -> bool:
+        print(f"Checking for file overwrite: {template_name}")
+        file_path = os.path.join("Templates", f"{template_name}.pkl")
+        if os.path.exists(file_path):
+            return True
+        return False
+    
+    def askForFileOverwrite(self, template_name: str) -> bool:
+        areYouSureBox = QMessageBox()
+        areYouSureBox.setIcon(QMessageBox.Icon.Warning)
+        areYouSureBox.setWindowTitle("File already exists")
+        areYouSureBox.setText(f"A template named '{template_name}' already exists. Do you want to overwrite it?")
+        areYouSureBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        areYouSureBox.setDefaultButton(QMessageBox.StandardButton.No)
+        areYouSureBox.setEscapeButton(QMessageBox.StandardButton.No)
+        areYouSureBox.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
+        ret = areYouSureBox.exec()
+        if ret == QMessageBox.StandardButton.Yes:
+            return True
+        return False
+    
+    def enableUIAfterSaving(self):
+        self.editorFrame.setDisabled(False)
+        self.optionsList.setDisabled(False)
+
+    def disableUIForSaving(self):
+        self.editorFrame.setDisabled(True)
+        self.optionsList.setDisabled(True)
+
+    def savePickleData(self, templateFileName: str, progress: QProgressDialog):
+        progress.setValue(20)
+        progress.setLabelText("Preparing template...")
+
+        template = self.optionsList.getObjects()
+        progress.setValue(50)
+        progress.setLabelText("Serializing template...")
+        file_path = os.path.join("Templates", f"{templateFileName}.pkl")
+        with open(file_path, 'wb') as file:
+            pickle.dump(template, file)
+        
+        progress.setLabelText("Finalizing...")
+        
     def onXButtonClick(self, event: QEvent, dialog: QDialog):
         self.closeTemplateEditor(dialog)
         event.setAccepted(False)
