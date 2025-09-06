@@ -7,10 +7,9 @@ def update_version(new_version):
     with open(PYPROJECT_PATH, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Match version in [project] or [tool.poetry]
     content_new = re.sub(
-        r'(version\s*=\s*")[^"]+(")',
-        rf'\1{new_version}\2',
+        r"(version\s*=\s*\")[^\"]+(\")",
+        rf"\1{new_version}\2",
         content
     )
 
