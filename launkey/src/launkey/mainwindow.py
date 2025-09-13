@@ -119,10 +119,6 @@ class GUITable:
 def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
 
-    # REMOVE | for testing popup
-    newTemplatePopup(main_window)
-    return
-
     lpWrapper = LaunchpadWrapper(main_window)
     if lpWrapper.connect():
         main_window.ui.statusbar.showMessage("Launchpad connected")
