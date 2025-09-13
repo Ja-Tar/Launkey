@@ -1,5 +1,20 @@
 from typing import Any, Tuple
 from enum import Enum
+from pathlib import Path
+from PySide6.QtCore import QStandardPaths
+
+def ensureTemplatesFolderExists(systemPath: str) -> Path:
+    folderName = "Launkey_Templates"
+    fullPath = Path(systemPath) / folderName
+    if not fullPath.exists():
+        fullPath.mkdir(parents=True, exist_ok=True)
+        print(f"Created folder: {fullPath}")
+    return fullPath
+
+def getTemplateFolderPath() -> Path:
+    pathOnSystem = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
+    fullPath = ensureTemplatesFolderExists(pathOnSystem)
+    return fullPath
 
 class LED(Enum):
     FULL = 3

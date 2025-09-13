@@ -4,7 +4,6 @@
 ################################################################################
 
 import pickle
-import os
 from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent, QStandardPaths
@@ -16,7 +15,7 @@ from PySide6.QtWidgets import (
 from .custom_layouts import TemplateGridLayout
 from .custom_widgets import ToggleButton
 from .template_options_widgets import TemplateOptionsList
-from .templates import Template
+from .templates import Template, getTemplateFolderPath
 
 class Ui_Dialog:
     """
@@ -124,8 +123,7 @@ class Ui_Dialog:
         # Button texts are set directly in setupUi for clarity
 
     def saveTemplate(self, dialog: QDialog):
-        pathOnSystem = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
-        fullPath = self.ensureTemplatesFolderExists(pathOnSystem)
+        fullPath = getTemplateFolderPath()
         self.disableUIForSaving()
         
         templateName = self.optionsList.getTemplateName().strip()
@@ -140,19 +138,12 @@ class Ui_Dialog:
         progress.setWindowTitle("Saving")
         progress.setCancelButton(None)
 
+        pathOnSystem = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
         self.savePickleData(filePath, pathOnSystem, progress)
 
         progress.setValue(100)
 
         dialog.accept()
-
-    def ensureTemplatesFolderExists(self, systemPath: str) -> Path:
-        folderName = "Launkey_Templates"
-        fullPath = Path(systemPath) / folderName
-        if not fullPath.exists():
-            fullPath.mkdir(parents=True, exist_ok=True)
-            print(f"Created folder: {fullPath}")
-        return fullPath
 
     def sterilizeTemplateName(self, name: str) -> str:
         # Replace spaces to underscores and remove invalid characters
