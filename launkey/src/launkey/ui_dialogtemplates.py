@@ -140,7 +140,7 @@ class Ui_Dialog:
         progress.setWindowTitle("Saving")
         progress.setCancelButton(None)
 
-        self.savePickleData(filePath, progress)
+        self.savePickleData(filePath, pathOnSystem, progress)
 
         progress.setValue(100)
 
@@ -186,9 +186,12 @@ class Ui_Dialog:
         self.editorFrame.setDisabled(True)
         self.optionsList.setDisabled(True)
 
-    def savePickleData(self, filePath: Path, progress: QProgressDialog):
+    def savePickleData(self, filePath: Path, pathOnSystem: str, progress: QProgressDialog):
         progress.setValue(20)
         progress.setLabelText("Preparing template...")
+
+        if not str(filePath).startswith(str(pathOnSystem)): # If something went wrong with path
+            raise ValueError("File path is not inside the expected system path.")
 
         template = self.optionsList.getObjects()
         progress.setValue(50)
