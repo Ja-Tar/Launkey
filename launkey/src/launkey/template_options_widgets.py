@@ -16,7 +16,7 @@ class StringEditWidget(QLineEdit):
     def __init__(
         self,
         text: str,
-        property: str,
+        objectProperty: str,
         objectToChange: object,
         parent: QWidget | None = None,
         emptyIsAllowed: bool = True,
@@ -28,17 +28,17 @@ class StringEditWidget(QLineEdit):
         self.setObjectName("textEditWidget")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         if _connect:
-            self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, property, self.text()))
+            self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, objectProperty, self.text()))
 
-    def changeObjectProperty(self, objectToChange: object, property: str, newValue: str):
+    def changeObjectProperty(self, objectToChange: object, objectProperty: str, newValue: str):
         if not self.emptyIsAllowed and not newValue.strip():
             print("Value cannot be empty.")
-            self.setText(getattr(objectToChange, property))
+            self.setText(getattr(objectToChange, objectProperty))
             return
-        elif newValue == getattr(objectToChange, property):
+        elif newValue == getattr(objectToChange, objectProperty):
             return  # No change
-        print(f"Changing string {property} to {newValue}")
-        setattr(objectToChange, property, newValue)
+        print(f"Changing string {objectProperty} to {newValue}")
+        setattr(objectToChange, objectProperty, newValue)
 
     def focusOutEvent(self, event: QFocusEvent) -> None:
         if event.reason() == Qt.FocusReason.OtherFocusReason:
@@ -54,38 +54,38 @@ class NameEditWidget(StringEditWidget):
     def __init__(
         self,
         text: str,
-        property: str,
+        objectProperty: str,
         objectToChange: object,
         gridLayout: Optional["TemplateGridLayout"] = None,
         parent: QWidget | None = None,
     ):
-        super().__init__(text, property, objectToChange, parent, False, _connect=False)
+        super().__init__(text, objectProperty, objectToChange, parent, False, _connect=False)
         self.gridLayout = gridLayout
         self.setObjectName("nameEditWidget")
-        self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, property, self.text()))
+        self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, objectProperty, self.text()))
 
-    def changeObjectProperty(self, objectToChange: object, property: str, newValue: str):
+    def changeObjectProperty(self, objectToChange: object, objectProperty: str, newValue: str):
         if not self.gridLayout:
             print("Grid layout not set, cannot update button text.")
-            self.setText(getattr(objectToChange, property))
+            self.setText(getattr(objectToChange, objectProperty))
             return
         button_id = getattr(objectToChange, "buttonID")
         if button_id:
-            super().changeObjectProperty(objectToChange, property, newValue)
+            super().changeObjectProperty(objectToChange, objectProperty, newValue)
             self.gridLayout.updateButtonText(button_id, newValue)
         else:
             print("Object does not have a buttonID, cannot update button text.")
-            self.setText(getattr(objectToChange, property))
+            self.setText(getattr(objectToChange, objectProperty))
 
 class TemplateNameEditWidget(StringEditWidget):
     def __init__(
         self,
         text: str,
-        property: str,
+        objectProperty: str,
         objectToChange: object,
         parent: QWidget | None = None,
     ):
-        super().__init__(text, property, objectToChange, parent)
+        super().__init__(text, objectProperty, objectToChange, parent)
         
         self.setValidator(
             QRegularExpressionValidator(
@@ -95,7 +95,7 @@ class TemplateNameEditWidget(StringEditWidget):
         self.setObjectName("templateNameEditWidget")
 
 class EnumEditWidget(QComboBox):
-    def __init__(self, currentValue: Enum, property: str, objectToChange: object, parent: QWidget | None = None):
+    def __init__(self, currentValue: Enum, objectProperty: str, objectToChange: object, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("enumEditWidget")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -111,14 +111,14 @@ class EnumEditWidget(QComboBox):
             self.setDisabled(True)
 
         self.setCurrentText(currentValue.name)
-        self.currentIndexChanged.connect(lambda _: self.changeObjectProperty(objectToChange, property, self.currentData()))
+        self.currentIndexChanged.connect(lambda _: self.changeObjectProperty(objectToChange, objectProperty, self.currentData()))
 
-    def changeObjectProperty(self, objectToChange: object, property: str, newValue: Any):
-        print(f"Changing enum {property} to {newValue}")
-        setattr(objectToChange, property, newValue)
+    def changeObjectProperty(self, objectToChange: object, objectProperty: str, newValue: Any):
+        print(f"Changing enum {objectProperty} to {newValue}")
+        setattr(objectToChange, objectProperty, newValue)
 
 class ButtonColorSelector(QComboBox):
-    def __init__(self, currentValue: tuple[int, int], property: str, objectToChange: object, parent: QWidget | None = None):
+    def __init__(self, currentValue: tuple[int, int], objectProperty: str, objectToChange: object, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("buttonColorSelector")
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -151,14 +151,14 @@ class ButtonColorSelector(QComboBox):
             self.addItem(icon, "", value)
         index = self.findData(list(currentValue))
         self.setCurrentIndex(index)
-        self.currentIndexChanged.connect(lambda _: self._changeObjectProperty(objectToChange, property, tuple(self.currentData())))
+        self.currentIndexChanged.connect(lambda _: self._changeObjectProperty(objectToChange, objectProperty, tuple(self.currentData())))
 
-    def _changeObjectProperty(self, objectToChange: object, property: str, newValue: Any):
-        print(f"Changing color {property} to {newValue}")
-        setattr(objectToChange, property, newValue)
+    def _changeObjectProperty(self, objectToChange: object, objectProperty: str, newValue: Any):
+        print(f"Changing color {objectProperty} to {newValue}")
+        setattr(objectToChange, objectProperty, newValue)
 
     def getColorValue(self) -> tuple[int, int]:
-        return self.currentData()  # type: ignore
+        return self.currentData()
 
 class TemplateOptionsList(QTreeWidget):
     propertyIgnoreList = ["location", "buttonID"]
@@ -188,17 +188,17 @@ class TemplateOptionsList(QTreeWidget):
         self.templateType = template_type
         self.loadDefaultOptions()
 
-    def getWidgetForType(self, objectToChange: object, property: str, value: Any) -> QWidget:
-        if objectToChange == self.template and property == "name":
-            return TemplateNameEditWidget(value, property, objectToChange)
-        elif property == "name":
-            return NameEditWidget(value, property, objectToChange, self.gridLayout)
+    def getWidgetForType(self, objectToChange: object, objectProperty: str, value: Any) -> QWidget:
+        if objectToChange == self.template and objectProperty == "name":
+            return TemplateNameEditWidget(value, objectProperty, objectToChange)
+        elif objectProperty == "name":
+            return NameEditWidget(value, objectProperty, objectToChange, self.gridLayout)
         elif isinstance(value, str):
-            return StringEditWidget(value, property, objectToChange)
+            return StringEditWidget(value, objectProperty, objectToChange)
         elif isinstance(value, Enum):
-            return EnumEditWidget(value, property, objectToChange)
+            return EnumEditWidget(value, objectProperty, objectToChange)
         elif isinstance(value, tuple) and all(isinstance(i, LED) for i in value) and len(value) == 2:
-            return ButtonColorSelector(value, property, objectToChange)
+            return ButtonColorSelector(value, objectProperty, objectToChange)
         else:
             raise NotImplementedError(f"Unsupported property type: {type(value)}")
 

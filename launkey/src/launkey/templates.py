@@ -25,7 +25,7 @@ class Template:
         BUTTONS = Button
         # TODO Add more types as needed
 
-    def __init__(self, name: str, type: Type):
+    def __init__(self, name: str, type: Type): # skipcq: PYL-W0622
         self.name: str = name
         self.type: Template.Type = type
 
