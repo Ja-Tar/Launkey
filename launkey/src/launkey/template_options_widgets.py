@@ -4,8 +4,8 @@ from typing import Any
 
 import regex as re
 from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem, QComboBox, QLineEdit
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QColor, QIcon, QFocusEvent
+from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtGui import QPixmap, QColor, QIcon, QFocusEvent, QRegularExpressionValidator
 
 from .templates import Template, LED, Button
 
@@ -13,16 +13,33 @@ if TYPE_CHECKING:
     from .custom_layouts import TemplateGridLayout
 
 class StringEditWidget(QLineEdit):
-    def __init__(self, text: str, property: str, objectToChange: object, parent: QWidget | None = None):
+    def __init__(
+        self,
+        text: str,
+        property: str,
+        objectToChange: object,
+        parent: QWidget | None = None,
+        emptyIsAllowed: bool = True,
+        /,
+        _connect: bool = True,
+    ):
         super().__init__(text, parent)
+        self.emptyIsAllowed = emptyIsAllowed
         self.setObjectName("textEditWidget")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, property, self.text()))
+        if _connect:
+            self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, property, self.text()))
 
-    def changeObjectProperty(self, objectToChange: object, property: str, newValue: Any):
+    def changeObjectProperty(self, objectToChange: object, property: str, newValue: str):
+        if not self.emptyIsAllowed and not newValue.strip():
+            print("Value cannot be empty.")
+            self.setText(getattr(objectToChange, property))
+            return
+        elif newValue == getattr(objectToChange, property):
+            return  # No change
         print(f"Changing string {property} to {newValue}")
         setattr(objectToChange, property, newValue)
-    
+
     def focusOutEvent(self, event: QFocusEvent) -> None:
         if event.reason() == Qt.FocusReason.OtherFocusReason:
             event.ignore()
@@ -42,28 +59,40 @@ class NameEditWidget(StringEditWidget):
         gridLayout: Optional["TemplateGridLayout"] = None,
         parent: QWidget | None = None,
     ):
-        super().__init__(text, property, objectToChange, parent)
+        super().__init__(text, property, objectToChange, parent, False, _connect=False)
         self.gridLayout = gridLayout
         self.setObjectName("nameEditWidget")
-        self.editingFinished.disconnect()
         self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, property, self.text()))
 
-    def changeObjectProperty(self, objectToChange: object, property: str, newValue: Any):
-        if not newValue.strip():
-            print("Name cannot be empty.")
+    def changeObjectProperty(self, objectToChange: object, property: str, newValue: str):
+        if not self.gridLayout:
+            print("Grid layout not set, cannot update button text.")
             self.setText(getattr(objectToChange, property))
             return
-        elif not self.gridLayout:
-            print("Grid layout not set, cannot update button text.")
-            return
-        elif newValue == getattr(objectToChange, property):
-            return  # No change
-        setattr(objectToChange, property, newValue)
         button_id = getattr(objectToChange, "buttonID")
         if button_id:
+            super().changeObjectProperty(objectToChange, property, newValue)
             self.gridLayout.updateButtonText(button_id, newValue)
-            print(f"Updated button text for {button_id} to {newValue}")
+        else:
+            print("Object does not have a buttonID, cannot update button text.")
+            self.setText(getattr(objectToChange, property))
 
+class TemplateNameEditWidget(StringEditWidget):
+    def __init__(
+        self,
+        text: str,
+        property: str,
+        objectToChange: object,
+        parent: QWidget | None = None,
+    ):
+        super().__init__(text, property, objectToChange, parent)
+        
+        self.setValidator(
+            QRegularExpressionValidator(
+                QRegularExpression(r"^[\w\-. ]+$")
+            )
+        )
+        self.setObjectName("templateNameEditWidget")
 
 class EnumEditWidget(QComboBox):
     def __init__(self, currentValue: Enum, property: str, objectToChange: object, parent: QWidget | None = None):
@@ -160,7 +189,9 @@ class TemplateOptionsList(QTreeWidget):
         self.loadDefaultOptions()
 
     def getWidgetForType(self, objectToChange: object, property: str, value: Any) -> QWidget:
-        if property == "name":
+        if objectToChange == self.template and property == "name":
+            return TemplateNameEditWidget(value, property, objectToChange)
+        elif property == "name":
             return NameEditWidget(value, property, objectToChange, self.gridLayout)
         elif isinstance(value, str):
             return StringEditWidget(value, property, objectToChange)
@@ -210,7 +241,7 @@ class TemplateOptionsList(QTreeWidget):
             """
         )
 
-        self.template = Template(displayName="Example", type=self.templateType)
+        self.template = Template(name="Example", type=self.templateType)
         self.templateTypeOptions(self.template)
         self.resizeColumnToContents(0)
         self.header().setStretchLastSection(True)
@@ -244,4 +275,4 @@ class TemplateOptionsList(QTreeWidget):
         return [self.template] + list(self.templateChildren.values())
     
     def getTemplateName(self) -> str:
-        return self.template.displayName.strip()
+        return self.template.name.strip()

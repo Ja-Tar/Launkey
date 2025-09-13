@@ -128,10 +128,11 @@ class Ui_Dialog:
         fullPath = self.ensureTemplatesFolderExists(pathOnSystem)
         self.disableUIForSaving()
         
-        templateFileName = self.sterilizeTemplateName(self.optionsList.getTemplateName())
+        templateName = self.optionsList.getTemplateName().strip()
+        templateFileName = self.sterilizeTemplateName(templateName)
         filePath = fullPath / f"{templateFileName}.pkl"
         if filePath.exists():
-            if not self.askForFileOverwrite(filePath):
+            if not self.askForFileOverwrite(templateName):
                 self.enableUIAfterSaving()
                 return
 
@@ -158,12 +159,16 @@ class Ui_Dialog:
         name = name.strip().replace(" ", "_")
         name = "".join(c for c in name if c.isalnum() or c in ('_', '-')).rstrip()
         return name
+    
+    def recoverOriginalTemplateName(self, fileName: str) -> str:
+        name = fileName.replace("_", " ")
+        return name
 
-    def askForFileOverwrite(self, filePath: Path) -> bool:
+    def askForFileOverwrite(self, templateName: str) -> bool:
         areYouSureBox = QMessageBox()
         areYouSureBox.setIcon(QMessageBox.Icon.Warning)
         areYouSureBox.setWindowTitle("File already exists")
-        areYouSureBox.setText(f"A template named '{filePath.stem}' already exists. Do you want to overwrite it?")
+        areYouSureBox.setText(f"A template named '{templateName}' already exists. Do you want to overwrite it?")
         areYouSureBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         areYouSureBox.setDefaultButton(QMessageBox.StandardButton.No)
         areYouSureBox.setEscapeButton(QMessageBox.StandardButton.No)
