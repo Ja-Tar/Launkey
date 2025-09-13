@@ -32,7 +32,7 @@ def update_version(new_version):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python updateversion.py <new_version>")
-        exit(1)
+        sys.exit()
     new_version = sys.argv[1]
     update_version(new_version)
     print(f"Version updated to {new_version} in {PYPROJECT_PATH}")
