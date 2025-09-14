@@ -228,8 +228,7 @@ class TemplateOptionsList(QTreeWidget):
     def loadDefaultOptions(self) -> None:
         # get options from template class
         self.clear()
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QTreeView::item:selected {
             }
 
@@ -238,8 +237,7 @@ class TemplateOptionsList(QTreeWidget):
 
             QTreeView::item:hover:selected {
             }
-            """
-        )
+            """)
 
         self.template = Template(name="Example", type=self.templateType)
         self.templateTypeOptions(self.template)

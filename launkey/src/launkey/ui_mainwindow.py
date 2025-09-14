@@ -78,17 +78,31 @@ class Ui_MainWindow:
         self.tableLaunchpad.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tableLaunchpad.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.tableLaunchpad.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableLaunchpad.setDragEnabled(False)
-        self.tableLaunchpad.setDragDropMode(QAbstractItemView.DragDropMode.DropOnly)
+        self.tableLaunchpad.setDragEnabled(True)
+        self.tableLaunchpad.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+        self.tableLaunchpad.setDefaultDropAction(Qt.DropAction.MoveAction)
         self.tableLaunchpad.setAlternatingRowColors(True)
-        self.tableLaunchpad.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.tableLaunchpad.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tableLaunchpad.horizontalHeader().setVisible(False)
         self.tableLaunchpad.horizontalHeader().setMinimumSectionSize(30)
         self.tableLaunchpad.horizontalHeader().setDefaultSectionSize(30)
         self.tableLaunchpad.verticalHeader().setVisible(False)
         self.tableLaunchpad.verticalHeader().setHighlightSections(True)
         self.tableLaunchpad.verticalHeader().setStretchLastSection(False)
-        self.tableLaunchpad.setEnabled(False)
+
+        self.tableLaunchpad.setStyleSheet("""
+            QTableWidget::item:selected {
+                background-color: transparent;
+            }
+                                          
+            QTableWidget::item:hover {
+                background-color: transparent;
+            }
+                                          
+            QTableWidget::item:selected:hover {
+                background-color: transparent;
+            }
+        """)
 
         self.verticalLayout.addWidget(self.tableLaunchpad)
 

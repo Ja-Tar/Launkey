@@ -1,10 +1,8 @@
-from typing import TYPE_CHECKING
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QKeySequence, QMouseEvent
 
-if TYPE_CHECKING:
-    from .templates import Template
+from .templates import Template
 
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget | None = None): 
@@ -48,15 +46,6 @@ class ToggleButton(SquareButton):
         else:
             self.setChecked(True)
 
-class TemplateButton(SquareButton):
-    def __init__(self, template: "Template", text: str, parent: QWidget | None = None):
-        super().__init__(text, parent)
-        self.setObjectName("templateButton")
-        self.template = template
-
-    def getTemplate(self) -> "Template":
-        return self.template
-
 class QDialogNoDefault(QDialog):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -66,3 +55,24 @@ class QDialogNoDefault(QDialog):
             self.reject()
         else:
             event.ignore()
+
+class TemplateButton(SquareButton):
+    def __init__(self, templateItems: list[Template | object], parent: QWidget | None = None):
+        text = ""
+        for item in templateItems:
+            if isinstance(item, Template):
+                text = item.name
+                break
+        if not text:
+            raise ValueError("TemplateButton requires at least one Template with a name.")
+        super().__init__(text, parent)
+
+        self.setObjectName("templateButton")
+        #self.setIconSize(QSize(64, 64))
+        #self.setIcon(generatePreviewIcon(templateItems))
+        # TODO add icon generation
+
+        self.templateItems = templateItems
+
+    def getTemplateItems(self) -> "list[Template | object]":
+        return self.templateItems

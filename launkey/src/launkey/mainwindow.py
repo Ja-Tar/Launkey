@@ -124,11 +124,9 @@ def mainWindowScript(main_window: "Launkey"):
     lpWrapper = LaunchpadWrapper(main_window)
     if lpWrapper.connect():
         main_window.ui.statusbar.showMessage("Launchpad connected")
-        main_window.ui.tableLaunchpad.setEnabled(True)
         main_window.lpclose = lpWrapper.lp
     else:
         main_window.ui.statusbar.showMessage("Launchpad not found")
-        main_window.ui.tableLaunchpad.setEnabled(False)
         QMessageBox.critical(
             main_window,
             "Launchpad Error",
@@ -144,11 +142,8 @@ def loadTemplates(main_window: "Launkey"):
         try:
             with open(getTemplateFolderPath() / template_file, "rb") as f:
                 templateData: list[Template | object] = pickle.load(f)
-            for templateItem in templateData:
-                if isinstance(templateItem, Template):
-                    button = TemplateButton(templateItem, templateItem.name)
-                    button.clicked.connect(lambda _, b=button: print(f"Template '{b.getTemplate().name}' clicked"))
-                    main_window.ui.gridLayoutTemplates.addWidget(button)
+            button = TemplateButton(templateData, main_window)
+            main_window.ui.gridLayoutTemplates.addWidget(button)
         except Exception as e:
             print(f"Error loading template '{template_file}': {e}")
 
