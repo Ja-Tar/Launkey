@@ -181,7 +181,7 @@ class Ui_Dialog:
         progress.setValue(20)
         progress.setLabelText("Preparing template...")
 
-        if not str(filePath).startswith(str(pathOnSystem)): # If something went wrong with path
+        if not Path(filePath).is_relative_to(pathOnSystem): # If something went wrong with path
             raise ValueError("File path is not inside the expected system path.")
 
         template = self.optionsList.getObjects()

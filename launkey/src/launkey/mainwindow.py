@@ -3,6 +3,7 @@ import sys
 import asyncio
 import keyboard
 import logging
+import pickle
 
 from typing import TYPE_CHECKING, Optional
 from PySide6 import QtAsyncio
@@ -13,8 +14,8 @@ import launchpad_py as launchpad
 
 from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
-from .custom_widgets import QDialogNoDefault
-from .templates import Template
+from .custom_widgets import QDialogNoDefault, TemplateButton
+from .templates import Template, getTemplateFolderPath
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -118,6 +119,7 @@ class GUITable:
 
 def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
+    loadTemplates(main_window)
 
     lpWrapper = LaunchpadWrapper(main_window)
     if lpWrapper.connect():
@@ -136,6 +138,25 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
     main_window.ui.buttonRun.setEnabled(True)
 
+def loadTemplates(main_window: "Launkey"):
+    template_files = getTemplateFileList()
+    for template_file in template_files:
+        try:
+            with open(getTemplateFolderPath() / template_file, "rb") as f:
+                templateData: list[Template | object] = pickle.load(f)
+            for templateItem in templateData:
+                if isinstance(templateItem, Template):
+                    button = TemplateButton(templateItem, templateItem.name)
+                    button.clicked.connect(lambda _, b=button: print(f"Template '{b.getTemplate().name}' clicked"))
+                    main_window.ui.gridLayoutTemplates.addWidget(button)
+        except Exception as e:
+            print(f"Error loading template '{template_file}': {e}")
+
+def getTemplateFileList() -> list[str]:
+    folderPath = getTemplateFolderPath()
+    return [f.name for f in folderPath.iterdir() if f.is_file() and f.suffix == ".pkl"]
+
+
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     if main_window.ui.buttonRun.text() == "Run":
         main_window.ui.buttonRun.setText("Stop")
@@ -152,7 +173,7 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
             task.cancel()
     lpWrapper.stop()
 
-async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1):
+async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1): # REMOVE
     arrow_up_red = [
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 1, 1, 0, 0, 0,
@@ -224,8 +245,9 @@ def newTemplatePopup(main_window: "Launkey"):
 
 def editTemplatePopup(main_window: "Launkey"):
     # TODO load template data into the dialog, with the ability to edit and save changes
-    dialog = QDialogNoDefault(main_window)
-    ui = Ui_Dialog()
-    ui.setupUi(dialog) # FIX
-    dialog.setWindowTitle("Edit Template")
-    dialog.show()
+    #dialog = QDialogNoDefault(main_window)
+    #ui = Ui_Dialog()
+    #ui.setupUi(dialog) # FIX
+    #dialog.setWindowTitle("Edit Template")
+    #dialog.show()
+    pass

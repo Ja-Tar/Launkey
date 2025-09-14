@@ -1,6 +1,10 @@
+from typing import TYPE_CHECKING
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QKeySequence
+from PySide6.QtGui import QKeySequence, QMouseEvent
+
+if TYPE_CHECKING:
+    from .templates import Template
 
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget | None = None): 
@@ -43,6 +47,15 @@ class ToggleButton(SquareButton):
             self.setChecked(False)
         else:
             self.setChecked(True)
+
+class TemplateButton(SquareButton):
+    def __init__(self, template: "Template", text: str, parent: QWidget | None = None):
+        super().__init__(text, parent)
+        self.setObjectName("templateButton")
+        self.template = template
+
+    def getTemplate(self) -> "Template":
+        return self.template
 
 class QDialogNoDefault(QDialog):
     def __init__(self, parent: QWidget | None = None):
