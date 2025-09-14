@@ -33,7 +33,7 @@ class Ui_MainWindow:
         # Central widget and layout
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        sizePolicy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
         sizePolicy.setHorizontalStretch(1)
         self.centralwidget.setSizePolicy(sizePolicy)
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
@@ -42,11 +42,11 @@ class Ui_MainWindow:
         # Left panel: Launchpad grid and Run button
         self.verticalFrame = QFrame(self.centralwidget)
         self.verticalFrame.setObjectName("verticalFrame")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.verticalFrame.setSizePolicy(sizePolicy1)
         self.verticalLayout = QVBoxLayout(self.verticalFrame)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.verticalLayout.setSizeConstraint(QLayout.SetNoConstraint)
+        self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
 
         # Launchpad grid (9x9)
         self.tableLaunchpad = QTableWidget(self.verticalFrame)
@@ -61,21 +61,27 @@ class Ui_MainWindow:
         brush.setStyle(Qt.BrushStyle.DiagCrossPattern)
         special_item = QTableWidgetItem()
         special_item.setBackground(brush)
-        special_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled | Qt.ItemIsUserCheckable)
+        special_item.setFlags(
+            Qt.ItemFlag.ItemIsSelectable
+            | Qt.ItemFlag.ItemIsEditable
+            | Qt.ItemFlag.ItemIsDragEnabled
+            | Qt.ItemFlag.ItemIsDropEnabled
+            | Qt.ItemFlag.ItemIsUserCheckable
+        )
         self.tableLaunchpad.setItem(0, 8, special_item)
         # Table settings for better usability
-        sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         sizePolicy2.setHorizontalStretch(4)
         self.tableLaunchpad.setSizePolicy(sizePolicy2)
-        self.tableLaunchpad.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
-        self.tableLaunchpad.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.tableLaunchpad.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.tableLaunchpad.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        self.tableLaunchpad.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableLaunchpad.viewport().setProperty("cursor", QCursor(Qt.CursorShape.ArrowCursor))
+        self.tableLaunchpad.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tableLaunchpad.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tableLaunchpad.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.tableLaunchpad.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableLaunchpad.setDragEnabled(False)
-        self.tableLaunchpad.setDragDropMode(QAbstractItemView.DropOnly)
+        self.tableLaunchpad.setDragDropMode(QAbstractItemView.DragDropMode.DropOnly)
         self.tableLaunchpad.setAlternatingRowColors(True)
-        self.tableLaunchpad.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tableLaunchpad.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.tableLaunchpad.horizontalHeader().setVisible(False)
         self.tableLaunchpad.horizontalHeader().setMinimumSectionSize(30)
         self.tableLaunchpad.horizontalHeader().setDefaultSectionSize(30)
@@ -97,10 +103,10 @@ class Ui_MainWindow:
         # Right panel: Template group
         self.groupTemplates = QGroupBox(self.centralwidget)
         self.groupTemplates.setObjectName("groupTemplates")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy3.setHorizontalStretch(2)
         self.groupTemplates.setSizePolicy(sizePolicy3)
-        self.groupTemplates.setAlignment(Qt.AlignTop)
+        self.groupTemplates.setAlignment(Qt.AlignmentFlag.AlignTop)
         # Add layout to groupTemplates
         self.groupTemplatesLayout = QVBoxLayout(self.groupTemplates)
         self.groupTemplatesLayout.setObjectName("groupTemplatesLayout")
@@ -165,8 +171,8 @@ class Ui_MainWindow:
         self.actionSettings.setText(QCoreApplication.translate("MainWindow", "Settings"))
         # Table headers
         for i in range(8):
-            self.tableLaunchpad.horizontalHeaderItem(i).setText(QCoreApplication.translate("MainWindow", "Button"))
-        self.tableLaunchpad.horizontalHeaderItem(8).setText(QCoreApplication.translate("MainWindow", "Round Button"))
+            self.tableLaunchpad.horizontalHeaderItem(i).setText(QCoreApplication.translate("MainWindow", "Button"))  # type: ignore
+        self.tableLaunchpad.horizontalHeaderItem(8).setText(QCoreApplication.translate("MainWindow", "Round Button")) # type: ignore
         self.tableLaunchpad.verticalHeaderItem(0).setText(QCoreApplication.translate("MainWindow", "Round Button"))
         for i in range(1, 9):
             self.tableLaunchpad.verticalHeaderItem(i).setText(QCoreApplication.translate("MainWindow", "Button"))
