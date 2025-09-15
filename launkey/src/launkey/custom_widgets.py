@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog
+from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QKeySequence, QMouseEvent
+from PySide6.QtGui import QKeySequence
 
 from .templates import Template
 
@@ -56,23 +56,53 @@ class QDialogNoDefault(QDialog):
         else:
             event.ignore()
 
-class TemplateButton(SquareButton):
+class TemplateDisplay(QFrame):
     def __init__(self, templateItems: list[Template | object], parent: QWidget | None = None):
-        text = ""
+        super().__init__(parent)
+        self.text = ""
         for item in templateItems:
             if isinstance(item, Template):
-                text = item.name
+                self.text = item.name
                 break
-        if not text:
-            raise ValueError("TemplateButton requires at least one Template with a name.")
-        super().__init__(text, parent)
-
-        self.setObjectName("templateButton")
-        #self.setIconSize(QSize(64, 64))
-        #self.setIcon(generatePreviewIcon(templateItems))
-        # TODO add icon generation
-
+        if not self.text:
+            raise ValueError("TemplateDisplay requires at least one Template with a name.")
         self.templateItems = templateItems
+        self.setObjectName("templateDisplay")
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        self.setMinimumSize(QSize(60, 60))
+        self.setFrameShape(QFrame.Shape.Box)
+        self.setFrameShadow(QFrame.Shadow.Plain)
+
+        # TODO Add widget to display Template preview and that can be dragged to Launchpad Table
+        self.preview = QFrame(self)
+        self.preview.setObjectName("templatePreview")
+        previewSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.MinimumExpanding)
+        self.preview.setSizePolicy(previewSizePolicy)
+        self.preview.setFrameShape(QFrame.Shape.Panel)
+        self.preview.setFrameShadow(QFrame.Shadow.Raised)
+        self.preview.setLineWidth(2)
+        self.generateTemplatePreview()
+
+        self.label = QLabel(self.text, self)
+        labelSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        self.label.setSizePolicy(labelSizePolicy)
+        self.label.setObjectName("templateLabel")
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.preview)
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    def hasHeightForWidth(self) -> bool: # skipcq: PYL-R0201
+        return True
+
+    def heightForWidth(self, arg__1: int) -> int: # skipcq: PYL-R0201
+        return arg__1
 
     def getTemplateItems(self) -> "list[Template | object]":
         return self.templateItems
+    
+    def generateTemplatePreview(self):
+        # TODO Implement preview generation based on Template data
+        pass

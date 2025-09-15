@@ -14,7 +14,7 @@ import launchpad_py as launchpad
 
 from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
-from .custom_widgets import QDialogNoDefault, TemplateButton
+from .custom_widgets import QDialogNoDefault, TemplateDisplay
 from .templates import Template, getTemplateFolderPath
 
 if TYPE_CHECKING:
@@ -142,7 +142,7 @@ def loadTemplates(main_window: "Launkey"):
         try:
             with open(getTemplateFolderPath() / template_file, "rb") as f:
                 templateData: list[Template | object] = pickle.load(f)
-            button = TemplateButton(templateData, main_window)
+            button = TemplateDisplay(templateData, main_window)
             main_window.ui.gridLayoutTemplates.addWidget(button)
         except Exception as e:
             print(f"Error loading template '{template_file}': {e}")
