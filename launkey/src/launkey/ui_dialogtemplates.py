@@ -3,7 +3,7 @@
 # This file is no longer auto-generated. You can safely edit it.
 ################################################################################
 
-import pickle
+import json
 from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent, QStandardPaths
@@ -128,7 +128,7 @@ class Ui_Dialog:
         
         templateName = self.optionsList.getTemplateName().strip()
         templateFileName = self.sterilizeTemplateName(templateName)
-        filePath = fullPath / f"{templateFileName}.pkl"
+        filePath = fullPath / f"{templateFileName}.json"
         if filePath.exists():
             if not self.askForFileOverwrite(templateName):
                 self.enableUIAfterSaving()
@@ -185,11 +185,15 @@ class Ui_Dialog:
             raise ValueError("File path is not inside the expected system path.")
 
         template = self.optionsList.getObjects()
-        progress.setValue(50)
+
+        progress.setValue(30)
+        progress.setLabelText("Serializing template...")
+        template_data = [obj.toDict() for obj in template]  # type: ignore
+
+        progress.setValue(70)
         progress.setLabelText("Saving template...")
-        with open(filePath, 'wb') as file:
-            pickle.dump(template, file)
-        
+        with open(filePath, 'w') as file:
+            json.dump(template_data, file)
         progress.setLabelText("Finalizing...")
         
     def onXButtonClick(self, event: QEvent, dialog: QDialog):

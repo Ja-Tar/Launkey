@@ -34,6 +34,17 @@ class Button:
     def __str__(self) -> str:
         return f"Button(name={self.name}, location={self.location}, normalColor={self.normalColor}, pushedColor={self.pushedColor}, keyboardCombo={self.keyboardCombo})"
 
+    def toDict(self) -> dict[str, Any]:
+        return {
+            "__type__": "Button",
+            "name": self.name,
+            "buttonID": self.buttonID,
+            "location": self.location,
+            "normalColor": (self.normalColor[0].value, self.normalColor[1].value),
+            "pushedColor": (self.pushedColor[0].value, self.pushedColor[1].value),
+            "keyboardCombo": self.keyboardCombo
+        }
+
 class Template:
     class Type(Enum):
         "This is main template type enum"
@@ -46,3 +57,27 @@ class Template:
 
     def __str__(self) -> str:
         return f"Template(name={self.name}, type={self.type})"
+    
+    def toDict(self) -> dict[str, Any]:
+        return {
+            "__type__": "Template",
+            "name": self.name,
+            "type": self.type.name
+        }
+
+def objectFromJson(jsonData: dict[str, Any]) -> Template | Button:
+    objType = jsonData.get("__type__")
+
+    if objType == "Button":
+        return Button(
+            name=jsonData["name"],
+            buttonID=jsonData["buttonID"],
+            location=tuple(jsonData["location"]),
+        )
+    elif objType == "Template":
+        return Template(
+            name=jsonData["name"],
+            type=Template.Type[jsonData["type"]]
+        )
+    
+    raise ValueError(f"Unknown object type: {objType}")

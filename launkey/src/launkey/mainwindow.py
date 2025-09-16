@@ -3,9 +3,9 @@ import sys
 import asyncio
 import keyboard
 import logging
-import pickle
+import json
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any
 from PySide6 import QtAsyncio
 from PySide6.QtCore import (QEvent, Qt)
 from PySide6.QtWidgets import (QApplication, QInputDialog, QTableWidgetItem, QMessageBox, QDialog)
@@ -15,7 +15,7 @@ import launchpad_py as launchpad
 from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
 from .custom_widgets import QDialogNoDefault, TemplateDisplay
-from .templates import Template, getTemplateFolderPath
+from .templates import Template, getTemplateFolderPath, objectFromJson
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -140,16 +140,23 @@ def loadTemplates(main_window: "Launkey"):
     template_files = getTemplateFileList()
     for template_file in template_files:
         try:
-            with open(getTemplateFolderPath() / template_file, "rb") as f:
-                templateData: list[Template | object] = pickle.load(f)
+            with open(getTemplateFolderPath() / template_file, "r") as f:
+                templateJsonData: list[dict[str, Any]] = json.load(f)
+            templateData: list[Template | object] = []
+            for obj in templateJsonData:
+                template = objectFromJson(obj)
+                if template:
+                    templateData.append(template)
             button = TemplateDisplay(templateData, main_window)
             main_window.ui.gridLayoutTemplates.addWidget(button)
         except Exception as e:
-            print(f"Error loading template '{template_file}': {e}")
+            message = f"Error loading template from {template_file}: {e}"
+            messagebox = QMessageBox(QMessageBox.Icon.Critical, "Template Load Error", message, parent=main_window)
+            messagebox.exec()
 
 def getTemplateFileList() -> list[str]:
     folderPath = getTemplateFolderPath()
-    return [f.name for f in folderPath.iterdir() if f.is_file() and f.suffix == ".pkl"]
+    return [f.name for f in folderPath.iterdir() if f.is_file() and f.suffix == ".json"]
 
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):

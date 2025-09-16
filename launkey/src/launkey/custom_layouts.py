@@ -206,7 +206,11 @@ class TemplateGridLayout(QGridLayout):
             self.setColumnStretch(col, 1 if any(pos[1] == col for pos in occupied) else 0)
             
 class TemplatePreviewLayout(QGridLayout):
-    # TODO: This layout will display boxes based on Template data
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # REMOVE !!! Better idea - use QPixmap with QDrag!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+    # !TODO: This layout will display boxes based on Template data
     # For example:
     # (0,0; 1,0; 1,1; 3,1) means:
     # ![M][X][ ]   
