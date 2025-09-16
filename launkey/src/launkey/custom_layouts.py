@@ -205,20 +205,3 @@ class TemplateGridLayout(QGridLayout):
         for col in range(self.cols):
             self.setColumnStretch(col, 1 if any(pos[1] == col for pos in occupied) else 0)
             
-class TemplatePreviewLayout(QGridLayout):
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # REMOVE !!! Better idea - use QPixmap with QDrag!!!
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    # !TODO: This layout will display boxes based on Template data
-    # For example:
-    # (0,0; 1,0; 1,1; 3,1) means:
-    # ![M][X][ ]   
-    # ![ ][X][X]   
-    # (0,0; -1,-1) means:
-    # ![X][ ]
-    # ![ ][M]
-    # X = occupied, M = main widget
-    # Generate only needed number of rows and columns
-    def __init__(self, parent=None):
-        super().__init__(parent)
