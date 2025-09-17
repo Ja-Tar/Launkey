@@ -15,7 +15,7 @@ import launchpad_py as launchpad
 from .ui_mainwindow import Ui_MainWindow
 from .ui_dialogtemplates import Ui_Dialog
 from .custom_widgets import QDialogNoDefault, TemplateDisplay
-from .templates import Template, getTemplateFolderPath, objectFromJson
+from .templates import Template, getTemplateFolderPath, objectFromJson, TemplateItem
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -142,7 +142,7 @@ def loadTemplates(main_window: "Launkey"):
         try:
             with open(getTemplateFolderPath() / template_file, "r") as f:
                 templateJsonData: list[dict[str, Any]] = json.load(f)
-            templateData: list[Template | object] = []
+            templateData: list[Template | TemplateItem] = []
             for obj in templateJsonData:
                 template = objectFromJson(obj)
                 if template:

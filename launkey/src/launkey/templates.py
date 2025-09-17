@@ -1,5 +1,5 @@
 from typing import Any, Tuple
-from enum import Enum
+from enum import Enum, unique
 from pathlib import Path
 from PySide6.QtCore import QStandardPaths
 
@@ -16,17 +16,29 @@ def getTemplateFolderPath() -> Path:
     fullPath = ensureTemplatesFolderExists(pathOnSystem)
     return fullPath
 
+@unique
 class LED(Enum):
     FULL = 3
     MEDIUM = 2
     LOW = 1
     OFF = 0
 
-class Button:
-    def __init__(self, name: str, buttonID: str, location: Tuple[int, int]):
+class TemplateItem:
+    """Base class for items in a template"""
+    def __init__(self, name: str, location: Tuple[int, int]):
         self.name = name
-        self.buttonID = buttonID
         self.location = location
+
+    def __str__(self) -> str:
+        return f"TemplateItem(name={self.name}, location={self.location})"
+    
+    def toDict(self) -> dict[str, Any]:
+        raise NotImplementedError("TemplateItem should not be used directly. Please use a subclass or another class that inherits from TemplateItem.")
+
+class Button(TemplateItem):
+    def __init__(self, name: str, buttonID: str, location: Tuple[int, int]):
+        super().__init__(name, location)
+        self.buttonID = buttonID
         self.normalColor: Tuple[LED, LED] = (LED.FULL, LED.OFF)
         self.pushedColor: Tuple[LED, LED] = (LED.OFF, LED.FULL)
         self.keyboardCombo: str = ""
@@ -46,6 +58,7 @@ class Button:
         }
 
 class Template:
+    @unique
     class Type(Enum):
         "This is main template type enum"
         BUTTONS = Button

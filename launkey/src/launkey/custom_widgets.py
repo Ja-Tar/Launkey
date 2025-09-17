@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel
 from PySide6.QtCore import Qt, QSize, QRect, QPoint, QMimeData
 from PySide6.QtGui import QKeySequence, QMouseEvent, QPixmap, QPainter, QDrag
 
-from .templates import Template
+from .templates import Template, TemplateItem
 
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget | None = None): 
@@ -57,7 +57,7 @@ class QDialogNoDefault(QDialog):
             event.ignore()
 
 class TemplateDisplay(QFrame):
-    def __init__(self, templateItems: list[Template | object], parent: QWidget | None = None):
+    def __init__(self, templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
         super().__init__(parent)
         self.text = ""
         for item in templateItems:
@@ -74,7 +74,7 @@ class TemplateDisplay(QFrame):
         self.setFrameShadow(QFrame.Shadow.Plain)
 
         # TODO Add widget to display Template preview and that can be dragged to Launchpad Table
-        self.preview = Preview(self)
+        self.preview = Preview(self.templateItems, self)
 
         self.label = QLabel(self.text, self)
         labelSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
@@ -93,11 +93,11 @@ class TemplateDisplay(QFrame):
     def heightForWidth(self, arg__1: int) -> int: # skipcq: PYL-R0201
         return arg__1
 
-    def getTemplateItems(self) -> "list[Template | object]":
+    def getTemplateItems(self) -> list[Template | TemplateItem]:
         return self.templateItems
 
 class Preview(QFrame):
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("templatePreview")
         previewSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.MinimumExpanding)
@@ -106,34 +106,60 @@ class Preview(QFrame):
         self.setFrameShadow(QFrame.Shadow.Raised)
         self.setLineWidth(2)
 
+        locationList = []
+        for item in templateItems:
+            if isinstance(item, TemplateItem):
+                locationList.append(item.location)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        self.generateTemplatePreview()
+        self.generateTemplatePreview(locationList)
 
-    def generatePixmap(self) -> QPixmap:
-        pixmapSize = QSize(50, 50)
-        pixmap = QPixmap(pixmapSize)
-        painter = QPainter(pixmap)
-
-        painter.fillRect(QRect(QPoint(0, 0), pixmapSize), Qt.GlobalColor.red)
-
-        # TODO Draw template preview content onto the pixmap
-
-        painter.end()
-        return pixmap
-
-    def generateTemplatePreview(self):
+    def generateTemplatePreview(self, locationList: list[tuple[int, int]]):
+        # Example locationList: [(0,0), (1,1), (2,2)] (0,0) is center widget and (-1,-1) is top-left to it
         self.previewLabel = PreviewContainer(self)
-
-        # TODO Implement preview generation based on Template data (with size fitting)
-
-        self.pixmap = self.generatePixmap()
+        self.pixmap = self.generatePixmap(locationList)
         self.previewLabel.setPixmap(self.pixmap)
         layout = self.layout()
         if layout is not None:
             layout.addWidget(self.previewLabel)
+
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # TODO Move to two separate functions: one for generating pixmap for drag and one for displaying in label!!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    def generatePixmap(self, locationList: list[tuple[int, int]]) -> QPixmap:
+        # Detect max size of the pixmap based on locations
+        if not locationList:
+            return QPixmap()
+
+        min_row = min(loc[0] for loc in locationList)
+        max_row = max(loc[0] for loc in locationList)
+        min_col = min(loc[1] for loc in locationList)
+        max_col = max(loc[1] for loc in locationList)
+        rows = max_row - min_row + 1
+        cols = max_col - min_col + 1
+        cell_size = 30
+        margin = 1
+        space_between = 2
+        pixmap_width = cols * cell_size + margin * 2
+        pixmap_height = rows * cell_size + margin * 2
+        pixmap = QPixmap(pixmap_width, pixmap_height)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        for loc in locationList:
+            row, col = loc
+            x = (col - min_col) * cell_size + margin
+            y = (row - min_row) * cell_size + margin
+            rect = QRect(x, y, cell_size - space_between, cell_size - space_between)
+            painter.fillRect(rect, Qt.GlobalColor.lightGray)
+            painter.drawRect(rect)
+
+        painter.end()
+        return pixmap
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -159,10 +185,3 @@ class PreviewContainer(QLabel):
         super().__init__(parent)
         self.setObjectName("templatePreviewContainer")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-    def resizeEvent(self, event):
-        if self.pixmap():
-            self.setPixmap(self.pixmap().scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-
-    def setPixmap(self, pixmap):
-        super().setPixmap(pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
