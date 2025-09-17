@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QAbstractScrollArea, QFrame, QGroupBox, QHBoxLayout,
     QLayout, QMainWindow, QMenu, QMenuBar, QPushButton, QSizePolicy,
     QStatusBar, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
-    QScrollArea, QGridLayout
+    QScrollArea
 )
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
 
@@ -56,7 +56,7 @@ class Ui_MainWindow:
         for i in range(9):
             self.tableLaunchpad.setHorizontalHeaderItem(i, QTableWidgetItem())
             self.tableLaunchpad.setVerticalHeaderItem(i, QTableWidgetItem())
-        # Example: Mark top-right cell as special (can be customized)
+        # Mark top-right cell as special (can be customized)
         brush = QBrush(QColor(0, 0, 0, 255))
         brush.setStyle(Qt.BrushStyle.DiagCrossPattern)
         special_item = QTableWidgetItem()
@@ -80,7 +80,6 @@ class Ui_MainWindow:
         self.tableLaunchpad.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableLaunchpad.setDragEnabled(True)
         self.tableLaunchpad.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
-        self.tableLaunchpad.setDefaultDropAction(Qt.DropAction.MoveAction)
         self.tableLaunchpad.setAlternatingRowColors(True)
         self.tableLaunchpad.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tableLaunchpad.horizontalHeader().setVisible(False)
@@ -91,15 +90,14 @@ class Ui_MainWindow:
         self.tableLaunchpad.verticalHeader().setStretchLastSection(False)
 
         self.tableLaunchpad.setStyleSheet("""
-            QTableWidget::item:selected {
-                background-color: transparent;
+            QTableWidget {
+                gridline-color: darkgray;
+                border-left: 1px solid darkgray;
+                border-top: 1px solid darkgray;
             }
-                                          
+
+            QTableWidget::item:selected,
             QTableWidget::item:hover {
-                background-color: transparent;
-            }
-                                          
-            QTableWidget::item:selected:hover {
                 background-color: transparent;
             }
         """)
