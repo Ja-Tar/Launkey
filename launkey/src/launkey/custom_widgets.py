@@ -1,6 +1,8 @@
+import time
+
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
-from PySide6.QtCore import Qt, QSize, QRect, QPoint, QMimeData
-from PySide6.QtGui import QKeySequence, QMouseEvent, QPixmap, QPainter, QDrag
+from PySide6.QtCore import Qt, QSize, QRect, QMimeData
+from PySide6.QtGui import QKeySequence, QMouseEvent, QPixmap, QPainter, QDrag, QResizeEvent
 
 from .templates import Template, TemplateItem
 
@@ -106,56 +108,84 @@ class Preview(QFrame):
         self.setFrameShadow(QFrame.Shadow.Raised)
         self.setLineWidth(2)
 
-        locationList = []
+        self.locationList = []
         for item in templateItems:
             if isinstance(item, TemplateItem):
-                locationList.append(item.location)
+                self.locationList.append(item.location)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        self.generateTemplatePreview(locationList)
+        self.previewLabel = QLabel(self)
+        self.previewLabel.setObjectName("previewLabel")
+        self.previewLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.previewLabel.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum))
+        layout.addWidget(self.previewLabel)
 
-    def generateTemplatePreview(self, locationList: list[tuple[int, int]]):
-        # Example locationList: [(0,0), (1,1), (2,2)] (0,0) is center widget and (-1,-1) is top-left to it
-        self.previewLabel = PreviewContainer(self)
-        self.pixmap = self.generatePixmap(locationList)
-        self.previewLabel.setPixmap(self.pixmap)
-        layout = self.layout()
-        if layout is not None:
-            layout.addWidget(self.previewLabel)
+        self.dragPixmap: QPixmap
+        self.displayPixmap: QPixmap
+        self.called = 0.0
 
+        self.setupDrag()
 
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # TODO Move to two separate functions: one for generating pixmap for drag and one for displaying in label!!!
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def generatePixmap(self, locationList: list[tuple[int, int]]) -> QPixmap:
-        # Detect max size of the pixmap based on locations
+    def setupDrag(self):
+        self.setAcceptDrops(True)
+        self.previewLabel.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.dragPixmap = self.generatePixmap(self.locationList)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        if self.called + 0.05 < time.time(): # Resize throttling - only update every 50 ms
+            self.called = time.time()
+            self.displayPixmap = self.generatePixmap(self.locationList, self.size() - QSize(4, 4), space_between=4, padding=2)
+            self.previewLabel.setPixmap(self.displayPixmap)
+        super().resizeEvent(event)
+
+    def generatePixmap(
+        self,
+        locationList: list[tuple[int, int]],
+        maxSize: QSize | None = None,
+        /,
+        padding: int = 4,
+        space_between: int = 2,
+        min_cell_size: int = 1,
+        max_cell_size: int = 40,
+        default_cell_size: int = 28
+    ) -> QPixmap:
         if not locationList:
             return QPixmap()
 
-        min_row = min(loc[0] for loc in locationList)
-        max_row = max(loc[0] for loc in locationList)
-        min_col = min(loc[1] for loc in locationList)
-        max_col = max(loc[1] for loc in locationList)
+        # Calculate grid bounds
+        min_row = min(row for row, _ in locationList)
+        max_row = max(row for row, _ in locationList)
+        min_col = min(col for _, col in locationList)
+        max_col = max(col for _, col in locationList)
         rows = max_row - min_row + 1
         cols = max_col - min_col + 1
-        cell_size = 30
-        margin = 1
-        space_between = 2
-        pixmap_width = cols * cell_size + margin * 2
-        pixmap_height = rows * cell_size + margin * 2
+
+        # Layout parameters
+        cell_size = default_cell_size # Default cell size
+        if maxSize is not None:
+            cell_size = min(
+            max((maxSize.width() - 2 * padding - (cols - 1) * space_between) // cols, min_cell_size),
+            max((maxSize.height() - 2 * padding - (rows - 1) * space_between) // rows, min_cell_size),
+            max_cell_size
+            )
+
+        pixmap_width = cols * cell_size + (cols - 1) * space_between + 2 * padding
+        pixmap_height = rows * cell_size + (rows - 1) * space_between + 2 * padding
         pixmap = QPixmap(pixmap_width, pixmap_height)
         pixmap.fill(Qt.GlobalColor.transparent)
+
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        for loc in locationList:
-            row, col = loc
-            x = (col - min_col) * cell_size + margin
-            y = (row - min_row) * cell_size + margin
-            rect = QRect(x, y, cell_size - space_between, cell_size - space_between)
+
+        for row, col in locationList:
+            x = padding + (col - min_col) * (cell_size + space_between)
+            y = padding + (row - min_row) * (cell_size + space_between)
+            rect = QRect(x, y, cell_size, cell_size)
             painter.fillRect(rect, Qt.GlobalColor.lightGray)
+            painter.setPen(Qt.GlobalColor.darkGray)
             painter.drawRect(rect)
 
         painter.end()
@@ -167,21 +197,16 @@ class Preview(QFrame):
             drag.setAccepted(True)
             self.startDrag()
         super().mousePressEvent(event)
-    
+
     def startDrag(self):
         drag = QDrag(self)
+        # TODO: Set data to identify the template being dragged
         mimeData = QMimeData()
         mimeData.setText("templateDrag")
         drag.setMimeData(mimeData)
 
-        pixmap = self.pixmap
+        pixmap = self.dragPixmap
         drag.setPixmap(pixmap)
         drag.setHotSpot(pixmap.rect().center())
 
         drag.exec(Qt.DropAction.CopyAction)
-
-class PreviewContainer(QLabel):
-    def __init__(self, parent: QWidget | None = None):
-        super().__init__(parent)
-        self.setObjectName("templatePreviewContainer")
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
