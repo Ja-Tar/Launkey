@@ -69,10 +69,10 @@ class TemplateDisplay(QFrame):
         if not self.text:
             raise ValueError("TemplateDisplay requires at least one Template with a name.")
         self.templateItems = templateItems
-        self.setObjectName("templateDisplay")
+        self.setObjectName(f"templateDisplay-{self.text}")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.setMinimumSize(QSize(60, 60))
-        self.setFrameShape(QFrame.Shape.Box)
+        self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setFrameShadow(QFrame.Shadow.Plain)
 
         # TODO Add widget to display Template preview and that can be dragged to Launchpad Table
@@ -202,7 +202,7 @@ class Preview(QFrame):
         drag = QDrag(self)
         # TODO: Set data to identify the template being dragged
         mimeData = QMimeData()
-        mimeData.setText("templateDrag")
+        mimeData.setText("testTemplateDrag")
         drag.setMimeData(mimeData)
 
         pixmap = self.dragPixmap
