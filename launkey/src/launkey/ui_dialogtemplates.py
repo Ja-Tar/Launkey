@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 from .custom_layouts import TemplateGridLayout
 from .custom_widgets import ToggleButton
 from .template_options_widgets import TemplateOptionsList
-from .templates import Template, getTemplateFolderPath
+from .templates import Template, getTemplateFolderPath, sterilizeTemplateName
 
 class Ui_Dialog:
     """
@@ -123,11 +123,13 @@ class Ui_Dialog:
         # Button texts are set directly in setupUi for clarity
 
     def saveTemplate(self, dialog: QDialog):
+        # TODO add validation for template elements!!!
+
         fullPath = getTemplateFolderPath()
         self.disableUIForSaving()
         
         templateName = self.optionsList.getTemplateName().strip()
-        templateFileName = self.sterilizeTemplateName(templateName)
+        templateFileName = sterilizeTemplateName(templateName)
         filePath = fullPath / f"{templateFileName}.json"
         if filePath.exists():
             if not self.askForFileOverwrite(templateName):
@@ -144,16 +146,6 @@ class Ui_Dialog:
         progress.setValue(100)
 
         dialog.accept()
-
-    def sterilizeTemplateName(self, name: str) -> str:
-        # Replace spaces to underscores and remove invalid characters
-        name = name.strip().replace(" ", "_")
-        name = "".join(c for c in name if c.isalnum() or c in ('_', '-')).rstrip()
-        return name
-    
-    def recoverOriginalTemplateName(self, fileName: str) -> str:
-        name = fileName.replace("_", " ")
-        return name
 
     def askForFileOverwrite(self, templateName: str) -> bool:
         areYouSureBox = QMessageBox()

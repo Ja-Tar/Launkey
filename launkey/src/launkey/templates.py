@@ -16,6 +16,16 @@ def getTemplateFolderPath() -> Path:
     fullPath = ensureTemplatesFolderExists(pathOnSystem)
     return fullPath
 
+def sterilizeTemplateName(name: str) -> str:
+    # Replace spaces to underscores and remove invalid characters
+    name = name.strip().replace(" ", "_")
+    name = "".join(c for c in name if c.isalnum() or c in ('_', '-')).rstrip()
+    return name
+
+def recoverOriginalTemplateName(fileName: str) -> str:
+    name = fileName.replace("_", " ")
+    return name
+
 @unique
 class LED(Enum):
     FULL = 3

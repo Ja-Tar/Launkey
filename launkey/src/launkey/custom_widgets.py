@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel
 from PySide6.QtCore import Qt, QSize, QRect, QMimeData
 from PySide6.QtGui import QKeySequence, QMouseEvent, QPixmap, QPainter, QDrag, QResizeEvent
 
-from .templates import Template, TemplateItem
+from .templates import Template, TemplateItem, sterilizeTemplateName
 
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget | None = None): 
@@ -68,15 +68,15 @@ class TemplateDisplay(QFrame):
                 break
         if not self.text:
             raise ValueError("TemplateDisplay requires at least one Template with a name.")
+        self.templateFileName = sterilizeTemplateName(self.text)
         self.templateItems = templateItems
-        self.setObjectName(f"templateDisplay-{self.text}")
+        self.setObjectName(f"templateDisplay-{self.templateFileName}")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         self.setMinimumSize(QSize(60, 60))
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setFrameShadow(QFrame.Shadow.Plain)
 
-        # TODO Add widget to display Template preview and that can be dragged to Launchpad Table
-        self.preview = Preview(self.templateItems, self)
+        self.preview = Preview(self.templateFileName, self.templateItems, self)
 
         self.label = QLabel(self.text, self)
         labelSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
@@ -99,9 +99,11 @@ class TemplateDisplay(QFrame):
         return self.templateItems
 
 class Preview(QFrame):
-    def __init__(self, templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
+    def __init__(self, fileName: str, templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
         super().__init__(parent)
-        self.setObjectName("templatePreview")
+        self.templateName = fileName
+
+        self.setObjectName(f"templatePreview-{self.templateName}")
         previewSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.MinimumExpanding)
         self.setSizePolicy(previewSizePolicy)
         self.setFrameShape(QFrame.Shape.Panel)
@@ -132,6 +134,7 @@ class Preview(QFrame):
     def setupDrag(self):
         self.setAcceptDrops(True)
         self.previewLabel.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.dragPixmap = self.generatePixmap(self.locationList)
 
     def resizeEvent(self, event: QResizeEvent) -> None:
@@ -150,7 +153,8 @@ class Preview(QFrame):
         space_between: int = 2,
         min_cell_size: int = 1,
         max_cell_size: int = 40,
-        default_cell_size: int = 28
+        default_cell_size: int = 36,
+        default_space_between: int = 4
     ) -> QPixmap:
         if not locationList:
             return QPixmap()
@@ -171,6 +175,8 @@ class Preview(QFrame):
             max((maxSize.height() - 2 * padding - (rows - 1) * space_between) // rows, min_cell_size),
             max_cell_size
             )
+        else:
+            space_between = default_space_between
 
         pixmap_width = cols * cell_size + (cols - 1) * space_between + 2 * padding
         pixmap_height = rows * cell_size + (rows - 1) * space_between + 2 * padding
@@ -200,13 +206,13 @@ class Preview(QFrame):
 
     def startDrag(self):
         drag = QDrag(self)
-        # TODO: Set data to identify the template being dragged
         mimeData = QMimeData()
-        mimeData.setText("testTemplateDrag")
+        mimeData.setText(self.templateName)  # Template file name as text
         drag.setMimeData(mimeData)
 
         pixmap = self.dragPixmap
         drag.setPixmap(pixmap)
         drag.setHotSpot(pixmap.rect().center())
+        drag.setObjectName(f"drag-{self.templateName}")
 
         drag.exec(Qt.DropAction.CopyAction)

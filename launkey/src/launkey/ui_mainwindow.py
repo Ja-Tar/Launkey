@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QScrollArea
 )
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
+from .launchpad_control import LaunchpadTable
 
 class Ui_MainWindow:
     def setupUi(self, MainWindow: QMainWindow):
@@ -49,59 +50,7 @@ class Ui_MainWindow:
         self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
 
         # Launchpad grid (9x9)
-        self.tableLaunchpad = QTableWidget(self.verticalFrame)
-        self.tableLaunchpad.setObjectName("tableLaunchpad")
-        self.tableLaunchpad.setRowCount(9)
-        self.tableLaunchpad.setColumnCount(9)
-        for i in range(9):
-            self.tableLaunchpad.setHorizontalHeaderItem(i, QTableWidgetItem())
-            self.tableLaunchpad.setVerticalHeaderItem(i, QTableWidgetItem())
-        # Mark top-right cell as special (can be customized)
-        brush = QBrush(QColor(0, 0, 0, 255))
-        brush.setStyle(Qt.BrushStyle.DiagCrossPattern)
-        special_item = QTableWidgetItem()
-        special_item.setBackground(brush)
-        special_item.setFlags(
-            Qt.ItemFlag.ItemIsSelectable
-            | Qt.ItemFlag.ItemIsEditable
-            | Qt.ItemFlag.ItemIsDragEnabled
-            | Qt.ItemFlag.ItemIsDropEnabled
-            | Qt.ItemFlag.ItemIsUserCheckable
-        )
-        self.tableLaunchpad.setItem(0, 8, special_item)
-        # Table settings for better usability
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-        sizePolicy2.setHorizontalStretch(4)
-        self.tableLaunchpad.setSizePolicy(sizePolicy2)
-        self.tableLaunchpad.viewport().setProperty("cursor", QCursor(Qt.CursorShape.ArrowCursor))
-        self.tableLaunchpad.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableLaunchpad.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tableLaunchpad.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.tableLaunchpad.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableLaunchpad.setDragEnabled(True)
-        self.tableLaunchpad.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
-        self.tableLaunchpad.setAlternatingRowColors(True)
-        self.tableLaunchpad.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.tableLaunchpad.horizontalHeader().setVisible(False)
-        self.tableLaunchpad.horizontalHeader().setMinimumSectionSize(30)
-        self.tableLaunchpad.horizontalHeader().setDefaultSectionSize(30)
-        self.tableLaunchpad.verticalHeader().setVisible(False)
-        self.tableLaunchpad.verticalHeader().setHighlightSections(True)
-        self.tableLaunchpad.verticalHeader().setStretchLastSection(False)
-
-        self.tableLaunchpad.setStyleSheet("""
-            QTableWidget {
-                gridline-color: darkgray;
-                border-left: 1px solid darkgray;
-                border-top: 1px solid darkgray;
-            }
-
-            QTableWidget::item:selected,
-            QTableWidget::item:hover {
-                background-color: transparent;
-            }
-        """)
-
+        self.tableLaunchpad = LaunchpadTable(self.verticalFrame)
         self.verticalLayout.addWidget(self.tableLaunchpad)
 
         # Run button
@@ -181,13 +130,7 @@ class Ui_MainWindow:
         self.actionLoad.setText(QCoreApplication.translate("MainWindow", "Load"))
         self.actionAbout.setText(QCoreApplication.translate("MainWindow", "About"))
         self.actionSettings.setText(QCoreApplication.translate("MainWindow", "Settings"))
-        # Table headers
-        for i in range(8):
-            self.tableLaunchpad.horizontalHeaderItem(i).setText(QCoreApplication.translate("MainWindow", "Button"))  # type: ignore
-        self.tableLaunchpad.horizontalHeaderItem(8).setText(QCoreApplication.translate("MainWindow", "Round Button")) # type: ignore
-        self.tableLaunchpad.verticalHeaderItem(0).setText(QCoreApplication.translate("MainWindow", "Round Button"))
-        for i in range(1, 9):
-            self.tableLaunchpad.verticalHeaderItem(i).setText(QCoreApplication.translate("MainWindow", "Button"))
+
         # Button and group titles
         self.buttonRun.setText(QCoreApplication.translate("MainWindow", "Run"))
         self.buttonAddTemplate.setText(QCoreApplication.translate("MainWindow", "Add Template"))
