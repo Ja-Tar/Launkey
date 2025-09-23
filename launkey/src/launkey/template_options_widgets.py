@@ -155,6 +155,7 @@ class ButtonColorSelector(QComboBox):
 
     def _changeObjectProperty(self, objectToChange: object, objectProperty: str, newValue: Any):
         print(f"Changing color {objectProperty} to {newValue}")
+        print(f" - old value: {getattr(objectToChange, objectProperty)}")
         setattr(objectToChange, objectProperty, newValue)
 
     def getColorValue(self) -> tuple[int, int]:
@@ -245,7 +246,7 @@ class TemplateOptionsList(QTreeWidget):
         self.header().setStretchLastSection(True)
 
     def addChild(self, childID: str, location: tuple[int, int], main: bool = False) -> None:
-        child = self.templateType.value(name=f"Button {len(self.templateChildren) + 1}", buttonID=childID, location=location)
+        child = self.templateType.value(f"Button {len(self.templateChildren) + 1}", childID, location)
         self.templateChildren[childID] = child
         if main or not self.mainChildID:
             self.mainChildID = childID

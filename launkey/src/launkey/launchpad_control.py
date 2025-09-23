@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QColor, QBrush, QCursor, QDragEnterEvent, QDropEvent, QDragMoveEvent
 
+from .templates import Template, TemplateItem, sterilizeTemplateName, loadedTemplates
+
 if TYPE_CHECKING:
     from .app import Launkey
 
@@ -201,17 +203,33 @@ class LaunchpadTable(QTableWidget):
     def dropEvent(self, event: QDropEvent) -> None:
         if event.mimeData().hasFormat("text/plain"):
             # Extract the template name from the drag object name
-            templateName = event.source().objectName().replace("drag-", "")
+            templateName = event.mimeData().text()
+            templateFileName = sterilizeTemplateName(templateName) + ".json"
+            if templateFileName not in loadedTemplates:
+                raise ValueError(f"Template {templateFileName} not loaded")
+
             pos = event.position().toPoint()
             index: QModelIndex = self.indexAt(pos)
             if index.isValid():
                 # TODO handle the drop logic here (load template, etc.)
                 row = index.row()
                 col = index.column()
-                if (row == 0) or (col == 8):
+                tablePosition = (row, col)
+                if (row == 0) or (col == 8): # REMOVE temporary disable to autoMap
                     return  # Ignore drops on autoMap cells
-                item = self.item(row, col)
-                if item is not None:
-                    print(f"Template: {templateName}\nPosition: ({row-1}, {col})")
-                    item.setBackground(QColor(200, 255, 200))  # Light green background to indicate filled cell
+                print("====================")
+                print(f"File name: {templateFileName}")
+                templateData = loadedTemplates[templateFileName]
+                if not templateData:
+                    raise ValueError(f"Template {templateFileName} is empty")
+                self.loadDataFromTemplate(tablePosition, templateData)
             event.acceptProposedAction()
+
+    def loadDataFromTemplate(self, tablePosition: tuple[int, int], templateData: list[Template | TemplateItem]):
+        item = self.item(*tablePosition)
+        if item is not None:
+            launchpadPosition = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
+            print(f"Loading template at launchpad position: {launchpadPosition}")
+            for templateItem in templateData:
+                print(f" - {templateItem}")
+            item.setBackground(QColor(200, 255, 200))  # Light green background to indicate filled cell

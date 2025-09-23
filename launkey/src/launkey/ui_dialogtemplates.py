@@ -141,7 +141,7 @@ class Ui_Dialog:
         progress.setCancelButton(None)
 
         pathOnSystem = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
-        self.savePickleData(filePath, pathOnSystem, progress)
+        self.saveTemplateData(filePath, pathOnSystem, progress)
 
         progress.setValue(100)
 
@@ -169,7 +169,7 @@ class Ui_Dialog:
         self.editorFrame.setDisabled(True)
         self.optionsList.setDisabled(True)
 
-    def savePickleData(self, filePath: Path, pathOnSystem: str, progress: QProgressDialog):
+    def saveTemplateData(self, filePath: Path, pathOnSystem: str, progress: QProgressDialog):
         progress.setValue(20)
         progress.setLabelText("Preparing template...")
 

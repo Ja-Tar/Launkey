@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QInputDialog, QMessageBox, QFrame
 
 from .ui_dialogtemplates import Ui_Dialog
 from .custom_widgets import QDialogNoDefault, TemplateDisplay
-from .templates import Template, getTemplateFolderPath, objectFromJson, TemplateItem
+from .templates import Template, getTemplateFolderPath, objectFromJson, TemplateItem, loadedTemplates
 from .launchpad_control import LaunchpadWrapper
 
 if TYPE_CHECKING:
@@ -47,13 +47,26 @@ def loadTemplates(main_window: "Launkey"):
                 template = objectFromJson(obj)
                 if template:
                     templateData.append(template)
-            templateDisplay = TemplateDisplay(templateData, main_window)
-            if not checkForDuplicates(main_window, templateDisplay.text):
-                main_window.ui.gridLayoutTemplates.addWidget(templateDisplay)
+
+            # Handle errors
+            if not templateData:
+                continue
+            elif not any(isinstance(item, Template) for item in templateData):
+                raise ValueError("No Template object found in the file.")
+            elif not all(isinstance(item, (Template, TemplateItem)) for item in templateData):
+                raise ValueError("File contains invalid objects.")
+
+            addTemplateToLayout(main_window, templateData, template_file)
         except Exception as e:
             message = f"Error loading template from {template_file}: {e}"
             messagebox = QMessageBox(QMessageBox.Icon.Critical, "Template Load Error", message, parent=main_window)
             messagebox.exec()
+
+def addTemplateToLayout(main_window: "Launkey", templateData: list[Template | TemplateItem], templateFileName: str):
+    templateDisplay = TemplateDisplay(templateData, main_window)
+    if not checkForDuplicates(main_window, templateDisplay.text):
+        main_window.ui.gridLayoutTemplates.addWidget(templateDisplay)
+        loadedTemplates[templateFileName] = templateData
 
 def getTemplateFileList() -> list[str]:
     folderPath = getTemplateFolderPath()

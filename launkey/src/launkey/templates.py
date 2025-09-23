@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Any, Tuple, List
 from enum import Enum, unique
 from pathlib import Path
 from PySide6.QtCore import QStandardPaths
@@ -46,12 +46,22 @@ class TemplateItem:
         raise NotImplementedError("TemplateItem should not be used directly. Please use a subclass or another class that inherits from TemplateItem.")
 
 class Button(TemplateItem):
-    def __init__(self, name: str, buttonID: str, location: Tuple[int, int]):
+
+    def __init__(
+        self,
+        name: str,
+        buttonID: str,
+        location: Tuple[int, int],
+        /,
+        normalColor: Tuple[LED, LED] = (LED.FULL, LED.OFF),
+        pushedColor: Tuple[LED, LED] = (LED.OFF, LED.FULL),
+        keyboardCombo: str = "",
+    ):
         super().__init__(name, location)
         self.buttonID = buttonID
-        self.normalColor: Tuple[LED, LED] = (LED.FULL, LED.OFF)
-        self.pushedColor: Tuple[LED, LED] = (LED.OFF, LED.FULL)
-        self.keyboardCombo: str = ""
+        self.normalColor: Tuple[LED, LED] = normalColor
+        self.pushedColor: Tuple[LED, LED] = pushedColor
+        self.keyboardCombo: str = keyboardCombo
 
     def __str__(self) -> str:
         return f"Button(name={self.name}, location={self.location}, normalColor={self.normalColor}, pushedColor={self.pushedColor}, keyboardCombo={self.keyboardCombo})"
@@ -92,10 +102,13 @@ def objectFromJson(jsonData: dict[str, Any]) -> Template | Button:
     objType = jsonData.get("__type__")
 
     if objType == "Button":
-        return Button(
-            name=jsonData["name"],
-            buttonID=jsonData["buttonID"],
-            location=tuple(jsonData["location"]),
+        return Button( # IDEA Maybe rework it?
+            jsonData["name"],
+            jsonData["buttonID"],
+            tuple(jsonData["location"]),
+            normalColor=(LED(jsonData["normalColor"][0]), LED(jsonData["normalColor"][1])),
+            pushedColor=(LED(jsonData["pushedColor"][0]), LED(jsonData["pushedColor"][1])),
+            keyboardCombo=jsonData["keyboardCombo"]
         )
     elif objType == "Template":
         return Template(
@@ -104,3 +117,6 @@ def objectFromJson(jsonData: dict[str, Any]) -> Template | Button:
         )
     
     raise ValueError(f"Unknown object type: {objType}")
+
+# Loaded templates variable
+loadedTemplates: dict[str, List[Template | TemplateItem]] = {}
