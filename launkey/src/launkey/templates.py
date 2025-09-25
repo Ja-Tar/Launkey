@@ -35,18 +35,18 @@ class LED(Enum):
 
 class TemplateItem:
     """Base class for items in a template"""
-    def __init__(self, name: str, location: Tuple[int, int]):
+    def __init__(self, name: str, buttonID: str, location: Tuple[int, int]):
         self.name = name
         self.location = location
+        self.buttonID = buttonID
 
     def __str__(self) -> str:
-        return f"TemplateItem(name={self.name}, location={self.location})"
-    
+        return f"TemplateItem(name={self.name}, location={self.location}, buttonID={self.buttonID})"
+
     def toDict(self) -> dict[str, Any]:
         raise NotImplementedError("TemplateItem should not be used directly. Please use a subclass or another class that inherits from TemplateItem.")
 
 class Button(TemplateItem):
-
     def __init__(
         self,
         name: str,
@@ -57,8 +57,7 @@ class Button(TemplateItem):
         pushedColor: Tuple[LED, LED] = (LED.OFF, LED.FULL),
         keyboardCombo: str = "",
     ):
-        super().__init__(name, location)
-        self.buttonID = buttonID
+        super().__init__(name, buttonID, location)
         self.normalColor: Tuple[LED, LED] = normalColor
         self.pushedColor: Tuple[LED, LED] = pushedColor
         self.keyboardCombo: str = keyboardCombo
@@ -117,6 +116,23 @@ def objectFromJson(jsonData: dict[str, Any]) -> Template | Button:
         )
     
     raise ValueError(f"Unknown object type: {objType}")
+
+def checkTemplate(templateData: list[Template | TemplateItem]) -> bool:
+    if not templateData:
+        return False
+    elif not any(isinstance(item, Template) for item in templateData):
+        raise ValueError("No Template object found in the file.")
+    elif not all(isinstance(item, (Template, TemplateItem)) for item in templateData):
+        raise ValueError("File contains invalid objects.")
+    return True
+
+def getTemplateType(template: List[Template | TemplateItem]) -> Template.Type | None:
+    if not template:
+        return None
+    for item in template:
+        if isinstance(item, Template):
+            return item.type
+    return None
 
 # Loaded templates variable
 loadedTemplates: dict[str, List[Template | TemplateItem]] = {}

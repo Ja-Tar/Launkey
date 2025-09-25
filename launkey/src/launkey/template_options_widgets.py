@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem
 from PySide6.QtCore import Qt, QRegularExpression
 from PySide6.QtGui import QPixmap, QColor, QIcon, QFocusEvent, QRegularExpressionValidator
 
-from .templates import Template, LED, Button
+from .templates import Template, LED, TemplateItem
 
 if TYPE_CHECKING:
     from .custom_layouts import TemplateGridLayout
@@ -164,7 +164,7 @@ class ButtonColorSelector(QComboBox):
 class TemplateOptionsList(QTreeWidget):
     propertyIgnoreList = ["location", "buttonID"]
 
-    def __init__(self, template_type: Template.Type, parent: QWidget | None = None):
+    def __init__(self, template_type: Template.Type, parent: QWidget | None = None, template: Optional[list[Template | TemplateItem]] = None):
         super().__init__(parent)
         optionsListPolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         optionsListPolicy.setHorizontalStretch(7)
@@ -187,7 +187,25 @@ class TemplateOptionsList(QTreeWidget):
         self.selectedChildID: str = ""
         self.mainChildID: str = ""
         self.templateType = template_type
-        self.loadDefaultOptions()
+
+        self.clear()
+        self.setStyleSheet("""
+            QTreeView::item:selected {
+            }
+
+            QTreeView::item:hover {
+            }
+
+            QTreeView::item:hover:selected {
+            }
+            """)
+        self.resizeColumnToContents(0)
+        self.header().setStretchLastSection(True)
+
+        if template:
+            self.loadTemplateOptions(template)
+        else:
+            self.loadDefaultOptions()
 
     def getWidgetForType(self, objectToChange: object, objectProperty: str, value: Any) -> QWidget:
         if objectToChange == self.template and objectProperty == "name":
@@ -220,33 +238,31 @@ class TemplateOptionsList(QTreeWidget):
 
         self.expandItem(topWidget)
 
-    def templateTypeOptions(self, template: Template) -> None:
-        self._addOptions(template, "Template")
+    def templateTypeOptions(self, template: Template, templateName: str = "Template") -> None:
+        self._addOptions(template, templateName)
 
     def childTypeOptions(self, child: object) -> None:
         self._addOptions(child, f"{type(child).__name__}")
 
     def loadDefaultOptions(self) -> None:
-        # get options from template class
-        self.clear()
-        self.setStyleSheet("""
-            QTreeView::item:selected {
-            }
-
-            QTreeView::item:hover {
-            }
-
-            QTreeView::item:hover:selected {
-            }
-            """)
-
         self.template = Template(name="Example", type=self.templateType)
         self.templateTypeOptions(self.template)
-        self.resizeColumnToContents(0)
-        self.header().setStretchLastSection(True)
 
-    def addChild(self, childID: str, location: tuple[int, int], main: bool = False) -> None:
-        child = self.templateType.value(f"Button {len(self.templateChildren) + 1}", childID, location)
+    def loadTemplateOptions(self, template: list[Template | TemplateItem]) -> None:
+        for item in template:
+            if isinstance(item, Template):
+                self.template = item
+                self.templateTypeOptions(self.template)
+            elif isinstance(item, TemplateItem):
+                self.templateChildren[item.buttonID] = item
+                if item.location == (0, 0):
+                    self.mainChildID = item.buttonID
+
+    def addChild(self, childID: str, location: tuple[int, int], /, main: bool = False, name: str | None = None) -> None:
+        if childID in self.templateChildren:
+            return # Child already exists (probably loading from template)
+        name = name or f"Button {len(self.templateChildren) + 1}"
+        child = self.templateType.value(name, childID, location)
         self.templateChildren[childID] = child
         if main or not self.mainChildID:
             self.mainChildID = childID

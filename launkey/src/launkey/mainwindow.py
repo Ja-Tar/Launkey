@@ -1,17 +1,18 @@
 import asyncio
 import keyboard
 import json
+from pathlib import Path
 
 from typing import TYPE_CHECKING, Any, List
 
 #from PySide6 import QtAsyncio
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QInputDialog, QMessageBox, QFrame
+from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
 #import launchpad_py as launchpad
 
 from .ui_dialogtemplates import Ui_Dialog
 from .custom_widgets import QDialogNoDefault, TemplateDisplay
-from .templates import Template, getTemplateFolderPath, objectFromJson, TemplateItem, loadedTemplates
+from .templates import Template, TemplateItem, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
 from .launchpad_control import LaunchpadWrapper
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 
 def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
-    loadTemplates(main_window)
+    importTemplates(main_window)
 
     lpWrapper = LaunchpadWrapper(main_window)
     if lpWrapper.connect():
@@ -27,7 +28,7 @@ def mainWindowScript(main_window: "Launkey"):
         main_window.lpclose = lpWrapper.lp
     else:
         main_window.ui.statusbar.showMessage("Launchpad not found")
-        QMessageBox.critical(
+        QMessageBox.warning(
             main_window,
             "Launchpad Error",
             "Launchpad not found. Please close the app to connect to the Launchpad."
@@ -36,25 +37,17 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
     main_window.ui.buttonRun.setEnabled(True)
 
-def loadTemplates(main_window: "Launkey"):
+def importTemplates(main_window: "Launkey", currentTemplateDisplayName: str | None = None):
+    if currentTemplateDisplayName:
+        removeTemplateForRefresh(main_window, currentTemplateDisplayName)
+
     template_files = getTemplateFileList()
     for template_file in template_files:
         try:
-            with open(getTemplateFolderPath() / template_file, "r") as f:
-                templateJsonData: list[dict[str, Any]] = json.load(f)
-            templateData: list[Template | TemplateItem] = []
-            for obj in templateJsonData:
-                template = objectFromJson(obj)
-                if template:
-                    templateData.append(template)
-
-            # Handle errors
+            template_path = getTemplateFolderPath() / template_file
+            templateData = parseTemplateFile(main_window, template_path)
             if not templateData:
                 continue
-            elif not any(isinstance(item, Template) for item in templateData):
-                raise ValueError("No Template object found in the file.")
-            elif not all(isinstance(item, (Template, TemplateItem)) for item in templateData):
-                raise ValueError("File contains invalid objects.")
 
             addTemplateToLayout(main_window, templateData, template_file)
         except Exception as e:
@@ -62,8 +55,47 @@ def loadTemplates(main_window: "Launkey"):
             messagebox = QMessageBox(QMessageBox.Icon.Critical, "Template Load Error", message, parent=main_window)
             messagebox.exec()
 
+def removeTemplateForRefresh(main_window, currentTemplateDisplayName):
+    for i in reversed(range(main_window.ui.gridLayoutTemplates.count())):
+        item = main_window.ui.gridLayoutTemplates.itemAt(i)
+        if item is None:
+            continue
+        widget = item.widget()
+        if isinstance(widget, TemplateDisplay) and widget.text == currentTemplateDisplayName:
+            main_window.ui.gridLayoutTemplates.removeWidget(widget)
+            widget.deleteLater()
+            if currentTemplateDisplayName in loadedTemplates:
+                del loadedTemplates[currentTemplateDisplayName]
+            break
+
+def parseTemplateFile(main_window: "Launkey", filePath: Path) -> list[Template | TemplateItem]:
+        errorMessageTitle = "Load Template Error"
+
+        templateJsonData: list[dict[str, object]] = []
+        templateData: list[Template | TemplateItem] = []
+        try:
+            with open(filePath, "r") as f:
+                templateJsonData: list[dict[str, object]] = json.load(f)
+        except Exception as e:
+            QMessageBox.warning(main_window, errorMessageTitle, f"Failed to load template file: {e}")
+            return []
+        for obj in templateJsonData:
+            try:
+                template = objectFromJson(obj)
+            except ValueError as e:
+                QMessageBox.warning(main_window, errorMessageTitle, f"Error parsing template data: {e}")
+                continue
+            if template:
+                templateData.append(template)
+        
+        if not checkTemplate(templateData):
+            QMessageBox.warning(main_window, errorMessageTitle, "Template file is invalid or contains no Template object.")
+            return []
+    
+        return templateData
+
 def addTemplateToLayout(main_window: "Launkey", templateData: list[Template | TemplateItem], templateFileName: str):
-    templateDisplay = TemplateDisplay(templateData, main_window)
+    templateDisplay = TemplateDisplay(main_window, templateData, main_window)
     if not checkForDuplicates(main_window, templateDisplay.text):
         main_window.ui.gridLayoutTemplates.addWidget(templateDisplay)
         loadedTemplates[templateFileName] = templateData
@@ -164,14 +196,23 @@ def newTemplatePopup(main_window: "Launkey"):
     dialog.show()
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
-        loadTemplates(main_window)
+        importTemplates(main_window)
         print("Refreshed templates")
 
-def editTemplatePopup(main_window: "Launkey"):
+def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
     # TODO load template data into the dialog, with the ability to edit and save changes
-    #dialog = QDialogNoDefault(main_window)
-    #ui = Ui_Dialog()
-    #ui.setupUi(dialog) # FIX
-    #dialog.setWindowTitle("Edit Template")
-    #dialog.show()
-    pass
+    templateFileName = sterilizeTemplateName(templateDisplayName) + ".json"
+    if templateFileName not in loadedTemplates:
+        error_dialog = QErrorMessage(main_window)
+        error_dialog.showMessage(f"Template '{templateFileName}' not found.")
+        return
+    
+    dialog = QDialogNoDefault(main_window)
+    ui = Ui_Dialog()
+    ui.loadTemplate(dialog, loadedTemplates[templateFileName])
+    dialog.setWindowTitle("Edit Template")
+    dialog.show()
+
+    if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
+        importTemplates(main_window, templateDisplayName)
+        print("Refreshed templates")

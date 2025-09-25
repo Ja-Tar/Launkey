@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 
 from .custom_widgets import PlusButton, ToggleButton
 from .template_options_widgets import TemplateOptionsList
+from .templates import Template, TemplateItem
 
 # From https://github.com/chinmaykrishnroy/PyQt5DynamicFlowLayout
 class DynamicGridLayout(QGridLayout):
@@ -31,6 +32,11 @@ class DynamicGridLayout(QGridLayout):
         super().addWidget(widget, 0, 0, rowSpan, colSpan)
         self.update_layout()
 
+    def removeWidget(self, widget):
+        self.items = [item for item in self.items if item[0] != widget]
+        super().removeWidget(widget)
+        self.update_layout()
+
     def update_layout(self):
         if not self.parentWidget():
             return
@@ -55,7 +61,7 @@ class DynamicGridLayout(QGridLayout):
 
 
 class TemplateGridLayout(QGridLayout):
-    def __init__(self, mainWidget: ToggleButton, optionsList: TemplateOptionsList, parent=None, rows: int = 8, cols: int = 8):
+    def __init__(self, mainWidget: ToggleButton, optionsList: TemplateOptionsList, parent=None, rows: int = 8, cols: int = 8, template: list[Template | TemplateItem] | None = None):
         super().__init__(parent)
         self.setContentsMargins(5, 5, 5, 5)
         self.setSpacing(0)
@@ -75,8 +81,26 @@ class TemplateGridLayout(QGridLayout):
 
         self.optionsList = optionsList
 
+        if template:
+            self.widgetsFromTemplate(center, template)
+
         self.updateLayout()
         self._checkToggleOtherButtons(self.mainWidget.getButtonID())
+
+    def widgetsFromTemplate(self, center, template):
+        for item in template:
+            print(f"Processing item: {item}")
+            if isinstance(item, TemplateItem):
+                if item.location == (0, 0) or item.location == center:
+                    continue  # Skip main button location
+                newWidget = ToggleButton(item.name, item.buttonID)
+                newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+                    # Convert relative position to main widget to absolute position
+                newWidgetLocation = (item.location[0] + self.mainWidgetLocation[0], item.location[1] + self.mainWidgetLocation[1])
+                newWidget.customContextMenuRequested.connect(lambda _, r=newWidgetLocation[0], c=newWidgetLocation[1]: self._actionButtonRemove(r, c))
+                newWidget.clicked.connect(lambda _, bID=item.buttonID: self._actionButtonClick(bID))
+                self.addWidget(newWidget, newWidgetLocation[0], newWidgetLocation[1], alignment=Qt.AlignmentFlag.AlignBaseline)
+                self.optionsList.addChild(item.buttonID, item.location, name=item.name)
 
     def __str__(self) -> str:
         # Custom string representation for debugging
@@ -97,7 +121,7 @@ class TemplateGridLayout(QGridLayout):
     
     def setupOptionsListConnection(self):
         self.optionsList.gridLayout = self
-        self.optionsList.addChild(self.mainWidget.getButtonID(), self.getWidgetPositionRelativeToMain(self.mainWidget), main=True)  # Add initial child
+        self.optionsList.addChild(self.mainWidget.getButtonID(), self.getWidgetPositionRelativeToMain(self.mainWidget), main=True, name=self.mainWidget.text())  # Add initial child
         self.optionsList.selectChild(self.mainWidget.getButtonID())
 
     def updateLayout(self):
@@ -204,4 +228,3 @@ class TemplateGridLayout(QGridLayout):
             self.setRowStretch(row, 1 if any(pos[0] == row for pos in occupied) else 0)
         for col in range(self.cols):
             self.setColumnStretch(col, 1 if any(pos[1] == col for pos in occupied) else 0)
-            

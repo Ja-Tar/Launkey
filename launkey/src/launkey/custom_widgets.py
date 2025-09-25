@@ -1,10 +1,14 @@
 import time
 
+from typing import TYPE_CHECKING
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
 from PySide6.QtCore import Qt, QSize, QRect, QMimeData
 from PySide6.QtGui import QKeySequence, QMouseEvent, QPixmap, QPainter, QDrag, QResizeEvent
 
 from .templates import Template, TemplateItem, sterilizeTemplateName
+
+if TYPE_CHECKING:
+    from .mainwindow import Launkey
 
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget | None = None): 
@@ -59,8 +63,9 @@ class QDialogNoDefault(QDialog):
             event.ignore()
 
 class TemplateDisplay(QFrame):
-    def __init__(self, templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
+    def __init__(self, main_window: "Launkey", templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
         super().__init__(parent)
+        self.main_window = main_window
         self.text = ""
         for item in templateItems:
             if isinstance(item, Template):
@@ -88,6 +93,12 @@ class TemplateDisplay(QFrame):
         layout.addWidget(self.preview)
         layout.addWidget(self.label)
         self.setLayout(layout)
+
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.RightButton:
+            from .mainwindow import editTemplatePopup
+            editTemplatePopup(self.main_window, self.text)
+        super().mousePressEvent(event)
 
     def hasHeightForWidth(self) -> bool: # skipcq: PYL-R0201
         return True

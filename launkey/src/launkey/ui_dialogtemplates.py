@@ -5,6 +5,7 @@
 
 import json
 from pathlib import Path
+from typing import List
 
 from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent, QStandardPaths
 from PySide6.QtWidgets import (
@@ -15,7 +16,7 @@ from PySide6.QtWidgets import (
 from .custom_layouts import TemplateGridLayout
 from .custom_widgets import ToggleButton
 from .template_options_widgets import TemplateOptionsList
-from .templates import Template, getTemplateFolderPath, sterilizeTemplateName
+from .templates import Template, TemplateItem, getTemplateFolderPath, sterilizeTemplateName, getTemplateType
 
 class Ui_Dialog:
     """
@@ -33,7 +34,19 @@ class Ui_Dialog:
         self.editorFrame: QFrame
         self.gridLayout: TemplateGridLayout
 
-    def setupUi(self, dialog: QDialog, template_type: Template.Type):
+    def loadTemplate(self, dialog: QDialog, template: List[Template | TemplateItem]):
+        self.loadedTemplate = template
+        print("Template loaded successfully.")
+
+        # TODO: Populate the UI with the loaded template data
+        template_type = getTemplateType(self.loadedTemplate)
+        if template_type is None:
+            self.errorMessageBox("Failed to determine template type.", "Load Template Error", dialog)
+            return
+        self.setupUi(dialog, template_type, self.loadedTemplate)
+        print("UI setup completed.")
+
+    def setupUi(self, dialog: QDialog, template_type: Template.Type, loadedTemplate: List[Template | TemplateItem] | None = None):
         if not dialog.objectName():
             dialog.setObjectName("Dialog")
         dialog.resize(800, 600)
@@ -55,7 +68,7 @@ class Ui_Dialog:
         self.mainLayout.addWidget(self.optionsPanel)
 
         # List of templates
-        self.optionsList = TemplateOptionsList(template_type, self.optionsPanel)
+        self.optionsList = TemplateOptionsList(template_type, self.optionsPanel, loadedTemplate)
         optionsPanelLayout.addWidget(self.optionsList)  # type: ignore
 
         # Button separator
@@ -92,8 +105,9 @@ class Ui_Dialog:
         self.mainLayout.addWidget(self.separator)
 
         # Main action button (center, square)
-        self.mainActionButton = ToggleButton("Button 1", "mainAction")
-        self.mainActionButton.setObjectName("mainActionButton")
+        if not loadedTemplate:
+            self.mainActionButton = ToggleButton("Button 1", "mainAction")
+            self.mainActionButton.setObjectName("mainActionButton")
 
         # Editor frame (right side)
         self.editorFrame = QFrame()
@@ -106,8 +120,21 @@ class Ui_Dialog:
         editorFrameSizePolicy.setVerticalStretch(0)
         self.editorFrame.setSizePolicy(editorFrameSizePolicy)
 
+        # Flow for loading main action button
+        if loadedTemplate:
+            for item in loadedTemplate:
+                # search for item with position (0,0)
+                if isinstance(item, Template) and item.type == Template.Type.BUTTONS:
+                    continue
+                if isinstance(item, TemplateItem) and hasattr(item, 'location') and item.location == (0, 0):
+                    if isinstance(item, TemplateItem):
+                        self.mainActionButton = ToggleButton(item.name, item.buttonID)
+                        self.mainActionButton.setObjectName("mainActionButton")
+                        print(f"Main action button loaded: {item.name} at {item.location}")
+                        break
+
         # Centered grid layout for editor frame
-        self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame)
+        self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame, template=loadedTemplate)
         self.gridLayout.setupOptionsListConnection()
         self.editorFrame.setLayout(self.gridLayout)
 
@@ -207,3 +234,7 @@ class Ui_Dialog:
             dialog.reject()
         else:
             pass
+
+    def errorMessageBox(self, message: str, title: str, parent: QWidget | None = None):
+        messagebox = QMessageBox(QMessageBox.Icon.Critical, title, message, parent=parent)
+        messagebox.exec()
