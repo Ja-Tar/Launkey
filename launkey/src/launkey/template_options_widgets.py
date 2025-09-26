@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem
 from PySide6.QtCore import Qt, QRegularExpression
 from PySide6.QtGui import QPixmap, QColor, QIcon, QFocusEvent, QRegularExpressionValidator
 
-from .templates import Template, LED, TemplateItem
+from .templates import Template, LED, TemplateItem, LEDColorCodes
 
 if TYPE_CHECKING:
     from .custom_layouts import TemplateGridLayout
@@ -125,26 +125,7 @@ class ButtonColorSelector(QComboBox):
         self.setIconSize(QPixmap(20, 20).size())
         self.setFixedWidth(50)
 
-        color_options = [
-            ([LED.OFF, LED.OFF], "#000000"),
-            ([LED.LOW, LED.OFF], "#ffcccc"),
-            ([LED.MEDIUM, LED.OFF], "#ff8888"),
-            ([LED.FULL, LED.OFF], "#ff0000"),
-            ([LED.OFF, LED.LOW], "#ccffcc"),
-            ([LED.OFF, LED.MEDIUM], "#88ff88"),
-            ([LED.OFF, LED.FULL], "#00ff00"),
-            ([LED.LOW, LED.LOW], "#ffffcc"),
-            ([LED.MEDIUM, LED.MEDIUM], "#ffff88"),
-            ([LED.FULL, LED.FULL], "#ffff00"),
-            ([LED.MEDIUM, LED.LOW], "#ffd699"),
-            ([LED.FULL, LED.MEDIUM], "#ffb366"),
-            ([LED.FULL, LED.LOW], "#ff9900"),
-            ([LED.LOW, LED.MEDIUM], "#ccff99"),
-            ([LED.LOW, LED.FULL], "#99ff66"),
-            ([LED.MEDIUM, LED.FULL], "#66ff33"),
-        ]
-
-        for value, color in color_options:
+        for value, color in LEDColorCodes:
             pixmap = QPixmap(20, 20)
             pixmap.fill(QColor(color))
             icon = QIcon(pixmap)

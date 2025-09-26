@@ -33,6 +33,31 @@ class LED(Enum):
     LOW = 1
     OFF = 0
 
+LEDColorCodes = [
+    ([LED.OFF, LED.OFF], "#000000"),
+    ([LED.LOW, LED.OFF], "#ffcccc"),
+    ([LED.MEDIUM, LED.OFF], "#ff8888"),
+    ([LED.FULL, LED.OFF], "#ff0000"),
+    ([LED.OFF, LED.LOW], "#ccffcc"),
+    ([LED.OFF, LED.MEDIUM], "#88ff88"),
+    ([LED.OFF, LED.FULL], "#00ff00"),
+    ([LED.LOW, LED.LOW], "#ffffcc"),
+    ([LED.MEDIUM, LED.MEDIUM], "#ffff88"),
+    ([LED.FULL, LED.FULL], "#ffff00"),
+    ([LED.MEDIUM, LED.LOW], "#ffd699"),
+    ([LED.FULL, LED.MEDIUM], "#ffb366"),
+    ([LED.FULL, LED.LOW], "#ff9900"),
+    ([LED.LOW, LED.MEDIUM], "#ccff99"),
+    ([LED.LOW, LED.FULL], "#99ff66"),
+    ([LED.MEDIUM, LED.FULL], "#66ff33"),
+]
+
+def ledsToColorCode(leds: Tuple[LED, LED]) -> str:
+    for led_pair, color in LEDColorCodes:
+        if leds == tuple(led_pair):
+            return color
+    return "#000000"  # Default to black if not found
+
 class TemplateItem:
     """Base class for items in a template"""
     def __init__(self, name: str, buttonID: str, location: Tuple[int, int]):

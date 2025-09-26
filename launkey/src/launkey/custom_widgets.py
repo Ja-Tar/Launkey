@@ -2,10 +2,13 @@ import time
 
 from typing import TYPE_CHECKING
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
-from PySide6.QtCore import Qt, QSize, QRect, QMimeData
-from PySide6.QtGui import QKeySequence, QMouseEvent, QPixmap, QPainter, QDrag, QResizeEvent
+from PySide6.QtCore import Qt, QSize, QRect, QMimeData, QPoint
+from PySide6.QtGui import (
+    QKeySequence, QMouseEvent, QPixmap, QPainter,
+    QDrag, QResizeEvent, QLinearGradient, QColor
+)
 
-from .templates import Template, TemplateItem, sterilizeTemplateName
+from .templates import Template, TemplateItem, Button, sterilizeTemplateName, ledsToColorCode
 
 if TYPE_CHECKING:
     from .mainwindow import Launkey
@@ -121,10 +124,16 @@ class Preview(QFrame):
         self.setFrameShadow(QFrame.Shadow.Raised)
         self.setLineWidth(2)
 
-        self.locationList = []
+        self.locationList: list[tuple[int, int]] = []
+        self.normalColorList: list[str] = []
+        self.pushedColorList: list[str] = []
         for item in templateItems:
             if isinstance(item, TemplateItem):
                 self.locationList.append(item.location)
+                if isinstance(item, Button): # Only Button has colors for now
+                    self.normalColorList.append(ledsToColorCode(item.normalColor))
+                    self.pushedColorList.append(ledsToColorCode(item.pushedColor))
+
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -151,7 +160,7 @@ class Preview(QFrame):
     def resizeEvent(self, event: QResizeEvent) -> None:
         if self.called + 0.05 < time.time(): # Resize throttling - only update every 50 ms
             self.called = time.time()
-            self.displayPixmap = self.generatePixmap(self.locationList, self.size() - QSize(4, 4), space_between=4, padding=2)
+            self.displayPixmap = self.generatePixmap(self.locationList, self.size() - QSize(4, 4), space_between=4, padding=2, drawCustomBackground=True)
             self.previewLabel.setPixmap(self.displayPixmap)
         super().resizeEvent(event)
 
@@ -160,6 +169,7 @@ class Preview(QFrame):
         locationList: list[tuple[int, int]],
         maxSize: QSize | None = None,
         /,
+        drawCustomBackground: bool = False,
         padding: int = 4,
         space_between: int = 2,
         min_cell_size: int = 1,
@@ -201,9 +211,42 @@ class Preview(QFrame):
             x = padding + (col - min_col) * (cell_size + space_between)
             y = padding + (row - min_row) * (cell_size + space_between)
             rect = QRect(x, y, cell_size, cell_size)
-            painter.fillRect(rect, Qt.GlobalColor.lightGray)
-            painter.setPen(Qt.GlobalColor.darkGray)
-            painter.drawRect(rect)
+            index = locationList.index((row, col))
+            if not drawCustomBackground:
+                # Draw border
+                painter.setBrush(QColor("#888888"))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawRoundedRect(rect, 7, 7)
+
+                # Fill inner cell
+                rect.adjust(2, 2, -2, -2)  # Smaller rect for inner fill
+                painter.setBrush(QColor("#555555"))
+                painter.drawRoundedRect(rect, 5, 5)
+                continue
+            normal_color = self.normalColorList[index] if index < len(self.normalColorList) else Qt.GlobalColor.lightGray
+            pushed_color = self.pushedColorList[index] if index < len(self.pushedColorList) else Qt.GlobalColor.lightGray
+
+            # One half is normal color and the other has pushed color
+            gradient = QLinearGradient(rect.topLeft(), rect.bottomRight())
+            gradient.setColorAt(0, QColor(normal_color))
+            gradient.setColorAt(0.51, QColor(normal_color))
+            gradient.setColorAt(0.52, QColor(pushed_color))
+            gradient.setColorAt(1, QColor(pushed_color))
+            painter.setBrush(gradient)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(rect, 5, 5)
+
+            # Draw a semicircle at the middle point and facing to the bottom right
+            painter.setBrush(QColor("#555555"))
+            painter.setPen(Qt.PenStyle.NoPen)
+            radius = cell_size // 4
+            center_x = x + cell_size // 2
+            center_y = y + cell_size // 2
+            rect = QRect(center_x - radius, center_y - radius, 2 * radius, 2 * radius)
+            start_angle = 225 * 16  # 225 degrees
+            span_angle = 180 * 16  # 180 degrees
+            painter.drawArc(rect, start_angle, span_angle)
+            painter.drawPie(rect, start_angle, span_angle)
 
         painter.end()
         return pixmap
@@ -223,7 +266,27 @@ class Preview(QFrame):
 
         pixmap = self.dragPixmap
         drag.setPixmap(pixmap)
-        drag.setHotSpot(pixmap.rect().center())
+        # Find the (0, 0) location and set hotspot to its center if present, else use pixmap center
+        self.getDragHotspot(pixmap)
+        drag.setHotSpot(self.getDragHotspot(pixmap))
         drag.setObjectName(f"drag-{self.templateName}")
 
         drag.exec(Qt.DropAction.CopyAction)
+
+    def getDragHotspot(self, pixmap: QPixmap) -> QPoint:
+        if (0, 0) in self.locationList:
+            index = self.locationList.index((0, 0))
+            # Calculate grid bounds
+            min_row = min(row for row, _ in self.locationList)
+            min_col = min(col for _, col in self.locationList)
+            # Layout parameters
+            cols = max(col for _, col in self.locationList) - min_col + 1
+            rows = max(row for row, _ in self.locationList) - min_row + 1
+            cell_size = 36  # Use default_cell_size
+            space_between = 4
+            padding = 2
+            x = padding + (0 - min_col) * (cell_size + space_between) + cell_size // 2
+            y = padding + (0 - min_row) * (cell_size + space_between) + cell_size // 2
+            return QPoint(x, y)
+        else:
+            return pixmap.rect().center()

@@ -223,7 +223,7 @@ class LaunchpadTable(QTableWidget):
                 if not templateData:
                     raise ValueError(f"Template {templateFileName} is empty")
                 self.loadDataFromTemplate(tablePosition, templateData)
-            event.acceptProposedAction()
+                event.acceptProposedAction()
 
     def loadDataFromTemplate(self, tablePosition: tuple[int, int], templateData: list[Template | TemplateItem]):
         item = self.item(*tablePosition)
@@ -232,4 +232,6 @@ class LaunchpadTable(QTableWidget):
             print(f"Loading template at launchpad position: {launchpadPosition}")
             for templateItem in templateData:
                 print(f" - {templateItem}")
-            item.setBackground(QColor(200, 255, 200))  # Light green background to indicate filled cell
+            # TODO Check if template fits in the table from the given position
+            # TODO Highlight the area where the template will be placed
+            # TODO Place the template items in the table
