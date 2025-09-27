@@ -44,7 +44,7 @@ class ToggleButton(SquareButton):
         self.buttonID = buttonID
 
     def onToggled(self, checked: bool):
-        self.setStyleSheet("border: 5px solid lightblue; border-width: 5px;" if checked else "border-color: darkgray; border-width: 1px;")
+        self.setStyleSheet("border: 5px solid lightblue;" if checked else "border-color: darkgray; border-width: 1px;")
 
     def getButtonID(self) -> str:
         return self.buttonID

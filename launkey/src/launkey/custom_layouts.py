@@ -1,7 +1,7 @@
 from typing import Literal
 from warnings import deprecated
 from PySide6.QtWidgets import QGridLayout, QWidget
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 
 from .custom_widgets import PlusButton, ToggleButton
 from .template_options_widgets import TemplateOptionsList
@@ -95,7 +95,7 @@ class TemplateGridLayout(QGridLayout):
                     continue  # Skip main button location
                 newWidget = ToggleButton(item.name, item.buttonID)
                 newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-                    # Convert relative position to main widget to absolute position
+                # Convert relative position to main widget to absolute position
                 newWidgetLocation = (item.location[0] + self.mainWidgetLocation[0], item.location[1] + self.mainWidgetLocation[1])
                 newWidget.customContextMenuRequested.connect(lambda _, r=newWidgetLocation[0], c=newWidgetLocation[1]: self._actionButtonRemove(r, c))
                 newWidget.clicked.connect(lambda _, bID=item.buttonID: self._actionButtonClick(bID))
@@ -112,13 +112,13 @@ class TemplateGridLayout(QGridLayout):
                     layout_str += "[M] "
                 elif (row, col) in self.getWidgetsPositions():
                     layout_str += "[W] "
-                elif (row, col) in self.getAddButtonsPositions():
+                elif (row, col) in self.getPlusButtonsPositions():
                     layout_str += "[+] "
                 else:
                     layout_str += "[ ] "
             layout_str += "\n"
         return layout_str
-    
+
     def setupOptionsListConnection(self):
         self.optionsList.gridLayout = self
         self.optionsList.addChild(self.mainWidget.getButtonID(), self.getWidgetPositionRelativeToMain(self.mainWidget), main=True, name=self.mainWidget.text())  # Add initial child
@@ -130,7 +130,14 @@ class TemplateGridLayout(QGridLayout):
 
     def autoAddPlusButtons(self):
         for _, (row, col) in self.getAllWidgets():
-            for addRow, addCol in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+            for addRow, addCol in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                # 4 directions around the widget
+                #   x
+                # x W x
+                #   x
+                # ----------------------------------------------------
+                # Old: [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+                # 8 directions around the widget
                 if ((row + addRow, col + addCol) not in self.getOccupiedPositions() and (row + addRow, col + addCol) != self.mainWidgetLocation and row + addRow >= 0 and col + addCol >= 0 and row + addRow < self.rows and col + addCol < self.cols):
                     button = PlusButton()
                     button.clicked.connect(lambda _, r=row + addRow, c=col + addCol: self._plusButtonClick(r, c))
@@ -138,15 +145,16 @@ class TemplateGridLayout(QGridLayout):
                     self.plusButtonWidgets.append((button, (row + addRow, col + addCol)))
 
     def _plusButtonClick(self, rowBtn: int, colBtn: int):
+        relativePos = (rowBtn - self.mainWidgetLocation[0], colBtn - self.mainWidgetLocation[1])
         newWidget = ToggleButton(f"Button {len(self.otherWidgets) + 2}", f"Btn{rowBtn}{colBtn}")
 
         newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         newWidget.customContextMenuRequested.connect(lambda _: self._actionButtonRemove(rowBtn, colBtn))
         newWidget.clicked.connect(lambda _: self._actionButtonClick(newWidget.getButtonID()))
-        
+
         self.addWidget(newWidget, rowBtn, colBtn, alignment=Qt.AlignmentFlag.AlignBaseline)
         self.updateLayout()
-        self.optionsList.addChild(newWidget.getButtonID(), self.getWidgetPositionRelativeToMain(newWidget))
+        self.optionsList.addChild(newWidget.getButtonID(), relativePos)
 
     def _actionButtonClick(self, buttonID: str):
         self._checkToggleOtherButtons(buttonID)
@@ -158,7 +166,16 @@ class TemplateGridLayout(QGridLayout):
                 button.checkToggle(buttonID)
 
     def _actionButtonRemove(self, rowBtn: int, colBtn: int):
+        adjacentPositions = [(rowBtn - 1, colBtn), (rowBtn + 1, colBtn), (rowBtn, colBtn - 1), (rowBtn, colBtn + 1)]
+        adjacentWidgets = self.getWidgetsForPositions(adjacentPositions, all=True)
+
+        for widget in adjacentWidgets:
+            if self.buttonIsolated(widget, (rowBtn, colBtn)):
+                self._errorRemoveButton(widget)
+                return
+
         self.clearPlusButtons()
+
         for widget, pos in self.otherWidgets:
             if pos == (rowBtn, colBtn):
                 self._checkToggleOtherButtons(self.mainWidget.getButtonID())
@@ -170,11 +187,48 @@ class TemplateGridLayout(QGridLayout):
         self.updateLayout()
         self.optionsList.selectChild(self.mainWidget.getButtonID())
 
+    def buttonIsolated(self, widget: QWidget, removeLoc: tuple[int, int]) -> bool:
+        # Check if the widget has no widgets connecting it to main widget
+        widgetPos = self.getWidgetPosition(widget)
+        visited = set()
+        toVisit = [widgetPos]
+        while toVisit:
+            current = toVisit.pop()
+            if current == self.mainWidgetLocation:
+                return False  # Found a path to main widget
+            visited.add(current)
+            for delta in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                neighbor = (current[0] + delta[0], current[1] + delta[1])
+                if (0 <= neighbor[0] < self.rows and 0 <= neighbor[1] < self.cols and neighbor != removeLoc and neighbor not in visited and neighbor in self.getWidgetsPositions()):
+                    toVisit.append(neighbor)
+        return True  # No path to main widget found
+
     def clearPlusButtons(self):
         for button, pos in self.plusButtonWidgets:
             super().removeWidget(button)
             button.deleteLater()
         self.plusButtonWidgets.clear()
+
+    def getWidgetsForPositions(self, positions: list[tuple[int, int]], /, all=False) -> list[ToggleButton]:
+        foundWidgets = []
+        for pos in positions:
+            widget = self.getSingleWidgetPosition(pos, all=all)
+            if widget:
+                foundWidgets.append(widget)
+        return foundWidgets
+
+    def getSingleWidgetPosition(self, pos: tuple[int, int], /, all=False) -> QWidget | None:
+        widgetList = self.getAllWidgets() if all else self.otherWidgets
+        for widget, wPos in widgetList:
+            if wPos == pos:
+                return widget
+        return None
+
+    def _errorRemoveButton(self, widget: QWidget):
+        # Flash the border of the button at pos to indicate error
+        originalStyle = "border-color: darkgray; border-width: 1px;"
+        widget.setStyleSheet("border: 2px solid red;")
+        QTimer.singleShot(500, lambda: widget.setStyleSheet(originalStyle))
 
     def addWidget(
         self,
@@ -206,15 +260,19 @@ class TemplateGridLayout(QGridLayout):
     def getWidgetsPositions(self) -> set[tuple[int, int]]:
         return {pos for _, pos in self.otherWidgets} | {self.mainWidgetLocation}
 
-    def getAddButtonsPositions(self) -> set[tuple[int, int]]:
+    def getPlusButtonsPositions(self) -> set[tuple[int, int]]:
         return {pos for _, pos in self.plusButtonWidgets}
-    
+
     def getWidgetPositionRelativeToMain(self, widget: QWidget) -> tuple[int, int]:
+        absPos = self.getWidgetPosition(widget)
+        return (absPos[0] - self.mainWidgetLocation[0], absPos[1] - self.mainWidgetLocation[1])
+
+    def getWidgetPosition(self, widget: QWidget) -> tuple[int, int]:
         for w, pos in self.getAllWidgets():
             if w == widget:
-                return (pos[0] - self.mainWidgetLocation[0], pos[1] - self.mainWidgetLocation[1])
+                return pos
         raise ValueError("Widget not found in layout")
-    
+
     def updateButtonText(self, buttonID: str, newText: str):
         for widget, _ in self.getAllWidgets():
             if isinstance(widget, ToggleButton) and widget.getButtonID() == buttonID:
