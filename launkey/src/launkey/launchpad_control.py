@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Any
 
 import asyncio
+import struct
 import launchpad_py as launchpad
 
 from PySide6.QtCore import QModelIndex, Qt
@@ -148,13 +149,7 @@ class LaunchpadTable(QTableWidget):
         noButtonBrush.setStyle(Qt.BrushStyle.DiagCrossPattern)
         noButton = QTableWidgetItem()
         noButton.setBackground(noButtonBrush)
-        noButton.setFlags(
-            Qt.ItemFlag.ItemIsSelectable
-            | Qt.ItemFlag.ItemIsEditable
-            | Qt.ItemFlag.ItemIsDragEnabled
-            | Qt.ItemFlag.ItemIsDropEnabled
-            | Qt.ItemFlag.ItemIsUserCheckable
-        )
+        noButton.setFlags(Qt.ItemFlag.NoItemFlags)
         # top row and left column are for autoMap
         self.setItem(0, 8, noButton)  # top-right corner cell
 
@@ -194,14 +189,37 @@ class LaunchpadTable(QTableWidget):
                 item = QTableWidgetItem()
                 self.setItem(row, col, item)
 
+        # Initialize variables
+        self.occupiedCells: list[tuple[int, int]] = []  # To track occupied cells
+        self.loadedTemplates: dict[tuple[int, int], list[Template | TemplateItem]] = {}  # To track loaded templates
+        # tuple is main object position in table
+
     def dragMoveEvent(self, event: QDragMoveEvent) -> None:
-        event.acceptProposedAction()
+        if event.mimeData().hasFormat("application/x-template"):
+            mimeData = event.mimeData().data("application/x-template")
+            # b''.join(struct.pack('ii', row, col) for row, col in self.locationList)
+            occupiedRelativePositions: list[tuple[int, int]] = [tuple(struct.unpack('ii', mimeData.data()[i:i + 8])) for i in range(0, len(mimeData.data()), 8)]
+            pos = event.position().toPoint()
+            index: QModelIndex = self.indexAt(pos)
+            if occupiedRelativePositions and index.isValid():
+                tablePosition = (index.row(), index.column())
+                for relPos in occupiedRelativePositions:
+                    pos = (tablePosition[0] + relPos[0], tablePosition[1] + relPos[1])
+                    if self.isOnOccupiedCells(pos):
+                        event.ignore()
+                        return
+                    elif self.isOutOfBounds(pos):
+                        event.ignore()
+                        return
+                event.acceptProposedAction()
+                return
+        event.ignore()
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         event.acceptProposedAction()
 
     def dropEvent(self, event: QDropEvent) -> None:
-        if event.mimeData().hasFormat("text/plain"):
+        if event.mimeData().hasFormat("application/x-template"):
             # Extract the template name from the drag object name
             templateName = event.mimeData().text()
             templateFileName = sterilizeTemplateName(templateName) + ".json"
@@ -211,6 +229,7 @@ class LaunchpadTable(QTableWidget):
             pos = event.position().toPoint()
             index: QModelIndex = self.indexAt(pos)
             if index.isValid():
+                self.isValidLocation((index.row(), index.column()), loadedTemplates[templateFileName])
                 # TODO handle the drop logic here (load template, etc.)
                 row = index.row()
                 col = index.column()
@@ -225,13 +244,51 @@ class LaunchpadTable(QTableWidget):
                 self.loadDataFromTemplate(tablePosition, templateData)
                 event.acceptProposedAction()
 
+    def isValidLocation(self, tablePosition: tuple[int, int], templateData: list[Template | TemplateItem]) -> bool:
+        for item in templateData:
+            if isinstance(item, TemplateItem):
+                itemPos = (tablePosition[0] + item.location[0], tablePosition[1] + item.location[1])
+                if self.isOutOfBounds(itemPos):
+                    return False
+                if self.isOnOccupiedCells(itemPos):
+                    return False
+        return True
+
+    def isOutOfBounds(self, itemPos: tuple[int, int]) -> bool:
+        item = self.item(*itemPos)
+        if not item:
+            return True
+        elif item.flags() == Qt.ItemFlag.NoItemFlags:
+            return True
+        return False
+
+    def isOnOccupiedCells(self, itemPos: tuple[int, int]) -> bool:
+        return itemPos in self.occupiedCells
+
     def loadDataFromTemplate(self, tablePosition: tuple[int, int], templateData: list[Template | TemplateItem]):
         item = self.item(*tablePosition)
         if item is not None:
+            # REMOVE debug
             launchpadPosition = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
             print(f"Loading template at launchpad position: {launchpadPosition}")
-            for templateItem in templateData:
-                print(f" - {templateItem}")
+
             # TODO Check if template fits in the table from the given position
             # TODO Highlight the area where the template will be placed
-            # TODO Place the template items in the table
+            self.loadedTemplates[tablePosition] = templateData
+            for templateItem in templateData:
+                if isinstance(templateItem, Template):
+                    print(f"Main template item {templateItem}")
+                elif isinstance(templateItem, TemplateItem):
+                    print(f"Sub template item {templateItem.location} -> {templateItem}")
+                    itemPos = (tablePosition[0] + templateItem.location[0], tablePosition[1] + templateItem.location[1])
+                    item = self.item(*itemPos)
+                    if item is not None:
+                        self.modifyCellForTemplateItem(item, templateItem)
+                        self.occupiedCells.append(itemPos)
+            print(f"Occupied cells: {self.occupiedCells}")
+
+    def modifyCellForTemplateItem(self, item: QTableWidgetItem, templateItem: TemplateItem):
+        # TODO Place the template items in the table'
+        hiliteBrush = QBrush(QColor(0, 255, 0, 100))
+        hiliteBrush.setStyle(Qt.BrushStyle.Dense4Pattern)
+        item.setBackground(hiliteBrush)

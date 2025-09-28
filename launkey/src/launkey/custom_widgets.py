@@ -1,4 +1,5 @@
 import time
+import struct
 
 from typing import TYPE_CHECKING
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
@@ -261,9 +262,14 @@ class Preview(QFrame):
     def startDrag(self):
         drag = QDrag(self)
         mimeData = QMimeData()
-        mimeData.setText(self.templateName)  # Template file name as text
-        drag.setMimeData(mimeData)
 
+        mimeData.setText(self.templateName)  # Template file name as text
+        # Convert locationList (list of tuples) to bytes for MIME data
+        # Flatten the list of (row, col) tuples to a bytes object
+        loc_bytes = b''.join(struct.pack('ii', row, col) for row, col in self.locationList)
+        mimeData.setData("application/x-template", loc_bytes)  # Custom MIME type with occupied positions
+        drag.setMimeData(mimeData)
+        
         pixmap = self.dragPixmap
         drag.setPixmap(pixmap)
         # Find the (0, 0) location and set hotspot to its center if present, else use pixmap center
