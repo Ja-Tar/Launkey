@@ -91,7 +91,7 @@ class TemplateGridLayout(QGridLayout):
         for item in template:
             print(f"Processing item: {item}")
             if isinstance(item, TemplateItem):
-                if item.location == (0, 0) or item.location == center:
+                if item.location in [(0, 0), center]:
                     continue  # Skip main button location
                 newWidget = ToggleButton(item.name, item.buttonID)
                 newWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -167,7 +167,7 @@ class TemplateGridLayout(QGridLayout):
 
     def _actionButtonRemove(self, rowBtn: int, colBtn: int):
         adjacentPositions = [(rowBtn - 1, colBtn), (rowBtn + 1, colBtn), (rowBtn, colBtn - 1), (rowBtn, colBtn + 1)]
-        adjacentWidgets = self.getWidgetsForPositions(adjacentPositions, all=True)
+        adjacentWidgets = self.getWidgetsForPositions(adjacentPositions, allWidgets=True)
 
         for widget in adjacentWidgets:
             if self.buttonIsolated(widget, (rowBtn, colBtn)):
@@ -209,16 +209,16 @@ class TemplateGridLayout(QGridLayout):
             button.deleteLater()
         self.plusButtonWidgets.clear()
 
-    def getWidgetsForPositions(self, positions: list[tuple[int, int]], /, all=False) -> list[ToggleButton]:
+    def getWidgetsForPositions(self, positions: list[tuple[int, int]], /, allWidgets=False) -> list[ToggleButton]:
         foundWidgets = []
         for pos in positions:
-            widget = self.getSingleWidgetPosition(pos, all=all)
+            widget = self.getSingleWidgetPosition(pos, allWidgets=allWidgets)
             if widget:
                 foundWidgets.append(widget)
         return foundWidgets
 
-    def getSingleWidgetPosition(self, pos: tuple[int, int], /, all=False) -> QWidget | None:
-        widgetList = self.getAllWidgets() if all else self.otherWidgets
+    def getSingleWidgetPosition(self, pos: tuple[int, int], /, allWidgets=False) -> QWidget | None:
+        widgetList = self.getAllWidgets() if allWidgets else self.otherWidgets
         for widget, wPos in widgetList:
             if wPos == pos:
                 return widget
