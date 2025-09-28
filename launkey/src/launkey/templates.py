@@ -34,7 +34,7 @@ class LED(Enum):
     OFF = 0
 
 LEDColorCodes = [
-    ([LED.OFF, LED.OFF], "#000000"),
+    ([LED.OFF, LED.OFF], "#222222"),
     ([LED.LOW, LED.OFF], "#ffcccc"),
     ([LED.MEDIUM, LED.OFF], "#ff8888"),
     ([LED.FULL, LED.OFF], "#ff0000"),

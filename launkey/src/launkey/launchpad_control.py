@@ -4,18 +4,23 @@ import asyncio
 import struct
 import launchpad_py as launchpad
 
-from PySide6.QtCore import QModelIndex, Qt
+from enum import Enum, auto
+from PySide6.QtCore import QModelIndex, Qt, QPoint
 from PySide6.QtWidgets import (
-    QTableWidgetItem,
-    QTableWidget,
-    QAbstractItemView,
-    QAbstractScrollArea,
-    QSizePolicy,
-    QItemDelegate,
+    QTableWidgetItem, QTableWidget, QAbstractItemView,
+    QAbstractScrollArea, QSizePolicy, QItemDelegate,
 )
-from PySide6.QtGui import QColor, QBrush, QCursor, QDragEnterEvent, QDropEvent, QDragMoveEvent
+from PySide6.QtGui import (
+    QColor, QBrush, QDragEnterEvent, QDropEvent, 
+    QDragMoveEvent, QPixmap, QPainter, QPen,
+)
 
-from .templates import Template, TemplateItem, sterilizeTemplateName, loadedTemplates
+from .templates import (
+    Template, TemplateItem, Button,
+    sterilizeTemplateName,
+    ledsToColorCode,
+    loadedTemplates,
+)
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -123,6 +128,12 @@ class GUITable:
 # TODO REWRITE NEEDED!!!
 # ======================
 
+class Sides(Enum):
+    LEFT = auto()
+    RIGHT = auto()
+    TOP = auto()
+    BOTTOM = auto()
+
 class LaunchpadTable(QTableWidget):
     def __init__(self, parent=None):
         super().__init__(9, 9, parent)  # 8x8 grid + 1 row and 1 column for autoMap
@@ -140,7 +151,6 @@ class LaunchpadTable(QTableWidget):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.setDragEnabled(True)
-        self.setAlternatingRowColors(True)
         self.setAcceptDrops(True)
 
         self.setItemDelegate(QItemDelegate())
@@ -272,9 +282,8 @@ class LaunchpadTable(QTableWidget):
             launchpadPosition = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
             print(f"Loading template at launchpad position: {launchpadPosition}")
 
-            # TODO Check if template fits in the table from the given position
-            # TODO Highlight the area where the template will be placed
             self.loadedTemplates[tablePosition] = templateData
+            templateLayout: list[tuple[int, int]] = []
             for templateItem in templateData:
                 if isinstance(templateItem, Template):
                     print(f"Main template item {templateItem}")
@@ -283,12 +292,63 @@ class LaunchpadTable(QTableWidget):
                     itemPos = (tablePosition[0] + templateItem.location[0], tablePosition[1] + templateItem.location[1])
                     item = self.item(*itemPos)
                     if item is not None:
-                        self.modifyCellForTemplateItem(item, templateItem)
+                        templateLayout.append(itemPos)
                         self.occupiedCells.append(itemPos)
+                    else:
+                        raise ValueError(f"Item position {itemPos} is invalid")
+                else:
+                    raise ValueError(f"Unknown template item type: {templateItem}")
+            self.drawTemplateItemsInTable([item for item in templateData if isinstance(item, TemplateItem)], templateLayout)
             print(f"Occupied cells: {self.occupiedCells}")
 
-    def modifyCellForTemplateItem(self, item: QTableWidgetItem, templateItem: TemplateItem):
-        # TODO Place the template items in the table'
-        hiliteBrush = QBrush(QColor(0, 255, 0, 100))
-        hiliteBrush.setStyle(Qt.BrushStyle.Dense4Pattern)
-        item.setBackground(hiliteBrush)
+    def drawTemplateItemsInTable(self, templateData: list[TemplateItem], templateLayout: list[tuple[int, int]]):
+        for i, templateItem in enumerate(templateData):
+            itemPos = templateLayout[i]
+            item = self.item(*itemPos)
+            if item is None:
+                continue
+
+            pixmap = QPixmap(38, 38)
+            painter = QPainter(pixmap)
+            painter.fillRect(0, 0, 38, 38, Qt.GlobalColor.black)
+
+            # TODO remember to add types of TemplateItem when more are added
+            if isinstance(templateItem, Button):
+                colorCode = ledsToColorCode(templateItem.normalColor)
+                painter.setBrush(colorCode)
+                painter.drawRoundedRect(0, 0, 38, 38, 10, 10)
+                if colorCode == "#222222":
+                    painter.setPen(QPen(Qt.GlobalColor.darkGray, 2, Qt.PenStyle.DotLine))
+                    painter.setBrush(Qt.BrushStyle.NoBrush)
+                    painter.drawRoundedRect(1, 1, 36, 36, 10, 10)
+
+
+            painter.setPen(QPen(Qt.GlobalColor.gray, 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            toDraw = self._getWhatToDraw(itemPos, templateLayout)
+            center = painter.viewport().center()
+            adjustedCenter = center + QPoint(1, 1) # slight adjustment
+            if Sides.LEFT in toDraw:
+                painter.drawLine(adjustedCenter.x(), adjustedCenter.y(), 0, adjustedCenter.y())
+            if Sides.RIGHT in toDraw:
+                painter.drawLine(adjustedCenter.x(), adjustedCenter.y(), 38, adjustedCenter.y())
+            if Sides.TOP in toDraw:
+                painter.drawLine(adjustedCenter.x(), adjustedCenter.y(), adjustedCenter.x(), 0)
+            if Sides.BOTTOM in toDraw:
+                painter.drawLine(adjustedCenter.x(), adjustedCenter.y(), adjustedCenter.x(), 38)
+
+
+            painter.end()
+            item.setBackground(pixmap)
+
+    def _getWhatToDraw(self, itemPos: tuple[int, int], templateLayout: list[tuple[int, int]]) -> list[str]:
+        sides = []
+        x, y = itemPos
+        if (x, y - 1) in templateLayout:
+            sides.append(Sides.LEFT)
+        if (x, y + 1) in templateLayout:
+            sides.append(Sides.RIGHT)
+        if (x - 1, y) in templateLayout:
+            sides.append(Sides.TOP)
+        if (x + 1, y) in templateLayout:
+            sides.append(Sides.BOTTOM)
+        return sides

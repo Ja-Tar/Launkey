@@ -131,6 +131,7 @@ class Preview(QFrame):
         for item in templateItems:
             if isinstance(item, TemplateItem):
                 self.locationList.append(item.location)
+                # TODO Add more types of TemplateItem when more are added
                 if isinstance(item, Button): # Only Button has colors for now
                     self.normalColorList.append(ledsToColorCode(item.normalColor))
                     self.pushedColorList.append(ledsToColorCode(item.pushedColor))
