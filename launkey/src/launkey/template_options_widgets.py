@@ -154,12 +154,18 @@ class KeyBoardShortcutEditWidget(StringEditWidget):
         super().__init__(text, objectProperty, objectToChange, parent, True, _connect=False)
         self.setObjectName("keyboardShortcutEditWidget")
         self.setPlaceholderText("Type shortcut")
-        self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, objectProperty, self.text()))
+        self.editingFinished.connect(lambda: self._changeObjectProperty(objectToChange, objectProperty, self.text()))
         self.setValidator(
             QRegularExpressionValidator(
                 QRegularExpression(r"^((Ctrl|Alt|Shift|Win)\+)*(Ctrl|Alt|Shift|Win|[A-Za-z0-9])$")
             )
         )
+
+    def _changeObjectProperty(self, objectToChange: object, objectProperty: str, newValue: Any):
+        # if newValue is a shortcut with captial letters only, convert to proper case and add shift where needed
+        newValue = re.sub(r"([A-Z])", lambda m: f"Shift+{m.group(1).lower()}", newValue)
+        print(f"Changing keyboardCombo {objectProperty} to {newValue}")
+        setattr(objectToChange, objectProperty, newValue)
 
 class TemplateOptionsList(QTreeWidget):
     propertyIgnoreList = ["location", "buttonID"]

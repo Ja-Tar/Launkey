@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 import asyncio
 import struct
+import keyboard
 import launchpad_py as launchpad
 
 from enum import Enum, auto
@@ -90,7 +91,7 @@ class LaunchpadTable(QTableWidget):
         self.occupiedCells: list[tuple[int, int]] = []  # To track occupied cells
         self.loadedTemplates: dict[tuple[int, int], TemplateItem] = {}  # To track loaded templates items
         self.loadedTempTypes: dict[tuple[tuple[int, int], ...], Template] = {}  # To track loaded template types
-        self.pressedButtons: dict[tuple[int, int], tuple[LED, LED]] = {}  # To track button states, and default colors
+        self.pressedButtons: list[tuple[int, int]] = []  # To track button states
 
         # (red, green) tuples for each LED on the launchpad
         self.currentFrame: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 64
@@ -305,15 +306,19 @@ class LaunchpadTable(QTableWidget):
         index = (buttonPos[0] - 1) * 8 + buttonPos[1]  # Adjust for autoMap row
         if 0 <= index < 64:
             self.currentFrame[index] = buttonItem.pushedColor
-            self.pressedButtons[buttonPos] = buttonItem.normalColor
+            self.pressedButtons.append((buttonPos))
 
     def buttonUnpressed(self, buttonPos: tuple[int, int]):
         buttonPos = (buttonPos[1], buttonPos[0])  # flip to table position
         index = (buttonPos[0] - 1) * 8 + buttonPos[1]  # Adjust for autoMap row
         if 0 <= index < 64:
             if buttonPos in self.pressedButtons:
-                self.currentFrame[index] = self.pressedButtons[buttonPos]
-                del self.pressedButtons[buttonPos]
+                item = self.loadedTemplates.get(buttonPos)
+                if isinstance(item, Button):
+                    self.currentFrame[index] = item.normalColor
+                else:
+                    raise ValueError(f"Unknown TemplateItem type: {item}")
+                self.pressedButtons.remove(buttonPos)
 
 class LaunchpadWrapper:
     def __init__(self, table: LaunchpadTable):
@@ -352,11 +357,15 @@ class LaunchpadWrapper:
         if isinstance(templateItem, Button):
             self.table.buttonPressed(buttonPos, templateItem)
             self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], templateItem.pushedColor[0].value, templateItem.pushedColor[1].value)
+            keyboard.press(templateItem.keyboardCombo)
 
     async def buttonUnpressed(self, buttonPos: tuple[int, int]):
-        for pos, color in self.table.pressedButtons.items():
+        for pos in self.table.pressedButtons:
             if buttonPos == (pos[1], pos[0]):  # flip to table position
-                self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], color[0].value, color[1].value)
+                item = self.table.loadedTemplates.get(pos)
+                if isinstance(item, Button):
+                    self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], item.normalColor[0].value, item.normalColor[1].value)
+                    keyboard.release(item.keyboardCombo)
         self.table.buttonUnpressed(buttonPos)
 
     def reset(self):
