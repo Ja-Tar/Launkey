@@ -138,14 +138,10 @@ async def listenForButtonPress(lpWrapper: LaunchpadWrapper) -> str:
         event = lpWrapper.lp.ButtonStateXY()  # type: ignore
         if event:
             if event[2] == 1:  # Button pressed
-                asyncio.create_task(buttonClicked(lpWrapper, (event[0], event[1]), lpWrapper.table.getTemplateItemAtButton((event[0], event[1]))), name="buttonClicked")
+                asyncio.create_task(lpWrapper.buttonPressed((event[0], event[1]), lpWrapper.table.getTemplateItemAtButton((event[0], event[1]))), name="buttonClicked")
             if event[2] == 0:  # Button released
-                lpWrapper.buttonUnpressed((event[0], event[1]))
+                asyncio.create_task(lpWrapper.buttonUnpressed((event[0], event[1])), name="buttonUnpressed")
         await asyncio.sleep(0.01)
-
-async def buttonClicked(lpWrapper: LaunchpadWrapper, buttonPos: tuple[int, int], templateItem: TemplateItem | None):
-    if isinstance(templateItem, Button):
-        lpWrapper.buttonPressed(buttonPos, templateItem)
 
 def selectTemplateTypePopup(main_window: "Launkey"):
     popup = QInputDialog(main_window)

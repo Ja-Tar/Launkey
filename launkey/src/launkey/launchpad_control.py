@@ -348,11 +348,12 @@ class LaunchpadWrapper:
             return self.lp.ButtonStateXY()
         return None
     
-    def buttonPressed(self, buttonPos: tuple[int, int], buttonItem: Button):
-        self.table.buttonPressed(buttonPos, buttonItem)
-        self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], buttonItem.pushedColor[0].value, buttonItem.pushedColor[1].value)
+    async def buttonPressed(self, buttonPos: tuple[int, int], templateItem: TemplateItem | None):
+        if isinstance(templateItem, Button):
+            self.table.buttonPressed(buttonPos, templateItem)
+            self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], templateItem.pushedColor[0].value, templateItem.pushedColor[1].value)
 
-    def buttonUnpressed(self, buttonPos: tuple[int, int]):
+    async def buttonUnpressed(self, buttonPos: tuple[int, int]):
         for pos, color in self.table.pressedButtons.items():
             if buttonPos == (pos[1], pos[0]):  # flip to table position
                 self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], color[0].value, color[1].value)

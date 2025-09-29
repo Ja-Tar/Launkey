@@ -160,4 +160,4 @@ def getTemplateType(template: List[Template | TemplateItem]) -> Template.Type | 
     return None
 
 # Loaded templates variable
-loadedTemplates: dict[str, List[Template | TemplateItem]] = {}
+loadedTemplates: dict[str, list[Template | TemplateItem]] = {}
