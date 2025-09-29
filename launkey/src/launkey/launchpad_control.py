@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Optional
 
 import asyncio
 import struct
@@ -88,11 +88,13 @@ class LaunchpadTable(QTableWidget):
 
         # Initialize variables
         self.occupiedCells: list[tuple[int, int]] = []  # To track occupied cells
-        self.loadedTemplates: dict[tuple[int, int], list[Template | TemplateItem]] = {}  # To track loaded templates
+        self.loadedTemplates: dict[tuple[int, int], TemplateItem] = {}  # To track loaded templates items
+        self.loadedTempTypes: dict[tuple[tuple[int, int], ...], Template] = {}  # To track loaded template types
+        self.pressedButtons: dict[tuple[int, int], tuple[LED, LED]] = {}  # To track button states, and default colors
 
         # (red, green) tuples for each LED on the launchpad
-        self.frame: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 64
-        self.autoMap: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 16
+        self.currentFrame: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 64
+        self.currentAutoMap: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 16
         # first 8 LEDs are on the left and the next 8 LEDs are on the top
         # tuple is main object position in table
 
@@ -192,7 +194,6 @@ class LaunchpadTable(QTableWidget):
             launchpadPosition = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
             print(f"Loading template at launchpad position: {launchpadPosition}")
 
-            self.loadedTemplates[tablePosition] = templateData
             templateLayout: list[tuple[int, int]] = []
             for templateItem in templateData:
                 if isinstance(templateItem, Template):
@@ -204,11 +205,14 @@ class LaunchpadTable(QTableWidget):
                     if item is not None:
                         templateLayout.append(itemPos)
                         self.occupiedCells.append(itemPos)
+                        self.loadedTemplates[itemPos] = templateItem
                     else:
                         raise ValueError(f"Item position {itemPos} is invalid")
                 else:
                     raise ValueError(f"Unknown template item type: {templateItem}")
             self.drawTemplateItemsInTable([item for item in templateData if isinstance(item, TemplateItem)], templateLayout)
+            if templateData and isinstance(templateData[0], Template):
+                self.loadedTempTypes[tuple(templateLayout)] = templateData[0]
             print(f"Occupied cells: {self.occupiedCells}")
 
     def drawTemplateItemsInTable(self, templateData: list[TemplateItem], templateLayout: list[tuple[int, int]]):
@@ -263,11 +267,58 @@ class LaunchpadTable(QTableWidget):
             sides.append(Sides.BOTTOM)
         return sides
     
+    def returnFirstFrame(self) -> list[tuple[LED, LED]]:
+        frame: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 64
+        #autoMap: list[tuple[LED, LED]] = [(LED.OFF, LED.OFF)] * 16
+
+        for tablePosition, itemData in self.loadedTemplates.items():
+            launchpadPos = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
+            
+            if isinstance(itemData, Button):
+                index = launchpadPos[0] * 8 + launchpadPos[1]
+                if 0 <= index < 64:
+                    frame[index] = itemData.normalColor
+            else:
+                raise ValueError(f"Unknown TemplateItem type: {itemData}")
+                # TODO handle other TemplateItem types when added
+        self.currentFrame = frame
+        return frame
+
+    def getTemplateItemAtButton(self, buttonPos: tuple[int, int]) -> TemplateItem | None: # buttonPos is launchpad position is flipped (y, x)
+        buttonPos = (buttonPos[1], buttonPos[0])
+        for tablePosition, itemData in self.loadedTemplates.items():
+            if tablePosition == buttonPos:
+                return itemData
+        return None  # Return empty list if not found
+    
+    def isFrameChangeNeeded(self, newFrame: list[tuple[LED, LED]], newAutoMap: Optional[list[tuple[LED, LED]]] = None) -> bool:
+        if newAutoMap is None:
+            newAutoMap = [(LED.OFF, LED.OFF)] * 16
+        if newFrame != self.currentFrame or newAutoMap != self.currentAutoMap:
+            self.currentFrame = newFrame
+            self.currentAutoMap = newAutoMap
+            return True
+        return False
+    
+    def buttonPressed(self, buttonPos: tuple[int, int], buttonItem: Button):
+        buttonPos = (buttonPos[1], buttonPos[0])  # flip to table position
+        index = (buttonPos[0] - 1) * 8 + buttonPos[1]  # Adjust for autoMap row
+        if 0 <= index < 64:
+            self.currentFrame[index] = buttonItem.pushedColor
+            self.pressedButtons[buttonPos] = buttonItem.normalColor
+
+    def buttonUnpressed(self, buttonPos: tuple[int, int]):
+        buttonPos = (buttonPos[1], buttonPos[0])  # flip to table position
+        index = (buttonPos[0] - 1) * 8 + buttonPos[1]  # Adjust for autoMap row
+        if 0 <= index < 64:
+            if buttonPos in self.pressedButtons:
+                self.currentFrame[index] = self.pressedButtons[buttonPos]
+                del self.pressedButtons[buttonPos]
+
 class LaunchpadWrapper:
     def __init__(self, table: LaunchpadTable):
         self.lp = launchpad.Launchpad()
         self.table = table
-        self.connected = False
 
     def connect(self) -> bool:
         print(self.lp.ListAll())
@@ -278,20 +329,34 @@ class LaunchpadWrapper:
             return True
         return False
     
+    def start(self):
+        returnFrame = self.table.returnFirstFrame()
+        self.changeLedsRapid(returnFrame)
+    
     def changeLedsRapid(self, frame: list[tuple[LED, LED]], autoMap: Optional[list[tuple[LED, LED]]] = None):
         if autoMap is None:
             autoMap = [(LED.OFF, LED.OFF)] * 16
         combined_frame = frame + autoMap
+        combined_frame = [(r.value, g.value) for r, g in combined_frame]
         formatted_frame = [self.lp.LedGetColor(x, y) for x, y in combined_frame]
         self.lp.LedCtrlRawRapid(formatted_frame)
         self.lp.LedCtrlRawRapidHome()
         # TODO: add sync to table frame and autoMap (can be also done when clicking buttons)
 
-    def getButtonState(self) -> Optional[list[tuple[int, int, bool]]]:
+    def getButtonStates(self) -> Optional[list[tuple[int, int, bool]]]:
         if self.lp.ButtonChanged():
             return self.lp.ButtonStateXY()
         return None
     
+    def buttonPressed(self, buttonPos: tuple[int, int], buttonItem: Button):
+        self.table.buttonPressed(buttonPos, buttonItem)
+        self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], buttonItem.pushedColor[0].value, buttonItem.pushedColor[1].value)
+
+    def buttonUnpressed(self, buttonPos: tuple[int, int]):
+        for pos, color in self.table.pressedButtons.items():
+            if buttonPos == (pos[1], pos[0]):  # flip to table position
+                self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], color[0].value, color[1].value)
+        self.table.buttonUnpressed(buttonPos)
+
     def reset(self):
         self.lp.Reset()
-        self.lp.ButtonFlush()

@@ -3,7 +3,7 @@ import keyboard
 import json
 from pathlib import Path
 
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING
 
 #from PySide6 import QtAsyncio
 from PySide6.QtCore import Qt
@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
 
 from .ui_dialogtemplates import Ui_Dialog
 from .custom_widgets import QDialogNoDefault, TemplateDisplay
-from .templates import Template, TemplateItem, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
+from .templates import Template, TemplateItem, Button, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
 from .launchpad_control import LaunchpadWrapper
 
 if TYPE_CHECKING:
@@ -106,7 +106,7 @@ def getTemplateFileList() -> list[str]:
 
 def checkForDuplicates(main_window: "Launkey", templateName: str) -> bool:
     layoutItems = main_window.ui.gridLayoutTemplates.items
-    loadedDisplaysName: List[str] = []
+    loadedDisplaysName: list[str] = []
     for item in layoutItems:
         item = item[0]
         if isinstance(item, TemplateDisplay):
@@ -114,61 +114,35 @@ def checkForDuplicates(main_window: "Launkey", templateName: str) -> bool:
     return any(name == templateName for name in loadedDisplaysName)
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
-    main_window.set_close(lpWrapper.lp)
-    return
     if main_window.ui.buttonRun.text() == "Run":
         main_window.ui.buttonRun.setText("Stop")
         main_window.ui.statusbar.showMessage("Running...")
-        lpWrapper.start_sync()
-        asyncio.create_task(async_test(lpWrapper), name="async_test_loop") # REMOVE
+        lpWrapper.start()
+        asyncio.create_task(listenForButtonPress(lpWrapper), name="listenForButtonPress")
         print("Started Launkey controller")
         return
     main_window.ui.buttonRun.setText("Run")
     main_window.ui.statusbar.showMessage("Stopped")
     # Stop the async loop and reset the launchpad
     for task in asyncio.all_tasks():
-        if task.get_name() in ["async_test_loop", "sync_table_loop"]:
+        if task.get_name() in ["listenForButtonPress"]:
             task.cancel()
-    lpWrapper.stop()
+    lpWrapper.reset()
 
-async def async_test(lpWrapper: LaunchpadWrapper, anim_time: float = 0.1): # REMOVE
-    arrow_up_red = [
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 1, 1, 0, 0, 0,
-        0, 0, 1, 3, 3, 1, 0, 0,
-        0, 1, 3, 3, 3, 3, 1, 0,
-        0, 0, 0, 3, 3, 0, 0, 0,
-        0, 0, 0, 3, 3, 0, 0, 0,
-        0, 0, 0, 3, 3, 0, 0, 0
-    ]
-
-    # autoMap animation: przesuwający się pasek
-    autoMap_length = 16
-    autoMap_color = (0, 3)  # Zielony pasek
-    autoMap_off = (0, 0)
-    autoMap_pos = 0
-
+async def listenForButtonPress(lpWrapper: LaunchpadWrapper) -> str:
+    print("Waiting for button press...")
     while True:
-        # Animate arrow moving up from bottom to top
-        for row in range(6, -1, -1):
-            frame = [(0, 0)] * 64
-            # Copy the arrow shape into the current row
-            for i in range(8):
-                if row + i < 7:
-                    for j in range(8):
-                        dx = (row + i) * 8 + j
-                        arrow_idx = i * 8 + j
-                        if arrow_up_red[arrow_idx]:
-                            frame[dx] = (arrow_up_red[arrow_idx], 0)
-            # Animacja autoMap: przesuwający się pojedynczy "piksel"
-            autoMap = [(0, 0)] * autoMap_length
-            # Ustaw pasek na odpowiedniej pozycji
-            autoMap = [autoMap_color if i == autoMap_pos else autoMap_off for i in range(autoMap_length)]
-            lpWrapper.changeLedsRapid(frame, autoMap) # type: ignore
-            await asyncio.sleep(anim_time)
-            autoMap_pos = (autoMap_pos + 1) % autoMap_length
-        await asyncio.sleep(0.5)
-        lpWrapper.reset()
+        event = lpWrapper.lp.ButtonStateXY()  # type: ignore
+        if event:
+            if event[2] == 1:  # Button pressed
+                asyncio.create_task(buttonClicked(lpWrapper, (event[0], event[1]), lpWrapper.table.getTemplateItemAtButton((event[0], event[1]))), name="buttonClicked")
+            if event[2] == 0:  # Button released
+                lpWrapper.buttonUnpressed((event[0], event[1]))
+        await asyncio.sleep(0.01)
+
+async def buttonClicked(lpWrapper: LaunchpadWrapper, buttonPos: tuple[int, int], templateItem: TemplateItem | None):
+    if isinstance(templateItem, Button):
+        lpWrapper.buttonPressed(buttonPos, templateItem)
 
 def selectTemplateTypePopup(main_window: "Launkey"):
     popup = QInputDialog(main_window)

@@ -10,7 +10,7 @@
       "args": [
         "dev",
       ],
-      "justMyCode": true // this is optional, only if you want to debug into other library (eg. into toga).
+      "justMyCode": false // this is optional, only if you want to debug into other library (eg. into toga).
     }
   ]
 }
