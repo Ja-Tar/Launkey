@@ -130,7 +130,7 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     for task in asyncio.all_tasks():
         if task.get_name() in ["listenForButtonPress"]:
             task.cancel()
-    lpWrapper.reset()
+    lpWrapper.stop()
 
 async def listenForButtonPress(lpWrapper: LaunchpadWrapper) -> str:
     print("Waiting for button press...")

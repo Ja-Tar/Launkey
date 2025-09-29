@@ -284,6 +284,32 @@ class LaunchpadTable(QTableWidget):
                 # TODO handle other TemplateItem types when added
         self.currentFrame = frame
         return frame
+    
+    def drawFirstTableFrame(self):
+        for row in range(1, 9):
+            for col in range(8):
+                item = self.item(row, col)
+                if item is not None:
+                    launchpadPos = (row - 1, col)  # Adjust for autoMap row
+                    index = launchpadPos[0] * 8 + launchpadPos[1]
+                    if 0 <= index < 64:
+                        color = self.currentFrame[index]
+                        colorCode = ledsToColorCode(color)
+                        if not colorCode == "#222222":
+                            item.setBackground(QColor(colorCode))
+                        else:
+                            newItem = QTableWidgetItem()
+                            self.setItem(row, col, newItem)
+
+    def changeButtonColorInTable(self, buttonPos: tuple[int, int], newColor: tuple[LED, LED]):
+        item = self.item(*buttonPos)
+        if item is not None:
+            colorCode = ledsToColorCode(newColor)
+            if not colorCode == "#222222":
+                item.setBackground(QColor(colorCode))
+            else:
+                newItem = QTableWidgetItem()
+                self.setItem(*buttonPos, newItem)
 
     def getTemplateItemAtButton(self, buttonPos: tuple[int, int]) -> TemplateItem | None: # buttonPos is launchpad position is flipped (y, x)
         buttonPos = (buttonPos[1], buttonPos[0])
@@ -307,6 +333,7 @@ class LaunchpadTable(QTableWidget):
         if 0 <= index < 64:
             self.currentFrame[index] = buttonItem.pushedColor
             self.pressedButtons.append((buttonPos))
+        self.changeButtonColorInTable(buttonPos, buttonItem.pushedColor)
 
     def buttonUnpressed(self, buttonPos: tuple[int, int]):
         buttonPos = (buttonPos[1], buttonPos[0])  # flip to table position
@@ -316,6 +343,7 @@ class LaunchpadTable(QTableWidget):
                 item = self.loadedTemplates.get(buttonPos)
                 if isinstance(item, Button):
                     self.currentFrame[index] = item.normalColor
+                    self.changeButtonColorInTable(buttonPos, item.normalColor)
                 else:
                     raise ValueError(f"Unknown TemplateItem type: {item}")
                 self.pressedButtons.remove(buttonPos)
@@ -336,7 +364,15 @@ class LaunchpadWrapper:
     
     def start(self):
         returnFrame = self.table.returnFirstFrame()
+        self.table.drawFirstTableFrame()
         self.changeLedsRapid(returnFrame)
+
+    def stop(self):
+        self.table.drawTemplateItemsInTable(
+            [item for item in self.table.loadedTemplates.values() if isinstance(item, TemplateItem)],
+            list(self.table.loadedTemplates.keys())
+        )
+        self.reset()
     
     def changeLedsRapid(self, frame: list[tuple[LED, LED]], autoMap: Optional[list[tuple[LED, LED]]] = None):
         if autoMap is None:
@@ -346,7 +382,6 @@ class LaunchpadWrapper:
         formatted_frame = [self.lp.LedGetColor(x, y) for x, y in combined_frame]
         self.lp.LedCtrlRawRapid(formatted_frame)
         self.lp.LedCtrlRawRapidHome()
-        # TODO: add sync to table frame and autoMap (can be also done when clicking buttons)
 
     def getButtonStates(self) -> Optional[list[tuple[int, int, bool]]]:
         if self.lp.ButtonChanged():
