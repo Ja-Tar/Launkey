@@ -187,6 +187,19 @@ class LaunchpadTable(QTableWidget):
             self.setRowHeight(i, 40)
 
         # Initialize all cells with empty items
+        self.clear()
+
+        # Initialize variables
+        self.occupiedCells: list[tuple[int, int]] = []  # To track occupied cells
+        self.loadedTemplates: dict[tuple[int, int], list[Template | TemplateItem]] = {}  # To track loaded templates
+        # tuple is main object position in table
+
+    def resetTemplates(self):
+        self.occupiedCells.clear()
+        self.loadedTemplates.clear()
+        self.clear()
+
+    def clear(self):
         for row in range(9):
             for col in range(9):
                 if row == 0 and col == 8:
@@ -198,11 +211,6 @@ class LaunchpadTable(QTableWidget):
 
                 item = QTableWidgetItem()
                 self.setItem(row, col, item)
-
-        # Initialize variables
-        self.occupiedCells: list[tuple[int, int]] = []  # To track occupied cells
-        self.loadedTemplates: dict[tuple[int, int], list[Template | TemplateItem]] = {}  # To track loaded templates
-        # tuple is main object position in table
 
     def dragMoveEvent(self, event: QDragMoveEvent) -> None:
         if event.mimeData().hasFormat("application/x-template"):

@@ -199,7 +199,13 @@ class TemplateGridLayout(QGridLayout):
             visited.add(current)
             for delta in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 neighbor = (current[0] + delta[0], current[1] + delta[1])
-                if (0 <= neighbor[0] < self.rows and 0 <= neighbor[1] < self.cols and neighbor != removeLoc and neighbor not in visited and neighbor in self.getWidgetsPositions()):
+                if (
+                    0 <= neighbor[0] < self.rows
+                    and 0 <= neighbor[1] < self.cols
+                    and neighbor != removeLoc
+                    and neighbor not in visited
+                    and neighbor in self.getWidgetsPositions()
+                ):
                     toVisit.append(neighbor)
         return True  # No path to main widget found
 
