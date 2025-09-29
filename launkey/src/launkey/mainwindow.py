@@ -115,6 +115,8 @@ def checkForDuplicates(main_window: "Launkey", templateName: str) -> bool:
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     if main_window.ui.buttonRun.text() == "Run":
+        main_window.ui.buttonResetStack.setCurrentIndex(0)
+        main_window.ui.buttonReset.setEnabled(False)
         main_window.ui.buttonRun.setText("Stop")
         main_window.ui.statusbar.showMessage("Running...")
         lpWrapper.start()
@@ -123,6 +125,7 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
         return
     main_window.ui.buttonRun.setText("Run")
     main_window.ui.statusbar.showMessage("Stopped")
+    main_window.ui.buttonReset.setEnabled(True)
     # Stop the async loop and reset the launchpad
     for task in asyncio.all_tasks():
         if task.get_name() in ["listenForButtonPress"]:

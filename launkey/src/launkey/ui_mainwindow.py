@@ -81,13 +81,14 @@ class Ui_MainWindow:
         # Reset buttons stack
         self.buttonResetStack = QStackedWidget(self.buttonSplitter)
         self.buttonResetStack.setObjectName("buttonResetStack")
+        self.buttonResetStack.setEnabled(True)
         self.buttonSplitter.addWidget(self.buttonResetStack)
 
         # Reset button
         self.buttonReset = QPushButton(self.buttonResetStack)
         self.buttonReset.setObjectName("buttonReset")
         self.buttonReset.setAutoDefault(False)
-        self.buttonReset.setStyleSheet("background-color: darkred; color: white;")
+        self.buttonReset.setStyleSheet(":active { background-color: darkred; color: white; } :disabled { background-color: black; }")
         self.buttonReset.clicked.connect(self.areYouSure)
         self.buttonResetStack.addWidget(self.buttonReset)
 
@@ -95,7 +96,7 @@ class Ui_MainWindow:
         self.buttonAreYouSure = QPushButton(self.buttonResetStack)
         self.buttonAreYouSure.setObjectName("buttonAreYouSure")
         self.buttonAreYouSure.setAutoDefault(False)
-        self.buttonAreYouSure.setStyleSheet("background-color: red; color: white;")
+        self.buttonAreYouSure.setStyleSheet(":active { background-color: red; color: white; } :disabled { background-color: black; }")
         self.buttonResetAnimation = QVariantAnimation(self.buttonAreYouSure)
         self.buttonResetAnimation.setDuration(500)
         self.buttonResetAnimation.setStartValue(QColor("red"))
