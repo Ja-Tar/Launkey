@@ -28,10 +28,10 @@ def recoverOriginalTemplateName(fileName: str) -> str:
 
 @unique
 class LED(Enum):
-    FULL = 3
-    MEDIUM = 2
-    LOW = 1
     OFF = 0
+    LOW = 1
+    MEDIUM = 2
+    FULL = 3
 
 LEDColorCodes = [
     ([LED.OFF, LED.OFF], "#222222"),

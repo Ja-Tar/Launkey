@@ -21,8 +21,7 @@ if TYPE_CHECKING:
 def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
     importTemplates(main_window)
-
-    lpWrapper = LaunchpadWrapper(main_window)
+    lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
     if lpWrapper.connect():
         main_window.ui.statusbar.showMessage("Launchpad connected")
         main_window.lpclose = lpWrapper.lp
@@ -31,7 +30,8 @@ def mainWindowScript(main_window: "Launkey"):
         QMessageBox.warning(
             main_window,
             "Launchpad Error",
-            "Launchpad not found. Please close the app to connect to the Launchpad."
+            "Launchpad not found. Please connect your Launchpad and try again.",
+            QMessageBox.StandardButton.Ok
         )
         return
     main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
@@ -114,6 +114,8 @@ def checkForDuplicates(main_window: "Launkey", templateName: str) -> bool:
     return any(name == templateName for name in loadedDisplaysName)
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
+    main_window.set_close(lpWrapper.lp)
+    return
     if main_window.ui.buttonRun.text() == "Run":
         main_window.ui.buttonRun.setText("Stop")
         main_window.ui.statusbar.showMessage("Running...")
