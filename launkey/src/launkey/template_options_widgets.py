@@ -2,6 +2,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Optional
 from typing import Any
 
+import keyboard
 import regex as re
 from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem, QComboBox, QLineEdit
 from PySide6.QtCore import Qt, QRegularExpression
@@ -142,6 +143,24 @@ class ButtonColorSelector(QComboBox):
     def getColorValue(self) -> tuple[int, int]:
         return self.currentData()
 
+class KeyBoardShortcutEditWidget(StringEditWidget):
+    def __init__(
+        self,
+        text: str,
+        objectProperty: str,
+        objectToChange: object,
+        parent: QWidget | None = None,
+    ):
+        super().__init__(text, objectProperty, objectToChange, parent, True, _connect=False)
+        self.setObjectName("keyboardShortcutEditWidget")
+        self.setPlaceholderText("Type shortcut")
+        self.editingFinished.connect(lambda: self.changeObjectProperty(objectToChange, objectProperty, self.text()))
+        self.setValidator(
+            QRegularExpressionValidator(
+                QRegularExpression(r"^((Ctrl|Alt|Shift|Win)\+)*(Ctrl|Alt|Shift|Win|[A-Za-z0-9])$")
+            )
+        )
+
 class TemplateOptionsList(QTreeWidget):
     propertyIgnoreList = ["location", "buttonID"]
 
@@ -193,12 +212,14 @@ class TemplateOptionsList(QTreeWidget):
             return TemplateNameEditWidget(value, objectProperty, objectToChange)
         elif objectProperty == "name":
             return NameEditWidget(value, objectProperty, objectToChange, self.gridLayout)
-        elif isinstance(value, str):
-            return StringEditWidget(value, objectProperty, objectToChange)
+        elif isinstance(value, str) and objectProperty == "keyboardCombo":
+            return KeyBoardShortcutEditWidget(value, objectProperty, objectToChange)
         elif isinstance(value, Enum):
             return EnumEditWidget(value, objectProperty, objectToChange)
         elif isinstance(value, tuple) and all(isinstance(i, LED) for i in value) and len(value) == 2:
             return ButtonColorSelector(value, objectProperty, objectToChange)
+        elif isinstance(value, str):
+            return StringEditWidget(value, objectProperty, objectToChange)
         else:
             raise NotImplementedError(f"Unsupported property type: {type(value)}")
 
