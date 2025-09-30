@@ -4,9 +4,11 @@ Launkey is ...
 
 [DEMO VIDEO]
 
-## Features 
+## Features (mainly planed ones)
 
-- [ ] === ADD ===
+- [ ] Lot of template types (like switch, slider)
+- [ ] Launchpad compatibility *(for now it works only with LaunchPad Mini MK1)*
+- [ ] And more...
 
 # Important Info
 
