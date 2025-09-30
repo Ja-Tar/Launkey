@@ -163,6 +163,7 @@ class Ui_MainWindow:
         # Status bar
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
+        self.statusbar.setSizeGripEnabled(False)
         MainWindow.setStatusBar(self.statusbar)
 
         # Menu bar
@@ -179,6 +180,7 @@ class Ui_MainWindow:
         self.menubar.addAction(self.menuHelp.menuAction())
         self.menuConfig.addAction(self.actionSave)
         self.menuConfig.addAction(self.actionLoad)
+        self.menuConfig.addAction(self.actionTestMode)
         self.menuConfig.addSeparator()
         self.menuConfig.addAction(self.actionSettings)
         self.menuHelp.addAction(self.actionAbout)
@@ -193,6 +195,7 @@ class Ui_MainWindow:
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", "Launkey"))
         self.actionSave.setText(QCoreApplication.translate("MainWindow", "Save"))
         self.actionLoad.setText(QCoreApplication.translate("MainWindow", "Load"))
+        self.actionTestMode.setText(QCoreApplication.translate("MainWindow", "Test Mode"))
         self.actionAbout.setText(QCoreApplication.translate("MainWindow", "About"))
         self.actionSettings.setText(QCoreApplication.translate("MainWindow", "Settings"))
 
@@ -217,3 +220,16 @@ class Ui_MainWindow:
     def clearAreYouSure(self):
         self.buttonResetAnimation.stop()
         self.buttonResetStack.setCurrentWidget(self.buttonReset)
+
+    def startRun(self):
+        self.buttonResetStack.setCurrentIndex(0)
+        self.buttonReset.setEnabled(False)
+        self.tableLaunchpad.setEnabled(False)
+        self.buttonRun.setText("Stop")
+        self.statusbar.showMessage("Running...", 2000)
+
+    def stopRun(self) -> None:
+        self.buttonRun.setText("Run")
+        self.statusbar.showMessage("Stopped", 2000)
+        self.buttonReset.setEnabled(True)
+        self.tableLaunchpad.setEnabled(True)

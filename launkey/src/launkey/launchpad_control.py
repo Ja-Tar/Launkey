@@ -15,13 +15,23 @@ from PySide6.QtGui import (
     QColor, QBrush, QDragEnterEvent, QDropEvent, 
     QDragMoveEvent, QPixmap, QPainter, QPen,
 )
-
+ 
 from .templates import (
     Template, TemplateItem, Button, LED,
     sterilizeTemplateName,
     ledsToColorCode,
     loadedTemplates,
 )
+from .custom_widgets import QLabelStatusBarInfo, ShortcutDisplay
+
+# Override keyboard on_press and on_release because of the bug in keyboard package
+def _onpress(callback, suppress=False):
+    return keyboard.hook(lambda e: e.event_type == keyboard.KEY_DOWN and callback(e), suppress=suppress)
+def _onrelease(callback, suppress=False):
+    return keyboard.hook(lambda e: e.event_type == keyboard.KEY_UP and callback(e), suppress=suppress)
+
+keyboard.on_press = _onpress
+keyboard.on_release = _onrelease
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -367,13 +377,17 @@ class LaunchpadWrapper:
         self.table.drawFirstTableFrame()
         self.changeLedsRapid(returnFrame)
 
+    def startTestMode(self):
+        self.table.returnFirstFrame()
+        self.table.drawFirstTableFrame()
+
     def stop(self):
-        self.table.drawTemplateItemsInTable(
-            [item for item in self.table.loadedTemplates.values() if isinstance(item, TemplateItem)],
-            list(self.table.loadedTemplates.keys())
-        )
-        self.reset()
-    
+        self.resetTable()
+        self.resetPad()
+
+    def stopTestMode(self):
+        self.resetTable()
+
     def changeLedsRapid(self, frame: list[tuple[LED, LED]], autoMap: Optional[list[tuple[LED, LED]]] = None):
         if autoMap is None:
             autoMap = [(LED.OFF, LED.OFF)] * 16
@@ -388,20 +402,123 @@ class LaunchpadWrapper:
             return self.lp.ButtonStateXY()
         return None
     
-    async def buttonPressed(self, buttonPos: tuple[int, int], templateItem: TemplateItem | None):
+    async def buttonPressed(self, buttonPos: tuple[int, int], templateItem: TemplateItem | None, /, testMode: ShortcutDisplay | None = None):
         if isinstance(templateItem, Button):
             self.table.buttonPressed(buttonPos, templateItem)
+            if testMode:
+                testMode.setShortcutText(templateItem.keyboardCombo)
+                return
             self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], templateItem.pushedColor[0].value, templateItem.pushedColor[1].value)
             keyboard.press(templateItem.keyboardCombo)
 
-    async def buttonUnpressed(self, buttonPos: tuple[int, int]):
+    async def buttonUnpressed(self, buttonPos: tuple[int, int], /, testMode: ShortcutDisplay | None = None):
         for pos in self.table.pressedButtons:
             if buttonPos == (pos[1], pos[0]):  # flip to table position
                 item = self.table.loadedTemplates.get(pos)
                 if isinstance(item, Button):
+                    if testMode:
+                        testMode.clearShortcutText(item.keyboardCombo)
+                        continue
                     self.lp.LedCtrlXY(buttonPos[0], buttonPos[1], item.normalColor[0].value, item.normalColor[1].value)
                     keyboard.release(item.keyboardCombo)
         self.table.buttonUnpressed(buttonPos)
 
-    def reset(self):
+    def resetPad(self):
         self.lp.Reset()
+    
+    def resetTable(self):
+        self.table.drawTemplateItemsInTable(
+            [item for item in self.table.loadedTemplates.values() if isinstance(item, TemplateItem)],
+            list(self.table.loadedTemplates.keys())
+        )
+
+class KeyboardTester:
+    def __init__(self, main_window: "Launkey", lpWrapper: LaunchpadWrapper, testModeDisplay: ShortcutDisplay):
+        self.main_window = main_window
+        self.lpWrapper = lpWrapper
+        self.lowerHalf = False  # On launchpad the lower half is rows 5-8
+        self.pressedKeys: list[str] = []
+        self.testModeDisplay = testModeDisplay
+
+    def checkTestMode(self, checked: bool = False):
+        if checked:
+            self.testModeOn()
+            self.testModeDisplay.show()
+            print("Test Mode ON")
+        else:
+            self.testModeOff()
+            self.testModeDisplay.hide()
+            print("Test Mode OFF")
+
+    def testModeOn(self):
+        self.main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Test Mode Active", color="yellow"))
+        self.main_window.ui.buttonRun.setEnabled(True)
+
+    async def testModeRun(self):
+        if self.main_window.ui.buttonRun.text() == "Run":
+            self.main_window.ui.startRun()
+            self.lpWrapper.startTestMode()
+            loop = asyncio.get_running_loop()
+            keyboard.on_press(lambda event: self.onPressCallback(event, loop))
+            keyboard.on_release(lambda event: self.onReleaseCallback(event, loop))
+            print("Started Launkey controller in Test Mode")
+            return
+        self.main_window.ui.stopRun()
+        keyboard.unhook_all()
+        for task in asyncio.all_tasks():
+            if task.get_name() in ["testModeLoop"]:
+                task.cancel()
+        self.lpWrapper.stopTestMode()
+
+    def onPressCallback(self, event: keyboard.KeyboardEvent, loop: asyncio.AbstractEventLoop):
+        asyncio.run_coroutine_threadsafe(self.keyboardTestingPress(event), loop)
+        return None
+
+    def onReleaseCallback(self, event: keyboard.KeyboardEvent, loop: asyncio.AbstractEventLoop):
+        asyncio.run_coroutine_threadsafe(self.keyboardTestingUnpress(event), loop)
+        return None
+
+    keyboardTable = {
+        1: "12345678",
+        2: "qwertyui",
+        3: "asdfghjk",
+        4: "zxcvbnm,"
+    }
+    lowerHalfChanger = "/"
+
+    async def keyboardTestingPress(self, event: keyboard.KeyboardEvent):
+        if not event.name:
+            raise ValueError("Event name is empty, press event")
+        elif event.name in self.pressedKeys:
+            return  # Key is already pressed, ignore
+        for row, keys in self.keyboardTable.items():
+            if event.name in keys:
+                self.pressedKeys.append(event.name)
+                keyIndex = keys.index(event.name)
+                buttonPos = (keyIndex, row + (4 if self.lowerHalf else 0))
+                #print(f"Simulating button press at {buttonPos} for key '{event.name}'")
+                await self.lpWrapper.buttonPressed(buttonPos, self.lpWrapper.table.getTemplateItemAtButton((buttonPos[0], buttonPos[1])), testMode=self.testModeDisplay)
+        if event.name == self.lowerHalfChanger:
+            self.lowerHalf = not self.lowerHalf
+            self.testModeDisplay.changeSideLabel("Bottom Half" if self.lowerHalf else "Top Half")
+            print(f"Lower half changed to {self.lowerHalf}")
+
+    async def keyboardTestingUnpress(self, event: keyboard.KeyboardEvent):
+        if not event.name:
+            raise ValueError("Event name is empty, release event")
+        elif event.name not in self.pressedKeys:
+            return  # Key is not pressed, ignore
+        for row, keys in self.keyboardTable.items():
+            if event.name in keys:
+                self.pressedKeys.remove(event.name)
+                keyIndex = keys.index(event.name)
+                buttonPos = (keyIndex, row + (4 if self.lowerHalf else 0))
+                await self.lpWrapper.buttonUnpressed((buttonPos[0], buttonPos[1]), testMode=self.testModeDisplay)
+                #print(f"Simulating button release at {buttonPos} for key '{event.name}'")
+
+    def keyboardTestingUnpressSync(self, event):
+        asyncio.create_task(self.keyboardTestingUnpress(event))
+
+    def testModeOff(self):
+        self.main_window.ui.statusbar.removeWidget(QLabelStatusBarInfo("Test Mode Active"))
+        self.main_window.ui.buttonRun.setEnabled(False)

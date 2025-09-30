@@ -11,28 +11,33 @@ from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
 #import launchpad_py as launchpad
 
 from .ui_dialogtemplates import Ui_Dialog
-from .custom_widgets import QDialogNoDefault, TemplateDisplay
-from .templates import Template, TemplateItem, Button, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
-from .launchpad_control import LaunchpadWrapper
+from .custom_widgets import QDialogNoDefault, TemplateDisplay, QLabelStatusBarInfo, ShortcutDisplay
+from .templates import Template, TemplateItem, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
+from .launchpad_control import LaunchpadWrapper, KeyboardTester
 
 if TYPE_CHECKING:
     from .app import Launkey
 
 def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
+    
     importTemplates(main_window)
     lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
     if lpWrapper.connect():
         main_window.ui.statusbar.showMessage("Launchpad connected")
         main_window.lpclose = lpWrapper.lp
     else:
-        main_window.ui.statusbar.showMessage("Launchpad not found")
+        main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Launchpad not found", color="red"))
         QMessageBox.warning(
             main_window,
             "Launchpad Error",
             "Launchpad not found. Please connect your Launchpad and try again.",
             QMessageBox.StandardButton.Ok
         )
+        shortcutDisplay = ShortcutDisplay(main_window)
+        keyboardTester = KeyboardTester(main_window, lpWrapper, shortcutDisplay)
+        main_window.ui.actionTestMode.triggered.connect(lambda checked: keyboardTester.checkTestMode(checked))
+        main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
         return
     main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
     main_window.ui.buttonRun.setEnabled(True)
@@ -115,17 +120,12 @@ def checkForDuplicates(main_window: "Launkey", templateName: str) -> bool:
 
 async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     if main_window.ui.buttonRun.text() == "Run":
-        main_window.ui.buttonResetStack.setCurrentIndex(0)
-        main_window.ui.buttonReset.setEnabled(False)
-        main_window.ui.buttonRun.setText("Stop")
-        main_window.ui.statusbar.showMessage("Running...")
+        main_window.ui.startRun()
         lpWrapper.start()
         asyncio.create_task(listenForButtonPress(lpWrapper), name="listenForButtonPress")
         print("Started Launkey controller")
         return
-    main_window.ui.buttonRun.setText("Run")
-    main_window.ui.statusbar.showMessage("Stopped")
-    main_window.ui.buttonReset.setEnabled(True)
+    main_window.ui.stopRun()
     # Stop the async loop and reset the launchpad
     for task in asyncio.all_tasks():
         if task.get_name() in ["listenForButtonPress"]:

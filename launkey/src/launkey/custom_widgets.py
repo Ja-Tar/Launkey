@@ -66,6 +66,71 @@ class QDialogNoDefault(QDialog):
         else:
             event.ignore()
 
+class QLabelStatusBarInfo(QLabel):
+    def __init__(self, text: str = "", parent: QWidget | None = None, /, color: str | None = None):
+        super().__init__(text, parent)
+        self.setObjectName("statusBarInfo")
+        self.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.setContentsMargins(10, 0, 10, 0)
+        if color:
+            self.setStyleSheet(f"color: {color}; font-weight: bold;")
+
+class ShortcutDisplay(QDialog):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setWindowTitle("Test Mode - Shortcut Tester")
+        self.setModal(False)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
+        self.setFixedSize(400, 100)
+
+        self.label = QLabel("", self)
+        self.label.setObjectName("shortcutLabel")
+        self.label.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
+        self.label.setMinimumSize(QSize(200, 50))
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.sideLabel = QLabel("Top Half", self)
+        self.sideLabel.setObjectName("sideLabel")
+        self.sideLabel.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed))
+        self.sideLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.label)
+        layout.addWidget(self.sideLabel)
+        self.setLayout(layout)
+
+        self.pressedShortcuts: list[str] = []
+
+    def dynamicFontSize(self):
+        font = self.label.font()
+        fontSize = 48
+        font.setPointSize(fontSize)
+        self.label.setFont(font)
+        while self.label.fontMetrics().horizontalAdvance(self.label.text()) > self.label.width() - 20 and fontSize > 1:
+            fontSize -= 1
+            font.setPointSize(fontSize)
+            self.label.setFont(font)
+
+    def showShortcuts(self):
+        if not self.pressedShortcuts:
+            self.label.setText("")
+        else:
+            self.label.setText("; ".join(self.pressedShortcuts))
+        self.dynamicFontSize()
+    
+    def setShortcutText(self, text: str):
+        if text not in self.pressedShortcuts:
+            self.pressedShortcuts.append(text)
+        self.showShortcuts()
+
+    def clearShortcutText(self, text: str):
+        if text in self.pressedShortcuts:
+            self.pressedShortcuts.remove(text)
+        self.showShortcuts()
+
+    def changeSideLabel(self, text: str):
+        self.sideLabel.setText(text)
+
 class TemplateDisplay(QFrame):
     def __init__(self, main_window: "Launkey", templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
         super().__init__(parent)
