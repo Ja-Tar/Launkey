@@ -22,20 +22,26 @@ class Ui_MainWindow:
         MainWindow.setMinimumSize(QSize(800, 600))
 
         # Actions (menu items)
+        # Config menu actions
         self.actionSave = QAction(MainWindow)
         self.actionSave.setObjectName("actionSave")
         self.actionLoad = QAction(MainWindow)
         self.actionLoad.setObjectName("actionLoad")
-        self.actionAbout = QAction(MainWindow)
-        self.actionAbout.setObjectName("actionAbout")
+        self.actionTestMode = QAction(MainWindow)
+        self.actionTestMode.setObjectName("actionTestMode")
+        self.actionTestMode.setCheckable(True) # TODO: implement test mode
         self.actionSettings = QAction(MainWindow)
         self.actionSettings.setObjectName("actionSettings")
+
+        # Help menu actions
+        self.actionAbout = QAction(MainWindow)
+        self.actionAbout.setObjectName("actionAbout")
 
         # REMOVE after implementetion
         self.actionSave.setEnabled(False)
         self.actionLoad.setEnabled(False)
-        self.actionAbout.setEnabled(False)
         self.actionSettings.setEnabled(False)
+        self.actionAbout.setEnabled(False)
         # END REMOVE
 
         # Central widget and layout
