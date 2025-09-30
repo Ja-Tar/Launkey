@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
 from PySide6.QtCore import Qt, QSize, QRect, QMimeData, QPoint
 from PySide6.QtGui import (
-    QKeySequence, QMouseEvent, QPixmap, QPainter,
+    QCloseEvent, QKeySequence, QMouseEvent, QPixmap, QPainter,
     QDrag, QResizeEvent, QLinearGradient, QColor
 )
 
@@ -67,13 +67,13 @@ class QDialogNoDefault(QDialog):
             event.ignore()
 
 class QLabelStatusBarInfo(QLabel):
-    def __init__(self, text: str = "", parent: QWidget | None = None, /, color: str | None = None):
+    def __init__(self, text: str = "", parent: QWidget | None = None, /, colour: str | None = None):
         super().__init__(text, parent)
         self.setObjectName("statusBarInfo")
         self.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.setContentsMargins(10, 0, 10, 0)
-        if color:
-            self.setStyleSheet(f"color: {color}; font-weight: bold;")
+        if colour:
+            self.setStyleSheet(f"color: {colour}; font-weight: bold;")
 
 class ShortcutDisplay(QDialog):
     def __init__(self, parent: QWidget | None = None):
@@ -98,6 +98,8 @@ class ShortcutDisplay(QDialog):
         layout.addWidget(self.label)
         layout.addWidget(self.sideLabel)
         self.setLayout(layout)
+
+        self.closeEvent = lambda event: self.onXButtonClick(event)
 
         self.pressedShortcuts: list[str] = []
 
@@ -130,6 +132,9 @@ class ShortcutDisplay(QDialog):
 
     def changeSideLabel(self, text: str):
         self.sideLabel.setText(text)
+    
+    def onXButtonClick(self, event: QCloseEvent):
+        event.ignore()
 
 class TemplateDisplay(QFrame):
     def __init__(self, main_window: "Launkey", templateItems: list[Template | TemplateItem], parent: QWidget | None = None):

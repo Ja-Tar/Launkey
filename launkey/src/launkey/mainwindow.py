@@ -27,7 +27,7 @@ def mainWindowScript(main_window: "Launkey"):
         main_window.ui.statusbar.showMessage("Launchpad connected")
         main_window.lpclose = lpWrapper.lp
     else:
-        main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Launchpad not found", color="red"))
+        main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Launchpad not found", colour="red"))
         QMessageBox.warning(
             main_window,
             "Launchpad Error",

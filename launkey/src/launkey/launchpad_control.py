@@ -451,7 +451,7 @@ class KeyboardTester:
             print("Test Mode OFF")
 
     def testModeOn(self):
-        self.main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Test Mode Active", color="yellow"))
+        self.main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Test Mode Active", colour="yellow"))
         self.main_window.ui.buttonRun.setEnabled(True)
 
     async def testModeRun(self):
@@ -520,5 +520,8 @@ class KeyboardTester:
         asyncio.create_task(self.keyboardTestingUnpress(event))
 
     def testModeOff(self):
-        self.main_window.ui.statusbar.removeWidget(QLabelStatusBarInfo("Test Mode Active"))
+        for widget in self.main_window.ui.statusbar.findChildren(QLabelStatusBarInfo):
+            if widget.text() == "Test Mode Active":
+                self.main_window.ui.statusbar.removeWidget(widget)
+                break
         self.main_window.ui.buttonRun.setEnabled(False)
