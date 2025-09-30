@@ -50,6 +50,9 @@ On windows sometimes launchpad is not detected. First try to restart the PC with
 
 ### Linux
 
+> [!WARNING]
+> Linux is not working for now. I will fix it... Soon...
+
 For Linux you need to install `pygame` library for your distribution. For example on Ubuntu you can do it with:
 ```bash
 sudo apt install python3-pygame
