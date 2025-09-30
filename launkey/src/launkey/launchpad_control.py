@@ -161,7 +161,6 @@ class LaunchpadTable(QTableWidget):
             index: QModelIndex = self.indexAt(pos)
             if index.isValid():
                 self.isValidLocation((index.row(), index.column()), loadedTemplates[templateFileName])
-                # TODO handle the drop logic here (load template, etc.)
                 row = index.row()
                 col = index.column()
                 tablePosition = (row, col)
@@ -197,9 +196,6 @@ class LaunchpadTable(QTableWidget):
     def loadDataFromTemplate(self, tablePosition: tuple[int, int], templateData: list[Template | TemplateItem]):
         item = self.item(*tablePosition)
         if item is not None:
-            # REMOVE debug
-            launchpadPosition = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
-
             templateLayout: list[tuple[int, int]] = []
             for templateItem in templateData:
                 if isinstance(templateItem, Template):

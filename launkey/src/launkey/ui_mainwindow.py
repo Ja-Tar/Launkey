@@ -30,7 +30,7 @@ class Ui_MainWindow:
         self.actionLoad.setObjectName("actionLoad")
         self.actionTestMode = QAction(MainWindow)
         self.actionTestMode.setObjectName("actionTestMode")
-        self.actionTestMode.setCheckable(True) # TODO: implement test mode
+        self.actionTestMode.setCheckable(True)
         self.actionSettings = QAction(MainWindow)
         self.actionSettings.setObjectName("actionSettings")
 

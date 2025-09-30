@@ -170,7 +170,6 @@ def newTemplatePopup(main_window: "Launkey"):
         importTemplates(main_window)
 
 def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
-    # TODO load template data into the dialog, with the ability to edit and save changes
     templateFileName = sterilizeTemplateName(templateDisplayName) + ".json"
     if templateFileName not in loadedTemplates:
         error_dialog = QErrorMessage(main_window)
