@@ -1,8 +1,30 @@
 # Launkey
+[LAUNKEY BANNER but PNG]
 
-# How to test
+Launkey is ...
 
-## Linux
+[DEMO VIDEO]
+
+## Features 
+
+- [ ] === ADD ===
+
+# Important Info
+
+## Test mode
+
+=== ADD ===
+
+## Troubleshooting launchpad connection
+
+### Windows
+
+=== ADD ===
+
+### Linux
+
+=== ADD ===
+
 You need to run the project with root privileges to be able to access the input devices.
 ```bash
 sudo su
@@ -12,3 +34,11 @@ pip install -r requirements.txt
 cd launkey
 briefcase dev
 ```
+
+# Licenses and libraries
+
+=== ADD ===
+
+# Thx HACKCLUB
+
+=== ADD ===
