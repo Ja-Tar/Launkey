@@ -1,8 +1,6 @@
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 from typing import Any
-
-import keyboard
 import regex as re
 from PySide6.QtWidgets import QWidget, QSizePolicy, QTreeWidget, QTreeWidgetItem, QComboBox, QLineEdit
 from PySide6.QtCore import Qt, QRegularExpression

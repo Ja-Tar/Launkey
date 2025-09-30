@@ -1,5 +1,4 @@
 from typing import Literal
-from warnings import deprecated
 from PySide6.QtWidgets import QGridLayout, QWidget
 from PySide6.QtCore import Qt, QTimer
 

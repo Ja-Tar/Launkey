@@ -1,5 +1,4 @@
 import asyncio
-import keyboard
 import json
 from pathlib import Path
 

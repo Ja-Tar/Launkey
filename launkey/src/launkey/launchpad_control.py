@@ -8,8 +8,7 @@ import launchpad_py as launchpad
 from enum import Enum, auto
 from PySide6.QtCore import QModelIndex, Qt, QPoint
 from PySide6.QtWidgets import (
-    QTableWidgetItem, QTableWidget, QAbstractItemView,
-    QAbstractScrollArea, QSizePolicy, QItemDelegate,
+    QTableWidgetItem, QTableWidget, QAbstractScrollArea, QSizePolicy, QItemDelegate,
 )
 from PySide6.QtGui import (
     QColor, QBrush, QDragEnterEvent, QDropEvent, 

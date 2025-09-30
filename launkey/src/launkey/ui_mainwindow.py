@@ -4,11 +4,11 @@
 ################################################################################
 
 from PySide6.QtCore import (QCoreApplication, QRect, QSize, Qt, QVariantAnimation)
-from PySide6.QtGui import (QAction, QBrush, QColor)
+from PySide6.QtGui import (QAction, QColor)
 from PySide6.QtWidgets import (
-    QAbstractItemView, QAbstractScrollArea, QFrame, QGroupBox, QHBoxLayout,
+    QFrame, QGroupBox, QHBoxLayout,
     QLayout, QMainWindow, QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QStatusBar, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QStatusBar, QVBoxLayout, QWidget,
     QScrollArea, QSplitter, QStackedWidget
 )
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
