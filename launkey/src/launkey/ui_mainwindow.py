@@ -31,6 +31,13 @@ class Ui_MainWindow:
         self.actionSettings = QAction(MainWindow)
         self.actionSettings.setObjectName("actionSettings")
 
+        # REMOVE after implementetion
+        self.actionSave.setEnabled(False)
+        self.actionLoad.setEnabled(False)
+        self.actionAbout.setEnabled(False)
+        self.actionSettings.setEnabled(False)
+        # END REMOVE
+
         # Central widget and layout
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
