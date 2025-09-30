@@ -13,8 +13,17 @@ Launkey is ...
 # Important Info
 
 ## Test mode
+If you don't have a Launchpad connected, you can still use the app in test mode. For example, to test the app or test if your template layout works.
 
-=== ADD ===
+You can find it in `Configuration` tab under `Test mode`. Click to enable or disable.
+
+<img width="163" height="202" alt="obraz" src="https://github.com/user-attachments/assets/b55960fc-54f0-40fa-ba58-8add87de6ae5" />
+
+Now you can see that new window opened. It's a shortcut display. It shows you shortcuts that are mapped to clicked buttons (blue) and side of the virtual launchpad (orange).
+
+<img width="402" height="132" alt="obraz" src="https://github.com/user-attachments/assets/695ed428-e5dc-4708-8b2d-c70779f68b25" />
+
+Now you can start testing with `Run` button.
 
 ## Troubleshooting launchpad connection
 
