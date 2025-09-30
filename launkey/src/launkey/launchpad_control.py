@@ -471,11 +471,9 @@ class KeyboardTester:
 
     def onPressCallback(self, event: keyboard.KeyboardEvent, loop: asyncio.AbstractEventLoop):
         asyncio.run_coroutine_threadsafe(self.keyboardTestingPress(event), loop)
-        return None
 
     def onReleaseCallback(self, event: keyboard.KeyboardEvent, loop: asyncio.AbstractEventLoop):
         asyncio.run_coroutine_threadsafe(self.keyboardTestingUnpress(event), loop)
-        return None
 
     keyboardTable = {
         1: "12345678",
