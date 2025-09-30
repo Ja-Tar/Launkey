@@ -32,7 +32,7 @@ class Launkey(QMainWindow):
                 self.lpclose.Close()
                 print("Launchpad disconnected successfully.")
             except Exception as e:
-                print(f"ERR: Błąd przy zamykaniu Launchpada: {e}")
+                print(f"ERR: {e}")
         event.accept()
 
 

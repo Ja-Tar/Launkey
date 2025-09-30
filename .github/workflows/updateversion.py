@@ -3,7 +3,7 @@ import re
 
 PYPROJECT_PATH = "./launkey/pyproject.toml"
 
-def update_version(new_version):
+def update_version(new_version_text):
     with open(PYPROJECT_PATH, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -13,7 +13,7 @@ def update_version(new_version):
         # Only replace version in [tool.briefcase] section
         version_line_new = re.sub(
             r'(version\s*=\s*")[^"]+(")',
-            lambda m: f'{m.group(1)}{new_version}{m.group(2)}',
+            lambda m: f'{m.group(1)}{new_version_text}{m.group(2)}',
             version_line
         )
         return f"{section}{version_line_new}"

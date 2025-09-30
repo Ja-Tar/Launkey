@@ -88,7 +88,6 @@ class TemplateGridLayout(QGridLayout):
 
     def widgetsFromTemplate(self, center, template):
         for item in template:
-            print(f"Processing item: {item}")
             if isinstance(item, TemplateItem):
                 if item.location in [(0, 0), center]:
                     continue  # Skip main button location

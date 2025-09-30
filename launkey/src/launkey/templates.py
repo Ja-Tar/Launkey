@@ -8,7 +8,6 @@ def ensureTemplatesFolderExists(systemPath: str) -> Path:
     fullPath = Path(systemPath) / folderName
     if not fullPath.exists():
         fullPath.mkdir(parents=True, exist_ok=True)
-        print(f"Created folder: {fullPath}")
     return fullPath
 
 def getTemplateFolderPath() -> Path:

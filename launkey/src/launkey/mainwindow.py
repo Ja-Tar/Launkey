@@ -42,6 +42,7 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonRun.setEnabled(True)
 
 def importTemplates(main_window: "Launkey", currentTemplateDisplayName: str | None = None):
+    print("Importing templates...")
     if currentTemplateDisplayName:
         removeTemplateForRefresh(main_window, currentTemplateDisplayName)
 
@@ -122,7 +123,6 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
         main_window.ui.startRun()
         lpWrapper.start()
         asyncio.create_task(listenForButtonPress(lpWrapper), name="listenForButtonPress")
-        print("Started Launkey controller")
         return
     main_window.ui.stopRun()
     # Stop the async loop and reset the launchpad
@@ -132,7 +132,6 @@ async def buttonRun(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
     lpWrapper.stop()
 
 async def listenForButtonPress(lpWrapper: LaunchpadWrapper) -> str:
-    print("Waiting for button press...")
     while True:
         event = lpWrapper.lp.ButtonStateXY()  # type: ignore
         if event:
@@ -171,7 +170,6 @@ def newTemplatePopup(main_window: "Launkey"):
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
         importTemplates(main_window)
-        print("Refreshed templates")
 
 def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
     # TODO load template data into the dialog, with the ability to edit and save changes
@@ -189,4 +187,3 @@ def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
         importTemplates(main_window, templateDisplayName)
-        print("Refreshed templates")

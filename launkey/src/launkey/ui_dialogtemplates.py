@@ -36,15 +36,11 @@ class Ui_Dialog:
 
     def loadTemplate(self, dialog: QDialog, template: List[Template | TemplateItem]):
         self.loadedTemplate = template
-        print("Template loaded successfully.")
-
-        # TODO: Populate the UI with the loaded template data
         template_type = getTemplateType(self.loadedTemplate)
         if template_type is None:
             self.errorMessageBox("Failed to determine template type.", "Load Template Error", dialog)
             return
         self.setupUi(dialog, template_type, self.loadedTemplate)
-        print("UI setup completed.")
 
     def setupUi(self, dialog: QDialog, template_type: Template.Type, loadedTemplate: List[Template | TemplateItem] | None = None):
         if not dialog.objectName():
@@ -143,7 +139,6 @@ class Ui_Dialog:
                     if isinstance(item, TemplateItem):
                         self.mainActionButton = ToggleButton(item.name, item.buttonID)
                         self.mainActionButton.setObjectName("mainActionButton")
-                        print(f"Main action button loaded: {item.name} at {item.location}")
                         break
 
         # Centered grid layout for editor frame

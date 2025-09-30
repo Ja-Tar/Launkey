@@ -168,8 +168,6 @@ class LaunchpadTable(QTableWidget):
                 tablePosition = (row, col)
                 if (row == 0) or (col == 8): # REMOVE temporary disable to autoMap
                     return  # Ignore drops on autoMap cells
-                print("====================")
-                print(f"File name: {templateFileName}")
                 templateData = loadedTemplates[templateFileName]
                 if not templateData:
                     raise ValueError(f"Template {templateFileName} is empty")
@@ -202,14 +200,12 @@ class LaunchpadTable(QTableWidget):
         if item is not None:
             # REMOVE debug
             launchpadPosition = (tablePosition[0] - 1, tablePosition[1])  # Adjust for autoMap row
-            print(f"Loading template at launchpad position: {launchpadPosition}")
 
             templateLayout: list[tuple[int, int]] = []
             for templateItem in templateData:
                 if isinstance(templateItem, Template):
-                    print(f"Main template item {templateItem}")
+                    pass
                 elif isinstance(templateItem, TemplateItem):
-                    print(f"Sub template item {templateItem.location} -> {templateItem}")
                     itemPos = (tablePosition[0] + templateItem.location[0], tablePosition[1] + templateItem.location[1])
                     item = self.item(*itemPos)
                     if item is not None:
@@ -223,7 +219,6 @@ class LaunchpadTable(QTableWidget):
             self.drawTemplateItemsInTable([item for item in templateData if isinstance(item, TemplateItem)], templateLayout)
             if templateData and isinstance(templateData[0], Template):
                 self.loadedTempTypes[tuple(templateLayout)] = templateData[0]
-            print(f"Occupied cells: {self.occupiedCells}")
 
     def drawTemplateItemsInTable(self, templateData: list[TemplateItem], templateLayout: list[tuple[int, int]]):
         for i, templateItem in enumerate(templateData):
@@ -363,7 +358,6 @@ class LaunchpadWrapper:
         self.table = table
 
     def connect(self) -> bool:
-        print(self.lp.ListAll())
         if self.lp.Check():
             self.lp.Open()
             self.lp.Reset()
@@ -443,11 +437,9 @@ class KeyboardTester:
         if checked:
             self.testModeOn()
             self.testModeDisplay.show()
-            print("Test Mode ON")
         else:
             self.testModeOff()
             self.testModeDisplay.hide()
-            print("Test Mode OFF")
 
     def testModeOn(self):
         self.main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Test Mode Active", colour="yellow"))
@@ -460,7 +452,6 @@ class KeyboardTester:
             loop = asyncio.get_running_loop()
             keyboard.on_press(lambda event: self.onPressCallback(event, loop))
             keyboard.on_release(lambda event: self.onReleaseCallback(event, loop))
-            print("Started Launkey controller in Test Mode")
             return
         self.main_window.ui.stopRun()
         keyboard.unhook_all()
@@ -493,12 +484,10 @@ class KeyboardTester:
                 self.pressedKeys.append(event.name)
                 keyIndex = keys.index(event.name)
                 buttonPos = (keyIndex, row + (4 if self.lowerHalf else 0))
-                #print(f"Simulating button press at {buttonPos} for key '{event.name}'")
                 await self.lpWrapper.buttonPressed(buttonPos, self.lpWrapper.table.getTemplateItemAtButton((buttonPos[0], buttonPos[1])), testMode=self.testModeDisplay)
         if event.name == self.lowerHalfChanger:
             self.lowerHalf = not self.lowerHalf
             self.testModeDisplay.changeSideLabel("Bottom Half" if self.lowerHalf else "Top Half")
-            print(f"Lower half changed to {self.lowerHalf}")
 
     async def keyboardTestingUnpress(self, event: keyboard.KeyboardEvent):
         if not event.name:
@@ -511,7 +500,6 @@ class KeyboardTester:
                 keyIndex = keys.index(event.name)
                 buttonPos = (keyIndex, row + (4 if self.lowerHalf else 0))
                 await self.lpWrapper.buttonUnpressed((buttonPos[0], buttonPos[1]), testMode=self.testModeDisplay)
-                #print(f"Simulating button release at {buttonPos} for key '{event.name}'")
 
     def keyboardTestingUnpressSync(self, event):
         asyncio.create_task(self.keyboardTestingUnpress(event))
