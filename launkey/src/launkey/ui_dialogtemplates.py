@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from .custom_layouts import TemplateGridLayout
-from .custom_widgets import ToggleButton
+from .custom_widgets import ToggleButton, AreYouSureDialog
 from .template_options_widgets import TemplateOptionsList
 from .templates import Template, TemplateItem, getTemplateFolderPath, sterilizeTemplateName, getTemplateType
 
@@ -26,7 +26,7 @@ class Ui_Dialog:
         self.mainLayout: QHBoxLayout
         self.optionsPanel: QWidget
         self.optionsList: TemplateOptionsList
-        self.buttonSeparator: QSplitter
+        self.buttonSeparatorH: QSplitter
         self.closeButton: QPushButton
         self.saveButton: QPushButton
         self.separator: QFrame
@@ -71,27 +71,40 @@ class Ui_Dialog:
         self.optionsList = TemplateOptionsList(template_type, self.optionsPanel, loadedTemplate)
         optionsPanelLayout.addWidget(self.optionsList)  # type: ignore
 
-        # Button separator
-        self.buttonSeparator = QSplitter(dialog)
-        self.buttonSeparator.setOrientation(Qt.Orientation.Horizontal)
-        self.buttonSeparator.setObjectName("buttonSeparator")
-        optionsPanelLayout.addWidget(self.buttonSeparator)
+        # Button vertical separator layout
+        self.buttonSeparatorV = QSplitter(dialog)
+        self.buttonSeparatorV.setOrientation(Qt.Orientation.Vertical)
+        self.buttonSeparatorV.setObjectName("buttonSeparatorLayout")
+        optionsPanelLayout.addWidget(self.buttonSeparatorV)
 
         # Close button
         self.closeButton = QPushButton("Close", dialog)
         self.closeButton.setObjectName("closeButton")
         self.closeButton.setAutoDefault(False)
-        self.buttonSeparator.addWidget(self.closeButton)
+        self.buttonSeparatorV.addWidget(self.closeButton)
         self.closeButton.clicked.connect(lambda: self.closeTemplateEditor(dialog))
 
-        # Close button custom style
-        self.closeButton.setStyleSheet("background-color: darkred; color: white;")
+        # Button separator
+        self.buttonSeparatorH = QSplitter(dialog)
+        self.buttonSeparatorH.setOrientation(Qt.Orientation.Horizontal)
+        self.buttonSeparatorH.setObjectName("buttonSeparator")
+        self.buttonSeparatorV.addWidget(self.buttonSeparatorH)
+
+        # Delete button
+        self.deleteButton = QPushButton("Delete", dialog)
+        self.deleteButton.setObjectName("deleteButton")
+        self.deleteButton.setAutoDefault(False)
+        self.buttonSeparatorH.addWidget(self.deleteButton)
+        self.deleteButton.clicked.connect(lambda: self.beforeDeleteTemplate(dialog))
+
+        # Delete button custom style
+        self.deleteButton.setStyleSheet("background-color: darkred; color: white;")
 
         # Save button
         self.saveButton = QPushButton("Save", dialog)
         self.saveButton.setObjectName("saveButton")
         self.saveButton.setAutoDefault(False)
-        self.buttonSeparator.addWidget(self.saveButton)
+        self.buttonSeparatorH.addWidget(self.saveButton)
         self.saveButton.clicked.connect(lambda: self.saveTemplate(dialog))
 
         # Save button custom style
@@ -220,20 +233,35 @@ class Ui_Dialog:
         event.setAccepted(False)
 
     def closeTemplateEditor(self, dialog: QDialog):
-        areYouSureBox = QMessageBox()
-        areYouSureBox.setIcon(QMessageBox.Icon.Warning)
-        areYouSureBox.setWindowTitle("Close without saving?")
-        areYouSureBox.setText("Are you sure you want to close the editor without saving?")
-        areYouSureBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        areYouSureBox.setDefaultButton(QMessageBox.StandardButton.No)
-        areYouSureBox.setEscapeButton(QMessageBox.StandardButton.No)
-        areYouSureBox.setWindowModality(Qt.WindowModality.ApplicationModal)
-        areYouSureBox.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
+        areYouSureBox = AreYouSureDialog("Are you sure you want to close the editor without saving?")
         ret = areYouSureBox.exec()
         if ret == QMessageBox.StandardButton.Yes:
             dialog.reject()
         else:
             pass
+
+    def beforeDeleteTemplate(self, dialog: QDialog):
+        areYouSureBox = AreYouSureDialog("Are you sure you want to delete this template?")
+        ret = areYouSureBox.exec()
+        if ret == QMessageBox.StandardButton.Yes:
+            self.deleteTemplate(dialog)
+            dialog.accept()
+        else:
+            pass
+
+    def deleteTemplate(self, dialog: QDialog):
+        templateName = self.optionsList.getTemplateName().strip()
+        fullPath = getTemplateFolderPath()
+        templateFileName = sterilizeTemplateName(templateName)
+        filePath = fullPath / f"{templateFileName}.json"
+        try:
+            if filePath.exists():
+                filePath.unlink()
+                print(f"Template '{templateName}' deleted successfully.")
+            else:
+                self.errorMessageBox(f"Template file '{templateFileName}.json' does not exist.", "Delete Template Error", dialog)
+        except Exception as e:
+            self.errorMessageBox(f"An error occurred while deleting the template: {e}", "Delete Template Error", dialog)
 
     def errorMessageBox(self, message: str, title: str, parent: QWidget | None = None):
         messagebox = QMessageBox(QMessageBox.Icon.Critical, title, message, parent=parent)

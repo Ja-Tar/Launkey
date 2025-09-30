@@ -2,11 +2,16 @@ import time
 import struct
 
 from typing import TYPE_CHECKING
-from PySide6.QtWidgets import QWidget, QPushButton, QSizePolicy, QDialog, QLabel, QFrame, QVBoxLayout
+from PySide6.QtWidgets import (
+    QWidget, QPushButton, QSizePolicy,
+    QDialog, QLabel, QFrame, QVBoxLayout,
+    QMessageBox,
+)
 from PySide6.QtCore import Qt, QSize, QRect, QMimeData, QPoint
 from PySide6.QtGui import (
-    QCloseEvent, QKeySequence, QMouseEvent, QPixmap, QPainter,
-    QDrag, QResizeEvent, QLinearGradient, QColor
+    QCloseEvent, QKeySequence, QMouseEvent, 
+    QPixmap, QPainter, QDrag, QResizeEvent, 
+    QLinearGradient, QColor
 )
 
 from .templates import Template, TemplateItem, Button, sterilizeTemplateName, ledsToColorCode
@@ -135,6 +140,18 @@ class ShortcutDisplay(QDialog):
     
     def onXButtonClick(self, event: QCloseEvent):
         event.ignore()
+
+class AreYouSureDialog(QMessageBox):
+    def __init__(self, text: str, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setIcon(QMessageBox.Icon.Warning)
+        self.setWindowTitle("Close without saving?")
+        self.setText(text)
+        self.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        self.setDefaultButton(QMessageBox.StandardButton.No)
+        self.setEscapeButton(QMessageBox.StandardButton.No)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
 
 class TemplateDisplay(QFrame):
     def __init__(self, main_window: "Launkey", templateItems: list[Template | TemplateItem], parent: QWidget | None = None):
