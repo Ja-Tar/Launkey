@@ -4,10 +4,8 @@ from pathlib import Path
 
 from typing import TYPE_CHECKING
 
-#from PySide6 import QtAsyncio
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
-#import launchpad_py as launchpad
 
 from .ui_dialogtemplates import Ui_Dialog
 from .custom_widgets import QDialogNoDefault, TemplateDisplay, QLabelStatusBarInfo, ShortcutDisplay

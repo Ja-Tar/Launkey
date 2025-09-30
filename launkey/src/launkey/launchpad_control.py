@@ -53,7 +53,6 @@ class LaunchpadTable(QTableWidget):
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         sizePolicy.setHorizontalStretch(4)
         self.setSizePolicy(sizePolicy)
-        #self.viewport().setProperty("cursor", QCursor(Qt.CursorShape.ArrowCursor))
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
@@ -129,7 +128,7 @@ class LaunchpadTable(QTableWidget):
     def dragMoveEvent(self, event: QDragMoveEvent) -> None:
         if event.mimeData().hasFormat("application/x-template"):
             mimeData = event.mimeData().data("application/x-template")
-            # b''.join(struct.pack('ii', row, col) for row, col in self.locationList)
+            # b''.join(struct.pack('ii', row, col) for row, col in self.locationList) # skipqc PY-W0069
             occupiedRelativePositions: list[tuple[int, int]] = [tuple(struct.unpack('ii', mimeData.data()[i:i + 8])) for i in range(0, len(mimeData.data()), 8)]
             pos = event.position().toPoint()
             index: QModelIndex = self.indexAt(pos)
