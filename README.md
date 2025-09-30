@@ -25,6 +25,12 @@ Now you can see that new window opened. It's a shortcut display. It shows you sh
 
 Now you can start testing with `Run` button.
 
+![exampleTestMode](https://github.com/user-attachments/assets/fa350a2d-ebf1-4ba8-bddc-b49af97d32bb)
+
+### Keyboard Layout
+
+<img width="1235" height="371" alt="keyboard-layout(3)" src="https://github.com/user-attachments/assets/02e62839-cc09-4f92-ad1f-4de497e17322" />
+
 ## Troubleshooting launchpad connection
 
 ### Windows
