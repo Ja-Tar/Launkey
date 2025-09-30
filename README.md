@@ -6,7 +6,7 @@
 
 Launkey is a desktop application that allows you to create custom templates that then can be dragged and dropped on a table that represents a Launchpad device. When you press a button on the Launchpad, the app will trigger the keyboard shortcut that you assigned to that button in the template.
 
-[DEMO VIDEO]
+![DEMO VIDEO](https://raw.githubusercontent.com/Ja-Tar/Launkey/refs/heads/main/demo_video.mov)
 
 ## Features (mainly planed ones)
 
