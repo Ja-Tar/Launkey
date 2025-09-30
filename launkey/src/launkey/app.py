@@ -3,7 +3,6 @@ Control your game with Launchpad
 """
 import importlib.metadata
 import sys
-import logging
 
 from PySide6 import QtAsyncio
 from PySide6.QtCore import (QEvent)
