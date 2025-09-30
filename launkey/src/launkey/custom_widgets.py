@@ -104,7 +104,7 @@ class ShortcutDisplay(QDialog):
         layout.addWidget(self.sideLabel)
         self.setLayout(layout)
 
-        self.closeEvent = lambda event: self.onXButtonClick(event)
+        self.closeEvent = self.onXButtonClick
 
         self.pressedShortcuts: list[str] = []
 

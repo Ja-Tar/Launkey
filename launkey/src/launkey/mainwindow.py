@@ -35,7 +35,7 @@ def mainWindowScript(main_window: "Launkey"):
         )
         shortcutDisplay = ShortcutDisplay(main_window)
         keyboardTester = KeyboardTester(main_window, lpWrapper, shortcutDisplay)
-        main_window.ui.actionTestMode.triggered.connect(lambda checked: keyboardTester.checkTestMode(checked))
+        main_window.ui.actionTestMode.triggered.connect(keyboardTester.checkTestMode)
         main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
         return
     main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
