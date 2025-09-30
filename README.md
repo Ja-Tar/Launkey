@@ -31,11 +31,15 @@ Now you can start testing with `Run` button.
 
 <img width="1235" height="371" alt="keyboard-layout(3)" src="https://github.com/user-attachments/assets/02e62839-cc09-4f92-ad1f-4de497e17322" />
 
+In RED are the keys that are used for launchpad buttons (1-8, Q-I, A-L, Z-M).
+
+In BLUE is a button that is used for changing the side of the launchpad (top 4 rows / bottom 4 rows).
+
 ## Troubleshooting launchpad connection
 
 ### Windows
 
-=== ADD ===
+On windows sometimes 
 
 ### Linux
 
