@@ -1,11 +1,16 @@
 ![LAUNKEY BANNER](https://raw.githubusercontent.com/Ja-Tar/Launkey/refs/heads/main/bannerSmall.png)
 
-Launkey is ...
+> [!CAUTION]
+> This project is in early development. Some features may not work as expected or may be missing.
+> Please report any issues you encounter. THX :)
+
+Launkey is a desktop application that allows you to create custom templates that then can be dragged and dropped on a table that represents a Launchpad device. When you press a button on the Launchpad, the app will trigger the keyboard shortcut that you assigned to that button in the template.
 
 [DEMO VIDEO]
 
 ## Features (mainly planed ones)
 
+- [x] Test mode
 - [ ] Lot of template types (like switch, slider)
 - [ ] Launchpad compatibility *(for now it works only with LaunchPad Mini MK1)*
 - [ ] And more...
@@ -39,20 +44,13 @@ In BLUE is a button that is used for changing the side of the launchpad (top 4 r
 
 ### Windows
 
-On windows sometimes 
+On windows sometimes launchpad is not detected. First try to restart the PC with the launchpad connected. If it doesn't help, try to connect the launchpad to another USB port. You can also try to reinstall the drivers from [Novation's website](https://downloads.novationmusic.com/novation/). 
 
 ### Linux
 
-=== ADD ===
-
-You need to run the project with root privileges to be able to access the input devices.
+For Linux you need to install `pygame` library for your distribution. For example on Ubuntu you can do it with:
 ```bash
-sudo su
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cd launkey
-briefcase dev
+sudo apt install python3-pygame
 ```
 
 # Licenses and libraries
@@ -76,4 +74,4 @@ Author: [FMMT666](https://github.com/FMMT666)
 
 # Thx HACKCLUB
 
-=== ADD ===
+This project was created during [HackClub](https://hackclub.com/) event [`Summer of Making`](https://summer.hackclub.com/). Thx for big motivation boost :)
