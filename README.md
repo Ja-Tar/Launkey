@@ -1,5 +1,4 @@
-# Launkey
-[LAUNKEY BANNER but PNG]
+![LAUNKEY BANNER](https://raw.githubusercontent.com/Ja-Tar/Launkey/refs/heads/main/bannerSmall.png)
 
 Launkey is ...
 
