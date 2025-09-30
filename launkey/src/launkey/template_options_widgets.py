@@ -153,9 +153,13 @@ class KeyBoardShortcutEditWidget(StringEditWidget):
         self.setObjectName("keyboardShortcutEditWidget")
         self.setPlaceholderText("Type shortcut")
         self.editingFinished.connect(lambda: self._changeObjectProperty(objectToChange, objectProperty, self.text()))
+        regexPattern = r"^(?:(?:[A-Za-z0-9,./\\\-\[\]\(\);\'`~=\<>\?@:]|F(?:[1-9]|1[0-2])|esc|tab|enter|space|backspace|delete|insert|home|end|pageup|pagedown|up|down|left|right|ctrl|alt|shift|meta|win|cmd|super)(?:\+(?:[A-Za-z0-9,./\\\-\[\]\(\);\'`~=\<>\?@:]|F(?:[1-9]|1[0-2])|esc|tab|enter|space|backspace|delete|insert|home|end|pageup|pagedown|up|down|left|right|ctrl|alt|shift|meta|win|cmd|super))*)$"
         self.setValidator(
             QRegularExpressionValidator(
-                QRegularExpression(r"^((Ctrl|Alt|Shift|Win)\+)*(Ctrl|Alt|Shift|Win|[A-Za-z0-9])$")
+                QRegularExpression(
+                    regexPattern,
+                    QRegularExpression.PatternOption.CaseInsensitiveOption
+                )
             )
         )
 
