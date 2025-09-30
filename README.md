@@ -37,7 +37,22 @@ briefcase dev
 
 # Licenses and libraries
 
-=== ADD ===
+## keyboard (for shortcuts)
+[Link](https://github.com/boppreh/keyboard?tab=MIT-1-ov-file)
+
+[MIT License](https://github.com/boppreh/keyboard/blob/master/LICENSE.txt)
+
+## launchpad.py
+Author: [FMMT666](https://github.com/FMMT666)
+
+[Link](https://github.com/FMMT666/launchpad.py)
+
+[CC BY 4.0](https://github.com/FMMT666/launchpad.py/blob/master/LICENSE.txt)
+
+## briefcase
+[Link](https://github.com/beeware/briefcase)
+
+[BSD 3-Clause "New" or "Revised" License](https://github.com/beeware/briefcase/blob/main/LICENSE)
 
 # Thx HACKCLUB
 
