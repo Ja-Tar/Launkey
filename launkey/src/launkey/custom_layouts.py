@@ -209,7 +209,7 @@ class TemplateGridLayout(QGridLayout):
         return True  # No path to main widget found
 
     def clearPlusButtons(self):
-        for button, pos in self.plusButtonWidgets:
+        for button, _ in self.plusButtonWidgets:
             super().removeWidget(button)
             button.deleteLater()
         self.plusButtonWidgets.clear()

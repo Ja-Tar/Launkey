@@ -369,13 +369,11 @@ class Preview(QFrame):
 
     def getDragHotspot(self, pixmap: QPixmap) -> QPoint:
         if (0, 0) in self.locationList:
-            index = self.locationList.index((0, 0))
             # Calculate grid bounds
             min_row = min(row for row, _ in self.locationList)
             min_col = min(col for _, col in self.locationList)
+            
             # Layout parameters
-            cols = max(col for _, col in self.locationList) - min_col + 1
-            rows = max(row for row, _ in self.locationList) - min_row + 1
             cell_size = 36  # Use default_cell_size
             space_between = 4
             padding = 2

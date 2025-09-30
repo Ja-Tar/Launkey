@@ -148,7 +148,7 @@ def selectTemplateTypePopup(main_window: "Launkey"):
         main_window,
         "Select Template Type",
         "Select the type of template you want to create:",
-        template_types := [t.name for t in Template.Type],
+        [t.name for t in Template.Type],
         current=0,
         editable=False,
         flags=Qt.WindowType.WindowStaysOnTopHint
