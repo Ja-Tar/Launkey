@@ -128,7 +128,6 @@ class LaunchpadTable(QTableWidget):
     def dragMoveEvent(self, event: QDragMoveEvent) -> None:
         if event.mimeData().hasFormat("application/x-template"):
             mimeData = event.mimeData().data("application/x-template")
-            # b''.join(struct.pack('ii', row, col) for row, col in self.locationList) # skipqc PY-W0069
             occupiedRelativePositions: list[tuple[int, int]] = [tuple(struct.unpack('ii', mimeData.data()[i:i + 8])) for i in range(0, len(mimeData.data()), 8)]
             pos = event.position().toPoint()
             index: QModelIndex = self.indexAt(pos)

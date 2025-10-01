@@ -68,7 +68,7 @@ class NameEditWidget(StringEditWidget):
             print("Grid layout not set, cannot update button text.")
             self.setText(getattr(objectToChange, objectProperty))
             return
-        button_id = getattr(objectToChange, "buttonID")
+        button_id = getattr(objectToChange, "buttonID", None)
         if button_id:
             super().changeObjectProperty(objectToChange, objectProperty, newValue)
             self.gridLayout.updateButtonText(button_id, newValue)
