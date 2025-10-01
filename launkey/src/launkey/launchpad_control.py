@@ -415,10 +415,24 @@ class LaunchpadWrapper:
         self.lp.Reset()
     
     def resetTable(self):
-        self.table.drawTemplateItemsInTable(
-            [item for item in self.table.loadedTemplates.values() if isinstance(item, TemplateItem)],
-            list(self.table.loadedTemplates.keys())
-        )
+        # Rebuild original templates with self.table.loadedTempTypes
+        loadedTemplates = {
+            key: value for key, value in self.table.loadedTemplates.items()
+        }
+        loadedCombinations: list[tuple[tuple[tuple[int, int], ...], list[TemplateItem]]] = []
+        for locations, _ in self.table.loadedTempTypes.items():
+            templateToSave: tuple[tuple[tuple[int, int], ...], list[TemplateItem]] = (
+                locations,
+                [item for loc in locations if (item := loadedTemplates.get(loc)) is not None]
+            )
+            loadedCombinations.append(templateToSave)
+
+        for template in loadedCombinations:
+            locs = template[0]
+            data = template[1]
+            self.table.drawTemplateItemsInTable(
+                data, list(locs)
+            )
 
 class KeyboardTester:
     def __init__(self, main_window: "Launkey", lpWrapper: LaunchpadWrapper, testModeDisplay: ShortcutDisplay):

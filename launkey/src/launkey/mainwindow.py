@@ -20,24 +20,26 @@ def mainWindowScript(main_window: "Launkey"):
     
     importTemplates(main_window)
     lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
+
     if lpWrapper.connect():
-        main_window.ui.statusbar.showMessage("Launchpad connected")
+        main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Launchpad connected", colour="green"))
+        main_window.ui.actionTestMode.setEnabled(False) # IDEA enable test mode with launchpad, but turn off shortcuts
         main_window.lpclose = lpWrapper.lp
+        main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
+        main_window.ui.buttonRun.setEnabled(True)
     else:
         main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Launchpad not found", colour="red"))
+        shortcutDisplay = ShortcutDisplay(main_window)
+        keyboardTester = KeyboardTester(main_window, lpWrapper, shortcutDisplay)
+        main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
+        main_window.ui.actionTestMode.triggered.connect(keyboardTester.checkTestMode)
+
         QMessageBox.warning(
             main_window,
             "Launchpad Error",
             "Launchpad not found. Please connect your Launchpad and try again.",
             QMessageBox.StandardButton.Ok
         )
-        shortcutDisplay = ShortcutDisplay(main_window)
-        keyboardTester = KeyboardTester(main_window, lpWrapper, shortcutDisplay)
-        main_window.ui.actionTestMode.triggered.connect(keyboardTester.checkTestMode)
-        main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
-        return
-    main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
-    main_window.ui.buttonRun.setEnabled(True)
 
 def importTemplates(main_window: "Launkey", currentTemplateDisplayName: str | None = None):
     print("Importing templates...")

@@ -79,7 +79,7 @@ class Button(TemplateItem):
         /,
         normalColor: Tuple[LED, LED] = (LED.FULL, LED.OFF),
         pushedColor: Tuple[LED, LED] = (LED.OFF, LED.FULL),
-        keyboardCombo: str = "",
+        keyboardCombo: str = "win+r",
     ):
         super().__init__(name, buttonID, location)
         self.normalColor: Tuple[LED, LED] = normalColor
