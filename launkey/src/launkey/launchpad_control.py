@@ -416,14 +416,12 @@ class LaunchpadWrapper:
     
     def resetTable(self):
         # Rebuild original templates with self.table.loadedTempTypes
-        loadedTemplates = {
-            key: value for key, value in self.table.loadedTemplates.items()
-        }
+        activeTemplateMappings = dict(self.table.loadedTemplates)
         loadedCombinations: list[tuple[tuple[tuple[int, int], ...], list[TemplateItem]]] = []
         for locations, _ in self.table.loadedTempTypes.items():
             templateToSave: tuple[tuple[tuple[int, int], ...], list[TemplateItem]] = (
                 locations,
-                [item for loc in locations if (item := loadedTemplates.get(loc)) is not None]
+                [item for loc in locations if (item := activeTemplateMappings.get(loc)) is not None]
             )
             loadedCombinations.append(templateToSave)
 
