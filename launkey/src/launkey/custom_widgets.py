@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtWidgets import (
     QWidget, QPushButton, QSizePolicy,
     QDialog, QLabel, QFrame, QVBoxLayout,
-    QMessageBox,
+    QMessageBox, QStatusBar
 )
 from PySide6.QtCore import Qt, QSize, QRect, QMimeData, QPoint
 from PySide6.QtGui import (
@@ -71,7 +71,22 @@ class QDialogNoDefault(QDialog):
         else:
             event.ignore()
 
-class QLabelStatusBarInfo(QLabel):
+class QAutoStatusBar(QStatusBar):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setSizeGripEnabled(False)
+
+    def removeWidget(self, widget: QWidget) -> None:
+        super().removeWidget(widget)
+        widget.deleteLater()
+
+    def deleteByText(self, name: str):
+        for widget in self.findChildren(QLabelInfo):
+            if widget.text() == name:
+                self.removeWidget(widget)
+                break
+
+class QLabelInfo(QLabel):
     def __init__(self, text: str = "", parent: QWidget | None = None, /, colour: str | None = None):
         super().__init__(text, parent)
         self.setObjectName("statusBarInfo")

@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QSplitter, QStackedWidget
 )
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
+from .custom_widgets import QAutoStatusBar, QLabelInfo
 from .launchpad_control import LaunchpadTable
 
 class Ui_MainWindow:
@@ -161,9 +162,8 @@ class Ui_MainWindow:
         self.gridLayoutTemplates.addWidget(self.buttonAddTemplate)
 
         # Status bar
-        self.statusbar = QStatusBar(MainWindow)
+        self.statusbar = QAutoStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
-        self.statusbar.setSizeGripEnabled(False)
         MainWindow.setStatusBar(self.statusbar)
 
         # Menu bar
@@ -226,10 +226,10 @@ class Ui_MainWindow:
         self.buttonReset.setEnabled(False)
         self.tableLaunchpad.setEnabled(False)
         self.buttonRun.setText("Stop")
-        self.statusbar.showMessage("Started...", 2000)
+        self.statusbar.addWidget(QLabelInfo("Running", colour="green"))
 
     def stopRun(self) -> None:
         self.buttonRun.setText("Run")
-        self.statusbar.showMessage("Stopped", 2000)
+        self.statusbar.deleteByText("Running")
         self.buttonReset.setEnabled(True)
         self.tableLaunchpad.setEnabled(True)

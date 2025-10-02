@@ -21,7 +21,7 @@ from .templates import (
     ledsToColorCode,
     loadedTemplates,
 )
-from .custom_widgets import QLabelStatusBarInfo, ShortcutDisplay
+from .custom_widgets import QLabelInfo, ShortcutDisplay
 
 # Override keyboard on_press and on_release because of the bug in keyboard package
 def _onpress(callback, suppress=False):
@@ -448,7 +448,7 @@ class KeyboardTester:
             self.testModeDisplay.hide()
 
     def testModeOn(self):
-        self.main_window.ui.statusbar.addWidget(QLabelStatusBarInfo("Test Mode Active", colour="yellow"))
+        self.main_window.ui.statusbar.addWidget(QLabelInfo("Test Mode Active", colour="yellow"))
         self.main_window.ui.buttonRun.setEnabled(True)
 
     async def testModeRun(self):
@@ -511,8 +511,5 @@ class KeyboardTester:
         asyncio.create_task(self.keyboardTestingUnpress(event))
 
     def testModeOff(self):
-        for widget in self.main_window.ui.statusbar.findChildren(QLabelStatusBarInfo):
-            if widget.text() == "Test Mode Active":
-                self.main_window.ui.statusbar.removeWidget(widget)
-                break
+        self.main_window.ui.statusbar.deleteByText("Test Mode Active")
         self.main_window.ui.buttonRun.setEnabled(False)
