@@ -94,7 +94,7 @@ class Ui_Dialog:
         self.deleteButton.clicked.connect(lambda: self.beforeDeleteTemplate(dialog))
 
         # Delete button custom style
-        self.deleteButton.setStyleSheet("background-color: darkred; color: white;")
+        self.deleteButton.setStyleSheet("* { background-color: darkred; color: white; } :disabled { background-color: transparent; }")
 
         # Save button
         self.saveButton = QPushButton("Save", dialog)
@@ -104,7 +104,7 @@ class Ui_Dialog:
         self.saveButton.clicked.connect(lambda: self.saveTemplate(dialog))
 
         # Save button custom style
-        self.saveButton.setStyleSheet("background-color: darkgreen; color: white;")
+        self.saveButton.setStyleSheet("* { background-color: darkgreen; color: white; } :disabled { background-color: transparent; }")
 
         # Vertical separator
         self.separator = QFrame(dialog)

@@ -61,7 +61,7 @@ class LaunchpadTable(QTableWidget):
 
         self.setItemDelegate(QItemDelegate())
 
-        noButtonBrush = QBrush(QColor(0, 0, 0, 255))
+        noButtonBrush = QBrush(QColor("#000000"))
         noButtonBrush.setStyle(Qt.BrushStyle.DiagCrossPattern)
         noButton = QTableWidgetItem()
         noButton.setBackground(noButtonBrush)
@@ -69,7 +69,7 @@ class LaunchpadTable(QTableWidget):
         # top row and left column are for autoMap
         self.setItem(0, 8, noButton)  # top-right corner cell
 
-        disabledButtonBrush = QBrush(QColor(200, 200, 200, 100))
+        disabledButtonBrush = QBrush(QColor("#5F5F5F"))
         disabledButtonBrush.setStyle(Qt.BrushStyle.FDiagPattern)
         disabledButton = QTableWidgetItem()
         disabledButton.setToolTip("Disabled for NOW")
