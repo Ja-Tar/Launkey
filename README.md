@@ -4,7 +4,7 @@
 > This project is in early development. Some features may not work as expected or may be missing.
 > Please report any issues you encounter. THX :)
 
-Launkey is a desktop application that allows you to create custom templates that then can be dragged and dropped on a table that represents a Launchpad device. When you press a button on the Launchpad, the app will trigger the keyboard shortcut that you assigned to that button in the template.
+Launkey is a app that allows you to create custom templates that then can be dragged to table that represents a Launchpad. When you press a button on the Launchpad, the app will trigger the keyboard shortcut that you assigned to that button in the template.
 
 
 https://github.com/user-attachments/assets/a2fe8498-8232-4c6c-9928-d236b9c0e06e
