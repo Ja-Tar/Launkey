@@ -136,10 +136,9 @@ class Ui_Dialog:
                 if isinstance(item, Template) and item.type == Template.Type.BUTTONS:
                     continue
                 if isinstance(item, TemplateItem) and hasattr(item, 'location') and item.location == (0, 0):
-                    if isinstance(item, TemplateItem):
-                        self.mainActionButton = ToggleButton(item.name, item.buttonID)
-                        self.mainActionButton.setObjectName("mainActionButton")
-                        break
+                    self.mainActionButton = ToggleButton(item.name, item.buttonID)
+                    self.mainActionButton.setObjectName("mainActionButton")
+                    break
 
         # Centered grid layout for editor frame
         self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame, template=loadedTemplate)
@@ -166,10 +165,9 @@ class Ui_Dialog:
         templateName = self.optionsList.getTemplateName().strip()
         templateFileName = sterilizeTemplateName(templateName)
         filePath = fullPath / f"{templateFileName}.json"
-        if filePath.exists():
-            if not self.askForFileOverwrite(templateName):
-                self.enableUIAfterSaving()
-                return
+        if filePath.exists() and not self.askForFileOverwrite(templateName):
+            self.enableUIAfterSaving()
+            return
 
         progress = QProgressDialog("Saving template...", "Cancel", 0, 100, minimumDuration=500)
         progress.setWindowTitle("Saving")
