@@ -34,10 +34,16 @@ def mainWindowScript(main_window: "Launkey"):
         main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
         main_window.ui.actionTestMode.triggered.connect(keyboardTester.checkTestMode)
 
+        warningTitle = "Launchpad Error"
+        warningText = "Launchpad not found. Please connect your Launchpad and try again."
+        if main_window.root == False:
+            warningTitle = "Permissions Error"
+            warningText = "To use launchpad, run app with sudo / as root"
+
         QMessageBox.warning(
             main_window,
-            "Launchpad Error",
-            "Launchpad not found. Please connect your Launchpad and try again.",
+            warningTitle,
+            warningText,
             QMessageBox.StandardButton.Ok
         )
 

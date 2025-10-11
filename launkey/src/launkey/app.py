@@ -15,16 +15,17 @@ from .icon import icon
 from .ui_mainwindow import Ui_MainWindow
 from .mainwindow import mainWindowScript
 
-def relaunchAsRoot():
+def relaunchAsRoot() -> bool:
     if os.geteuid() != 0: # type: ignore
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Question)
-        msg.setText("Root access required. Relaunch as root?")
-        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Yes)
+        msg.setText("Root access for shortcuts is required. Relaunch as root?")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if msg.exec() == QMessageBox.StandardButton.Yes:
             os.execvp("sudo", ["sudo", sys.executable] + sys.argv)
         else:
-            exit(1)
+            return False
+    return True # with root 
 
 def checkForLinux() -> bool:
     if sys.platform in ("linux", "linux2"):
@@ -32,9 +33,10 @@ def checkForLinux() -> bool:
     return False
 
 class Launkey(QMainWindow):
-    def __init__(self):
+    def __init__(self, root: bool):
         super(Launkey, self).__init__()
         self.ui = Ui_MainWindow()
+        self.root = root
         self.ui.setupUi(self)
         self.lpclose = None
     
@@ -70,11 +72,14 @@ def main():
 
     QApplication.setApplicationName(metadata["Launkey"])
 
-    if checkForLinux():
-        relaunchAsRoot()
-
     QApplication(sys.argv)
-    main_window = Launkey()
+
+    if checkForLinux():
+        root = relaunchAsRoot()
+    else:
+        root = True # On windows
+
+    main_window = Launkey(root)
     loadAppIcon(main_window)
     main_window.show()
     mainWindowScript(main_window)
