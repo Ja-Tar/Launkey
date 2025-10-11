@@ -336,15 +336,14 @@ class LaunchpadTable(QTableWidget):
     def buttonUnpressed(self, buttonPos: tuple[int, int]):
         buttonPos = (buttonPos[1], buttonPos[0])  # flip to table position
         index = (buttonPos[0] - 1) * 8 + buttonPos[1]  # Adjust for autoMap row
-        if 0 <= index < 64:
-            if buttonPos in self.pressedButtons:
-                item = self.loadedTemplates.get(buttonPos)
-                if isinstance(item, Button):
-                    self.currentFrame[index] = item.normalColor
-                    self.changeButtonColorInTable(buttonPos, item.normalColor)
-                else:
-                    raise ValueError(f"Unknown TemplateItem type: {item}")
-                self.pressedButtons.remove(buttonPos)
+        if 0 <= index < 64 and buttonPos in self.pressedButtons:
+            item = self.loadedTemplates.get(buttonPos)
+            if isinstance(item, Button):
+                self.currentFrame[index] = item.normalColor
+                self.changeButtonColorInTable(buttonPos, item.normalColor)
+            else:
+                raise ValueError(f"Unknown TemplateItem type: {item}")
+            self.pressedButtons.remove(buttonPos)
 
 class LaunchpadWrapper:
     def __init__(self, table: LaunchpadTable):
