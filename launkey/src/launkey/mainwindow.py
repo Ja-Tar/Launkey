@@ -21,7 +21,7 @@ def mainWindowScript(main_window: "Launkey"):
     importTemplates(main_window)
     lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
 
-    if lpWrapper.connect():
+    if lpWrapper.connect() and main_window.root:
         main_window.ui.statusbar.addWidget(QLabelInfo("Launchpad connected", colour="green"))
         main_window.ui.actionTestMode.setEnabled(False) # IDEA enable test mode with launchpad, but turn off shortcuts
         main_window.lpclose = lpWrapper.lp
@@ -176,7 +176,7 @@ def newTemplatePopup(main_window: "Launkey"):
     dialog.show()
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
-        importTemplates(main_window)
+        importTemplates(main_window) # BUG if template is overwritten it doesn't refresh 
 
 def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
     templateFileName = sterilizeTemplateName(templateDisplayName) + ".json"
