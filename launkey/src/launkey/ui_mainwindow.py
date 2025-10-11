@@ -41,7 +41,7 @@ class Ui_MainWindow:
         # REMOVE after implementetion
         self.actionSave.setEnabled(False)
         self.actionLoad.setEnabled(False)
-        self.actionSettings.setEnabled(False)
+        #self.actionSettings.setEnabled(False)
         self.actionAbout.setEnabled(False)
         # END REMOVE
 

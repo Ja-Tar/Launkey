@@ -5,9 +5,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
+from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage, QDialog
 
 from .ui_dialogtemplates import Ui_Dialog
+from .ui_settings import Ui_Settings
 from .custom_widgets import QDialogNoDefault, TemplateDisplay, QLabelInfo, ShortcutDisplay
 from .templates import Template, TemplateItem, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
 from .launchpad_control import LaunchpadWrapper, KeyboardTester
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
 
 def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
+    main_window.ui.actionSettings.triggered.connect(lambda: loadSettingsWindow(main_window))
     
     importTemplates(main_window)
     lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
@@ -193,3 +195,13 @@ def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
         importTemplates(main_window, templateDisplayName)
+        
+def loadSettingsWindow(main_window: "Launkey"):
+    dialog = QDialog(main_window)
+    ui = Ui_Settings()
+    ui.setupUi(dialog)
+    dialog.setWindowTitle("Settings")
+    dialog.show()
+
+    if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
+        pass # TODO save settings

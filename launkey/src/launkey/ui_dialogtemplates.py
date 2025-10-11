@@ -45,7 +45,7 @@ class Ui_Dialog:
     def setupUi(self, dialog: QDialog, template_type: Template.Type, loadedTemplate: List[Template | TemplateItem] | None = None):
         if not dialog.objectName():
             dialog.setObjectName("Dialog")
-        dialog.resize(800, 600)
+        dialog.resize(1000, 600)
         dialog.setMinimumSize(QSize(1000, 600))
 
         # Main horizontal layout
