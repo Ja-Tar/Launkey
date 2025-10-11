@@ -36,7 +36,7 @@ def mainWindowScript(main_window: "Launkey"):
 
         warningTitle = "Launchpad Error"
         warningText = "Launchpad not found. Please connect your Launchpad and try again."
-        if main_window.root == False:
+        if main_window.root is False:
             warningTitle = "Permissions Error"
             warningText = "To use launchpad, run app with sudo / as root"
 
