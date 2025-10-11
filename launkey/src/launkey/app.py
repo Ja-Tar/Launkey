@@ -3,16 +3,33 @@ Control your game with Launchpad
 """
 import importlib.metadata
 import sys
+import os
 
 from PySide6 import QtAsyncio
 from PySide6.QtCore import (QEvent)
-from PySide6.QtWidgets import (QApplication, QMainWindow)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QMessageBox)
 from PySide6.QtGui import (QIcon, QPixmap)
 import launchpad_py as launchpad
 
 from .icon import icon
 from .ui_mainwindow import Ui_MainWindow
 from .mainwindow import mainWindowScript
+
+def relaunchAsRoot():
+    if os.geteuid() != 0: # type: ignore
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Question)
+        msg.setText("Root access required. Relaunch as root?")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Yes)
+        if msg.exec() == QMessageBox.StandardButton.Yes:
+            os.execvp("sudo", ["sudo", sys.executable] + sys.argv)
+        else:
+            exit(1)
+
+def checkForLinux() -> bool:
+    if sys.platform in ("linux", "linux2"):
+        return True
+    return False
 
 class Launkey(QMainWindow):
     def __init__(self):
@@ -52,6 +69,9 @@ def main():
     metadata = importlib.metadata.metadata(app_module or "launkey")
 
     QApplication.setApplicationName(metadata["Launkey"])
+
+    if checkForLinux():
+        relaunchAsRoot()
 
     QApplication(sys.argv)
     main_window = Launkey()
