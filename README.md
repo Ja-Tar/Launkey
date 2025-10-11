@@ -42,21 +42,16 @@ In RED are the keys that are used for launchpad buttons (1-8, Q-I, A-L, Z-M).
 
 In BLUE is a button that is used for changing the side of the launchpad (top 4 rows / bottom 4 rows).
 
-## Troubleshooting launchpad connection
+## Troubleshooting
 
-### Windows
+### Windows - launchpad connection issues
 
 On windows sometimes launchpad is not detected. First try to restart the PC with the launchpad connected. If it doesn't help, try to connect the launchpad to another USB port. You can also try to reinstall the drivers from [Novation's website](https://downloads.novationmusic.com/novation/). 
 
-### Linux
+### Linux - app isn't working / launchpad connection issues
 
-> [!WARNING]
-> Linux is not working for now. I will fix it... Soon...
-
-For Linux you need to install `pygame` library for your distribution. For example on Ubuntu you can do it with:
-```bash
-sudo apt install python3-pygame
-```
+> [!IMPORTANT]
+> For now see https://github.com/Ja-Tar/Launkey/issues/32 and https://github.com/Ja-Tar/Launkey/issues/48
 
 # Licenses and libraries
 
