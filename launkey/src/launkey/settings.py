@@ -8,71 +8,109 @@ from PySide6.QtWidgets import (
     QComboBox, QLabel
 )
 
-#from .template_options_widgets import StringEditWidget
+from .template_options_widgets import StringEditWidget
 
-class AppSettings(QSettings):
-    def __init__(self):
+class CustomQLabel(QLabel):
+    def __init__(self, text: str, /, parent: QWidget | None = None):
+        super().__init__(text, parent)
+        self.setStyleSheet(
+            """font-size: 14px;"""
+        )
+
+class Setting():
+    def __init__(self, name: str, item: Enum | str):
+        self.name = name
+        self.itemType = type(item)
+        self.item = item
+        
+    def getQLabel(self) -> CustomQLabel:
+        return CustomQLabel(self.name)
+
+class SettingsGroup():
+    def __init__(self, name: str, items: list[Setting]):
+        self.name = name
+        self.items = items
+        
+    def __getitem__(self, name: str) -> Setting:
+        for setting in self.items:
+            if setting.name == name:
+                return setting
+        raise KeyError(f"No setting with name '{name}' found in group '{self.name}'")
+    
+    def __setitem__(self, name: str, value: Setting):
+        for setting in self.items:
+            if setting.name == name:
+                setting = value
+                return
+        self.items.append(value)
+
+class SettingsAll():
+    def __init__(self, groups: list[SettingsGroup]):
+        self.groups = groups
+    
+    def __getitem__(self, name: str) -> SettingsGroup:
+        for group in self.groups:
+            if group.name == name:
+                return group
+        raise KeyError(f"No group with name '{name}' found!")
+    
+    def __setitem__(self, name: str, value: list[Setting]):
+        for settingsGroup in self.groups:
+            if settingsGroup.name == name:
+                settingsGroup.items = value
+                return
+        self.groups.append(SettingsGroup(name, value))
+
+class SettingsWrapper(QSettings):
+    def __init__(self, defaultSettings: SettingsAll):
         super().__init__("Ja-Tar", "Launkey")
-        self.loadedSettings: dict[str, dict[str, object]] = {}
+        self.loadedSettings = self.loadSettings(defaultSettings)
+        self.currentSettings = SettingsAll([])
 
-    def getAllSettings(
-        self, defaultSettings: dict[str, dict[str, Any]]
-    ) -> dict[str, dict[str, Any]]:
-        allSettings: dict[str, dict[str, Any]] = {}
-        for settingsGroupName in defaultSettings:
-            settingsGroup = defaultSettings[settingsGroupName]
-            allSettingsGroup: dict[str, object] = {}
-            if len(settingsGroup) < 1:
+    def loadSettings(self, defaultSettings: SettingsAll) -> SettingsAll:
+        allSettings = SettingsAll([])
+        for settingsGroup in defaultSettings.groups:
+            if len(settingsGroup.items) < 1:
                 continue
-            super().beginGroup(settingsGroupName)
-            for settingName in settingsGroup:
-                settingDefault = settingsGroup[settingName]
-                settingType, savedType = self.getSettingType(settingName, settingDefault)
-                settingValue = settingType(super().value(settingName, settingDefault, savedType))
-                allSettingsGroup[settingName] = settingValue
+            super().beginGroup(settingsGroup.name)
+            for settingDefault in settingsGroup.items:
+                settingDefault.item = settingDefault.itemType(
+                    super().value(
+                        settingDefault.name,
+                        settingDefault.item,
+                        self.getSavedType(settingDefault),
+                    )
+                )
+                settingsGroup[settingDefault.name] = settingDefault
             super().endGroup()
-            allSettings[settingsGroupName] = allSettingsGroup
+            allSettings[settingsGroup.name] = settingsGroup.items
 
-        self.loadedSettings = allSettings
         return allSettings
 
-    def getSettingType(
-        self, settingName, settingDefault
-    ) -> tuple[type[Enum], type[int]] | tuple[type[str], type[str]]:
+    def getSavedType(self, settingDefault: Setting) -> type[Any]:
         # INFO Add more types as needed
-        if isinstance(settingDefault, Enum):
-            return settingDefault.__class__, type(settingDefault.value)
-        elif isinstance(settingDefault, str):
-            return str, str
+        if isinstance(settingDefault.item, Enum):
+            return type(settingDefault.item.value)
+        elif isinstance(settingDefault.item, str):
+            return str
         else:
-            raise ValueError(f"No type found for setting: {settingName}")
+            raise ValueError(f"No type found for setting: {settingDefault.name}")
 
-    def saveChangedSettings(self, changedSettings: dict[str, dict[str, Any]]):
-        for settingsGroupName in changedSettings:
-            settingsGroup = changedSettings[settingsGroupName]
-            oldSettingsGroup = self.loadedSettings[settingsGroupName]
-            if len(oldSettingsGroup) < 1:
+    def saveChangedSettings(self):
+        for settingsGroup in self.currentSettings.groups:
+            oldSettingsGroup = self.loadedSettings[settingsGroup.name]
+            if len(oldSettingsGroup.items) < 1:
                 continue
-            super().beginGroup(settingsGroupName)
-            for settingName in settingsGroup:
-                if self.settingChanged(settingsGroup[settingName], oldSettingsGroup[settingName]):
-                    print(f"setting changed: {settingName}")
-                    super().setValue(settingName, settingsGroup[settingName])
+            super().beginGroup(settingsGroup.name)
+            for setting in settingsGroup.items:
+                if self.settingChanged(setting.item, oldSettingsGroup[setting.name]):
+                    print(f"setting changed: {setting.name}")
+                    super().setValue(setting.name, setting.item)
             super().endGroup()
-    
+
     @staticmethod
     def settingChanged(new, old):
         return new == old
-
-class StringEditSetting(QLineEdit):
-    def __init__(
-        self,
-        text: str,
-        parent: QWidget | None = None
-    ):
-        super().__init__(text, parent)
-        self.setObjectName("textSettingWidget")
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
 class EnumEditSetting(QComboBox):
     def __init__(self, currentValue: Enum, parent: QWidget | None = None):
@@ -91,28 +129,22 @@ class EnumEditSetting(QComboBox):
 
         self.setCurrentText(currentValue.name)
 
-class CustomQLabel(QLabel):
-    def __init__(self, text: str, /, parent: QWidget | None = None):
-        super().__init__(text, parent)
-        self.setStyleSheet(
-            """font-size: 14px;"""
-        )
-
 class AutoFormLayout(QFormLayout):
-    def __init__(self, /, parent: QWidget | None = None):
+    def __init__(self, settings: SettingsAll, /, parent: QWidget | None = None):
         super().__init__(parent)
         self.setContentsMargins(20, 5, 20, 5)
+        self.settings = settings
         
-    def getWidgetForType(self, value: Any) -> QWidget:
-        if isinstance(value, Enum):
-            return EnumEditSetting(value)
-        elif isinstance(value, str):
-            return StringEditSetting(value)
+    def getWidgetForType(self, setting: Setting) -> QWidget:
+        if isinstance(setting.item, Enum):
+            return EnumEditSetting(setting.item)
+        elif isinstance(setting.item, str):
+            return StringEditWidget(setting.item, setting.item, setting)
         else:
-            raise NotImplementedError(f"Unsupported property type: {type(value)}")
+            raise NotImplementedError(f"Unsupported property type: {setting.itemType}")
         
-    def addRow(self, itemName: str, itemClass: object):
-        super().addRow(CustomQLabel(itemName), self.getWidgetForType(itemClass))
+    def addRow(self, setting: Setting):
+        super().addRow(CustomQLabel(setting.name), self.getWidgetForType(setting))
 
     def removeItem(self, itemName: str):
         for i in range(self.rowCount()):
