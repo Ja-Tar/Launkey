@@ -20,6 +20,10 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
     main_window.ui.actionSettings.triggered.connect(lambda: loadSettingsWindow(main_window))
     
+    # REMOVE testing settings
+    loadSettingsWindow(main_window)
+    return
+    
     importTemplates(main_window)
     lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
 
@@ -204,4 +208,4 @@ def loadSettingsWindow(main_window: "Launkey"):
     dialog.show()
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
-        pass # TODO save settings
+        pass # TODO load saved settings and apply

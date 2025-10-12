@@ -1,27 +1,69 @@
 from enum import Enum
 from typing import Any
 
-from PySide6.QtCore import QSettings
+from PySide6.QtCore import QSettings, Qt, QSize
+from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import (
     QFormLayout, QWidget, QLineEdit, QSizePolicy,
     QComboBox, QLabel
 )
 
+#from .template_options_widgets import StringEditWidget
+
 class AppSettings(QSettings):
     def __init__(self):
         super().__init__("Ja-Tar", "Launkey")
-        
-    def value(self, settingKey: str, settingDefault: Any = None, settingType: type | None = None) -> Any:
+        self.loadedSettings: dict[str, dict[str, object]] = {}
+
+    def getAllSettings(
+        self, defaultSettings: dict[str, dict[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
+        allSettings: dict[str, dict[str, Any]] = {}
+        for settingsGroupName in defaultSettings:
+            settingsGroup = defaultSettings[settingsGroupName]
+            allSettingsGroup: dict[str, object] = {}
+            if len(settingsGroup) < 1:
+                continue
+            super().beginGroup(settingsGroupName)
+            for settingName in settingsGroup:
+                settingDefault = settingsGroup[settingName]
+                settingType, savedType = self.getSettingType(settingName, settingDefault)
+                settingValue = settingType(super().value(settingName, settingDefault, savedType))
+                allSettingsGroup[settingName] = settingValue
+            super().endGroup()
+            allSettings[settingsGroupName] = allSettingsGroup
+
+        self.loadedSettings = allSettings
+        return allSettings
+
+    def getSettingType(
+        self, settingName, settingDefault
+    ) -> tuple[type[Enum], type[int]] | tuple[type[str], type[str]]:
+        # INFO Add more types as needed
         if isinstance(settingDefault, Enum):
-            enumType = type(settingDefault)
-            rawValue = super().value(settingKey, settingDefault.name, str)
-            try:
-                return enumType[rawValue] # type: ignore
-            except KeyError:
-                return settingDefault
-        
-        return super().value(settingKey, settingDefault, settingType)
+            return settingDefault.__class__, type(settingDefault.value)
+        elif isinstance(settingDefault, str):
+            return str, str
+        else:
+            raise ValueError(f"No type found for setting: {settingName}")
+
+    def saveChangedSettings(self, changedSettings: dict[str, dict[str, Any]]):
+        for settingsGroupName in changedSettings:
+            settingsGroup = changedSettings[settingsGroupName]
+            oldSettingsGroup = self.loadedSettings[settingsGroupName]
+            if len(oldSettingsGroup) < 1:
+                continue
+            super().beginGroup(settingsGroupName)
+            for settingName in settingsGroup:
+                if self.settingChanged(settingsGroup[settingName], oldSettingsGroup[settingName]):
+                    print(f"setting changed: {settingName}")
+                    super().setValue(settingName, settingsGroup[settingName])
+            super().endGroup()
     
+    @staticmethod
+    def settingChanged(new, old):
+        return new == old
+
 class StringEditSetting(QLineEdit):
     def __init__(
         self,
@@ -31,12 +73,11 @@ class StringEditSetting(QLineEdit):
         super().__init__(text, parent)
         self.setObjectName("textSettingWidget")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        
+
 class EnumEditSetting(QComboBox):
     def __init__(self, currentValue: Enum, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("enumEditWidget")
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         enumType = type(currentValue)
         for value in enumType:
@@ -50,9 +91,17 @@ class EnumEditSetting(QComboBox):
 
         self.setCurrentText(currentValue.name)
 
+class CustomQLabel(QLabel):
+    def __init__(self, text: str, /, parent: QWidget | None = None):
+        super().__init__(text, parent)
+        self.setStyleSheet(
+            """font-size: 14px;"""
+        )
+
 class AutoFormLayout(QFormLayout):
-    def __init__(self, /, parent: QWidget):
+    def __init__(self, /, parent: QWidget | None = None):
         super().__init__(parent)
+        self.setContentsMargins(20, 5, 20, 5)
         
     def getWidgetForType(self, value: Any) -> QWidget:
         if isinstance(value, Enum):
@@ -62,8 +111,8 @@ class AutoFormLayout(QFormLayout):
         else:
             raise NotImplementedError(f"Unsupported property type: {type(value)}")
         
-    def addItem(self, itemName: str, itemClass: object):
-        super().addRow(QLabel(itemName), self.getWidgetForType(itemClass))
+    def addRow(self, itemName: str, itemClass: object):
+        super().addRow(CustomQLabel(itemName), self.getWidgetForType(itemClass))
 
     def removeItem(self, itemName: str):
         for i in range(self.rowCount()):
@@ -73,4 +122,3 @@ class AutoFormLayout(QFormLayout):
                     self.removeRow(i)
                     return
         raise ValueError(f"No item with name '{itemName}' found in layout.")
-        
