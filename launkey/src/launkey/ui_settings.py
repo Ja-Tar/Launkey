@@ -31,11 +31,11 @@ class Ui_Settings:
         defaultSettings = SettingsAll(
             [
                 SettingsGroup("Appearance", [
-                    Setting("Theme", AppTheme.system)
+                    Setting("Theme", AppTheme.default)
                 ]),
-                SettingsGroup("Test setting group", [
-                    Setting("STRING", 'TAK')
-                ]),
+                # SettingsGroup("Test setting group", [
+                #     Setting("STRING", 'TAK')
+                # ]),
             ] # TODO add grup with App settings that has: remove all saved templates, reset settings, ...
         )
         

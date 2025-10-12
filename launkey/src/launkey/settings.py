@@ -8,6 +8,8 @@ from PySide6.QtWidgets import (
     QComboBox, QLabel, 
 )
 
+from .theme_loader import AppTheme
+
 class CustomQLabel(QLabel):
     def __init__(self, text: str, /, parent: QWidget | None = None):
         super().__init__(text, parent)
@@ -102,7 +104,7 @@ class SettingsWrapper(QSettings):
             for setting in settingsGroup.items:
                 address: str = settingsGroup.name + "/" + setting.name
                 itemChanged = self.changedSettings.get(address, None)
-                if itemChanged and not setting.item == itemChanged:
+                if itemChanged is not None and not setting.item == itemChanged:
                     print(f"setting changed: {setting.name}")
                     super().setValue(address, self.changedSettings[address])
 
@@ -165,7 +167,8 @@ class AutoFormLayout(QFormLayout):
             raise NotImplementedError(f"Unsupported property type: {setting.itemType}")
         
     def setChangedSetting(self, settingLoc: str, item: Any):
-        self.changedSettings[settingLoc] = item
+        if not item in [AppTheme.magic, AppTheme.default]: # REMOVE after theme update
+            self.changedSettings[settingLoc] = item
         
     def addRow(self, setting: Setting, groupName: str):
         super().addRow(CustomQLabel(setting.name + ": "), self.getWidgetForType(setting, groupName))
