@@ -1,7 +1,9 @@
+from typing import Any
+from copy import deepcopy
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QDialog, QComboBox, QVBoxLayout, QSizePolicy,
-    QFrame, QSplitter, QPushButton
+    QFrame, QSplitter, QPushButton, QWidget
 )
 #from PySide6.QtGui
 
@@ -9,6 +11,16 @@ from .theme_loader import AppTheme
 from .settings import AutoFormLayout, SettingsWrapper, SettingsAll, SettingsGroup, Setting
 
 class Ui_Settings:
+    def __init__(self):
+        self.settingsWrapper: SettingsWrapper
+        self.mainLayout: QVBoxLayout
+        self.groupSettingsSelect: SettingsGrupSelector
+        self.optionsPanel: QFrame
+        self.buttonGroup: QSplitter
+        self.closeButton: QPushButton
+        self.saveButton: QPushButton
+        self.optionsPanelLayout: AutoFormLayout
+    
     def setupUi(self, dialog: QDialog):
         if not dialog.objectName():
             dialog.setObjectName("Dialog")
@@ -19,10 +31,10 @@ class Ui_Settings:
         defaultSettings = SettingsAll(
             [
                 SettingsGroup("Appearance", [
-                    Setting("Theme: ", AppTheme.system)
+                    Setting("Theme", AppTheme.system)
                 ]),
                 SettingsGroup("Test setting group", [
-                    Setting("STRING: ", 'TAK')
+                    Setting("STRING", 'TAK')
                 ]),
             ] # TODO add grup with App settings that has: remove all saved templates, reset settings, ...
         )
@@ -32,19 +44,19 @@ class Ui_Settings:
         self.mainLayout = QVBoxLayout(dialog)
         self.mainLayout.setObjectName("mainLayout")
         
-        self.groupSettingsSelect = QComboBox(dialog)
-        self.groupSettingsSelect.setObjectName("groupSettingsSelect")
-        optionsPanelSizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.groupSettingsSelect.setSizePolicy(optionsPanelSizePolicy)
-        self.mainLayout.addWidget(self.groupSettingsSelect)
-        
         self.optionsPanel = QFrame(dialog)
         self.optionsPanel.setObjectName("optionsPanel")
         optionsPanelSizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.optionsPanel.setSizePolicy(optionsPanelSizePolicy)
-        self.optionsPanelLayout = AutoFormLayout(self.settingsWrapper.currentSettings, self.optionsPanel)
-        self.optionsPanel.setLayout(self.optionsPanelLayout)
+        
+        self.groupSettingsSelect = SettingsGrupSelector(self, dialog)
+        self.groupSettingsSelect.setObjectName("groupSettingsSelect")
+        optionsPanelSizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.groupSettingsSelect.setSizePolicy(optionsPanelSizePolicy)
+        self.mainLayout.addWidget(self.groupSettingsSelect)
         self.mainLayout.addWidget(self.optionsPanel)
+        
+        self.groupSettingsSelect.loadSettings()
         
         self.buttonGroup = QSplitter(dialog)
         self.buttonGroup.setOrientation(Qt.Orientation.Horizontal)
@@ -57,7 +69,6 @@ class Ui_Settings:
         
         self.saveButton = QPushButton("Save", dialog)
         self.saveButton.setObjectName("saveButton")
-        self.saveButton.setDefault(True)
         self.buttonGroup.addWidget(self.saveButton)
         self.saveButton.clicked.connect(lambda: self.closeAndSave(dialog))
         
@@ -69,26 +80,6 @@ class Ui_Settings:
             """font-size: 16px;
             font-weight: bold;"""
         )
-        
-        self.loadSettings()
-
-    def loadSettings(self):        
-        currentSettingGroup = self.loadGroupSelection()
-        for setting in currentSettingGroup.items:
-            self.optionsPanelLayout.addRow(setting)
-
-    def loadGroupSelection(self) -> SettingsGroup:
-        allSettings = self.settingsWrapper.loadedSettings
-        for settingGroup in allSettings.groups:
-            self.groupSettingsSelect.addItem(settingGroup.name)
-            
-        if len(allSettings.groups) < 1:
-            raise ValueError("Error loading settings, no groups found")
-        if len(allSettings.groups) < 2:
-            self.groupSettingsSelect.setDisabled(True)
-            
-        self.groupSettingsSelect.setCurrentIndex(0)
-        return next(iter(allSettings.groups))
 
     def closeAndSave(self, dialog: QDialog):
         self.settingsWrapper.saveChangedSettings()
@@ -96,13 +87,32 @@ class Ui_Settings:
     
     def closeWithoutSaving(self, dialog: QDialog):
         dialog.reject()
+
+class SettingsGrupSelector(QComboBox):
+    def __init__(self, ui: "Ui_Settings", /, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.loadedSettings = ui.settingsWrapper.loadedSettings
+        self.changedSettings = ui.settingsWrapper.changedSettings
+        self.ui = ui
+        ui.optionsPanelLayout = AutoFormLayout(self.loadedSettings, self.changedSettings, ui.optionsPanel)
+        ui.optionsPanel.setLayout(ui.optionsPanelLayout)
+    
+    def loadSettings(self):
+        if len(self.loadedSettings.groups) < 1:
+            raise ValueError("Error loading settings, no groups found")
+        if len(self.loadedSettings.groups) < 2:
+            self.setDisabled(True)
         
+        for group in self.loadedSettings.groups:
+            self.addItem(group.name)
         
-        
-        
-        
-        
+        self.loadGroupSettings(self.loadedSettings.groups[0])
+        self.currentIndexChanged.connect(lambda _: self.changeDisplayedGroup(self.currentText()))
+    
+    def loadGroupSettings(self, settingsGroup: SettingsGroup):
+        for setting in settingsGroup.items:
+            self.ui.optionsPanelLayout.addRow(setting, settingsGroup.name)
             
-        
-        
-        
+    def changeDisplayedGroup(self, grupName: str):
+        self.ui.optionsPanelLayout.clear()
+        self.loadGroupSettings(self.loadedSettings[grupName])

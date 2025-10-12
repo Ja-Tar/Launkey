@@ -201,7 +201,7 @@ def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
         importTemplates(main_window, templateDisplayName)
         
 def loadSettingsWindow(main_window: "Launkey"):
-    dialog = QDialog(main_window)
+    dialog = QDialogNoDefault(main_window)
     ui = Ui_Settings()
     ui.setupUi(dialog)
     dialog.setWindowTitle("Settings")

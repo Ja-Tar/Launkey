@@ -2,13 +2,11 @@ from enum import Enum
 from typing import Any
 
 from PySide6.QtCore import QSettings, Qt, QSize
-from PySide6.QtGui import QPainter
+from PySide6.QtGui import QPainter, QFocusEvent
 from PySide6.QtWidgets import (
     QFormLayout, QWidget, QLineEdit, QSizePolicy,
-    QComboBox, QLabel
+    QComboBox, QLabel, 
 )
-
-from .template_options_widgets import StringEditWidget
 
 class CustomQLabel(QLabel):
     def __init__(self, text: str, /, parent: QWidget | None = None):
@@ -54,19 +52,19 @@ class SettingsAll():
                 return group
         raise KeyError(f"No group with name '{name}' found!")
     
-    def __setitem__(self, name: str, value: list[Setting]):
+    def __setitem__(self, name: str, toSetGroup: SettingsGroup):
         for settingsGroup in self.groups:
             if settingsGroup.name == name:
-                settingsGroup.items = value
+                settingsGroup.items = toSetGroup.items
                 return
-        self.groups.append(SettingsGroup(name, value))
+        self.groups.append(toSetGroup)
 
 class SettingsWrapper(QSettings):
     def __init__(self, defaultSettings: SettingsAll):
         super().__init__("Ja-Tar", "Launkey")
         self.loadedSettings = self.loadSettings(defaultSettings)
-        self.currentSettings = SettingsAll([])
-
+        self.changedSettings: dict[str, Any] = {}
+        
     def loadSettings(self, defaultSettings: SettingsAll) -> SettingsAll:
         allSettings = SettingsAll([])
         for settingsGroup in defaultSettings.groups:
@@ -74,20 +72,21 @@ class SettingsWrapper(QSettings):
                 continue
             super().beginGroup(settingsGroup.name)
             for settingDefault in settingsGroup.items:
+                settingType = self.getSavedType(settingDefault)
                 settingDefault.item = settingDefault.itemType(
                     super().value(
                         settingDefault.name,
                         settingDefault.item,
-                        self.getSavedType(settingDefault),
+                        settingType,
                     )
                 )
                 settingsGroup[settingDefault.name] = settingDefault
             super().endGroup()
-            allSettings[settingsGroup.name] = settingsGroup.items
+            allSettings[settingsGroup.name] = settingsGroup
 
         return allSettings
 
-    def getSavedType(self, settingDefault: Setting) -> type[Any]:
+    def getSavedType(self, settingDefault: Setting):
         # INFO Add more types as needed
         if isinstance(settingDefault.item, Enum):
             return type(settingDefault.item.value)
@@ -97,23 +96,39 @@ class SettingsWrapper(QSettings):
             raise ValueError(f"No type found for setting: {settingDefault.name}")
 
     def saveChangedSettings(self):
-        for settingsGroup in self.currentSettings.groups:
-            oldSettingsGroup = self.loadedSettings[settingsGroup.name]
-            if len(oldSettingsGroup.items) < 1:
+        for settingsGroup in self.loadedSettings.groups:
+            if len(settingsGroup.items) < 1:
                 continue
-            super().beginGroup(settingsGroup.name)
             for setting in settingsGroup.items:
-                if self.settingChanged(setting.item, oldSettingsGroup[setting.name]):
+                address: str = settingsGroup.name + "/" + setting.name
+                itemChanged = self.changedSettings.get(address, None)
+                if itemChanged and not setting.item == itemChanged:
                     print(f"setting changed: {setting.name}")
-                    super().setValue(setting.name, setting.item)
-            super().endGroup()
+                    super().setValue(address, self.changedSettings[address])
 
-    @staticmethod
-    def settingChanged(new, old):
-        return new == old
+class StringEditSetting(QLineEdit):
+    def __init__(
+        self,
+        text: str,
+        /,
+        parent: QWidget | None = None
+    ):
+        super().__init__(text, parent)
+        self.setObjectName("textSettingWidget")
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    
+    def focusOutEvent(self, event: QFocusEvent) -> None:
+        if event.reason() == Qt.FocusReason.OtherFocusReason:
+            event.ignore()
+            self.setModified(False)
+            self.setFocus()
+            return
+        super().focusOutEvent(event)
+        if self.isModified():
+            self.editingFinished.emit()
 
 class EnumEditSetting(QComboBox):
-    def __init__(self, currentValue: Enum, parent: QWidget | None = None):
+    def __init__(self, currentValue: Enum, /, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("enumEditWidget")
 
@@ -130,21 +145,30 @@ class EnumEditSetting(QComboBox):
         self.setCurrentText(currentValue.name)
 
 class AutoFormLayout(QFormLayout):
-    def __init__(self, settings: SettingsAll, /, parent: QWidget | None = None):
+    def __init__(self, settings: SettingsAll, changedSettings: dict[str, Any], /, parent: QWidget | None = None):
         super().__init__(parent)
         self.setContentsMargins(20, 5, 20, 5)
         self.settings = settings
+        self.changedSettings = changedSettings
         
-    def getWidgetForType(self, setting: Setting) -> QWidget:
+    def getWidgetForType(self, setting: Setting, groupName: str) -> QWidget:
+        # INFO Add more types as needed
         if isinstance(setting.item, Enum):
-            return EnumEditSetting(setting.item)
+            widget = EnumEditSetting(setting.item)
+            widget.currentIndexChanged.connect(lambda: self.setChangedSetting(groupName + "/" + setting.name, widget.currentIndex()))
+            return widget
         elif isinstance(setting.item, str):
-            return StringEditWidget(setting.item, setting.item, setting)
+            widget = StringEditSetting(setting.item)
+            widget.editingFinished.connect(lambda: self.setChangedSetting(groupName + "/" + setting.name, widget.text()))
+            return widget
         else:
             raise NotImplementedError(f"Unsupported property type: {setting.itemType}")
         
-    def addRow(self, setting: Setting):
-        super().addRow(CustomQLabel(setting.name), self.getWidgetForType(setting))
+    def setChangedSetting(self, settingLoc: str, item: Any):
+        self.changedSettings[settingLoc] = item
+        
+    def addRow(self, setting: Setting, groupName: str):
+        super().addRow(CustomQLabel(setting.name + ": "), self.getWidgetForType(setting, groupName))
 
     def removeItem(self, itemName: str):
         for i in range(self.rowCount()):
@@ -154,3 +178,7 @@ class AutoFormLayout(QFormLayout):
                     self.removeRow(i)
                     return
         raise ValueError(f"No item with name '{itemName}' found in layout.")
+    
+    def clear(self):
+        for row in range(self.rowCount()):
+            self.removeRow(row)
