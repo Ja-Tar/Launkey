@@ -44,14 +44,7 @@ In BLUE is a button that is used for changing the side of the launchpad (top 4 r
 
 ## Troubleshooting
 
-### Windows - launchpad connection issues
-
-On windows sometimes launchpad is not detected. First try to restart the PC with the launchpad connected. If it doesn't help, try to connect the launchpad to another USB port. You can also try to reinstall the drivers from [Novation's website](https://downloads.novationmusic.com/novation/). 
-
-### Linux - app isn't working / launchpad connection issues
-
-> [!IMPORTANT]
-> For now see https://github.com/Ja-Tar/Launkey/issues/32 and https://github.com/Ja-Tar/Launkey/issues/48
+[CLICK HERE](https://github.com/Ja-Tar/Launkey/wiki/Troubleshooting)
 
 # Licenses and libraries
 
