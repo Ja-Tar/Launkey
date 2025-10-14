@@ -44,7 +44,7 @@ In BLUE is a button that is used for changing the side of the launchpad (top 4 r
 
 ## Troubleshooting
 
-[CLICK HERE](https://github.com/Ja-Tar/Launkey/wiki/Troubleshooting)
+Moved to [WIKI](https://github.com/Ja-Tar/Launkey/wiki/Troubleshooting)
 
 # Licenses and libraries
 
