@@ -49,4 +49,4 @@ Author: [FMMT666](https://github.com/FMMT666)
 
 # Thx HACKCLUB
 
-This project was created during [HackClub](https://hackclub.com/) event [`Summer of Making`](https://summer.hackclub.com/). Thx for big motivation boost :)
+This project was started during [HackClub](https://hackclub.com/) event [`Summer of Making`](https://summer.hackclub.com/). Thx for big motivation boost :)
