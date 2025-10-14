@@ -17,7 +17,7 @@ https://github.com/user-attachments/assets/a2fe8498-8232-4c6c-9928-d236b9c0e06e
 - [ ] Launchpad compatibility *(for now it works only with LaunchPad Mini MK1)*
 - [ ] And more...
 
-# MORE information on wiki!
+# MORE information on wiki page!
 
 > [!WARNING]
 > Wiki is still under construction!
