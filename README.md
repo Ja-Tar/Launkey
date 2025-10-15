@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/a2fe8498-8232-4c6c-9928-d236b9c0e06e
 > [!WARNING]
 > Wiki is still under construction!
 
-[CLICK HERE](https://github.com/Ja-Tar/Launkey/wiki/User-Interface)
+### **[CLICK HERE](https://github.com/Ja-Tar/Launkey/wiki/User-Interface)**
 
 ## Troubleshooting
 
