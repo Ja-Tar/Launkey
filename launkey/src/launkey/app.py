@@ -14,6 +14,7 @@ import launchpad_py as launchpad
 from .icon import icon
 from .ui_mainwindow import Ui_MainWindow
 from .mainwindow import mainWindowScript
+from .updateinfo import OS
 
 def relaunchAsRoot() -> bool:
     if os.geteuid() != 0: # type: ignore
@@ -33,10 +34,11 @@ def checkForLinux() -> bool:
     return False
 
 class Launkey(QMainWindow):
-    def __init__(self, root: bool):
+    def __init__(self, root: bool, os: OS):
         super(Launkey, self).__init__()
         self.ui = Ui_MainWindow()
         self.root = root
+        self.os = os
         self.ui.setupUi(self)
         self.lpclose = None
     
@@ -76,10 +78,12 @@ def main():
 
     if checkForLinux():
         root = relaunchAsRoot()
+        os = OS.linux
     else:
-        root = True # On windows
+        root = True
+        os = OS.windows
 
-    main_window = Launkey(root)
+    main_window = Launkey(root, os)
     loadAppIcon(main_window)
     main_window.show()
     sys.exit(QtAsyncio.run(mainWindowScript(main_window)))

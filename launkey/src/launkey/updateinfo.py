@@ -5,10 +5,21 @@ import requests
 
 from datetime import date, timedelta
 from importlib import metadata as importlibMetadata
+from enum import Enum, unique, auto
 
 from PySide6.QtCore import QSettings
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox, QInputDialog
 from PySide6.QtGui import QDesktopServices
+
+@unique
+class OS(Enum):
+    windows = auto()
+    linux = auto()
+
+class FileToOS(Enum):
+    rpm = OS.linux
+    deb = OS.linux
+    msi = OS.windows
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -19,9 +30,9 @@ class UpdateManager:
         self.settingLoader = QSettings("Ja-Tar", "Launkey")
         self.errors: list[str] = self.settingLoader.value("update/errors", []) # type: ignore
         self.lastChecked: date = self.settingLoader.value("update/lastChecked") # type: ignore
+        self.assets: list[dict] = []
         self.installedVersion: str
         self.newestVersion: str
-        self.assets: list[dict]
 
     async def updateNeeded(self, manual: bool):
         # This needs to:
@@ -49,201 +60,22 @@ class UpdateManager:
 
         print("Checking for updates")
 
-        # req = requests.get('https://api.github.com/repos/Ja-Tar/Launkey/releases/latest')
-        # TODO add error count
-        # self.json = req.json()
-
-        json = {
-            "url": "https://api.github.com/repos/Ja-Tar/Launkey/releases/253932902",
-            "assets_url": "https://api.github.com/repos/Ja-Tar/Launkey/releases/253932902/assets",
-            "upload_url": "https://uploads.github.com/repos/Ja-Tar/Launkey/releases/253932902/assets{?name,label}",
-            "html_url": "https://github.com/Ja-Tar/Launkey/releases/tag/0.2.0",
-            "id": 253932902,
-            "author": {
-                "login": "Ja-Tar",
-                "id": 78786298,
-                "node_id": "MDQ6VXNlcjc4Nzg2Mjk4",
-                "avatar_url": "https://avatars.githubusercontent.com/u/78786298?v=4",
-                "gravatar_id": "",
-                "url": "https://api.github.com/users/Ja-Tar",
-                "html_url": "https://github.com/Ja-Tar",
-                "followers_url": "https://api.github.com/users/Ja-Tar/followers",
-                "following_url": "https://api.github.com/users/Ja-Tar/following{/other_user}",
-                "gists_url": "https://api.github.com/users/Ja-Tar/gists{/gist_id}",
-                "starred_url": "https://api.github.com/users/Ja-Tar/starred{/owner}{/repo}",
-                "subscriptions_url": "https://api.github.com/users/Ja-Tar/subscriptions",
-                "organizations_url": "https://api.github.com/users/Ja-Tar/orgs",
-                "repos_url": "https://api.github.com/users/Ja-Tar/repos",
-                "events_url": "https://api.github.com/users/Ja-Tar/events{/privacy}",
-                "received_events_url": "https://api.github.com/users/Ja-Tar/received_events",
-                "type": "User",
-                "user_view_type": "public",
-                "site_admin": False,
-            },
-            "node_id": "RE_kwDOPBJdK84PIrVm",
-            "tag_name": "0.2.1",
-            "target_commitish": "main",
-            "name": "0.2.0: Settings update (now with magic theme)",
-            "draft": False,
-            "immutable": False,
-            "prerelease": False,
-            "created_at": "2025-10-12T21:21:36Z",
-            "updated_at": "2025-10-15T05:41:41Z",
-            "published_at": "2025-10-12T21:28:11Z",
-            "assets": [
-                {
-                    "url": "https://api.github.com/repos/Ja-Tar/Launkey/releases/assets/303480284",
-                    "id": 303480284,
-                    "node_id": "RA_kwDOPBJdK84SFr3c",
-                    "name": "launkey-0.2.0-1.fc40.x86_64.rpm",
-                    "label": "",
-                    "uploader": {
-                        "login": "github-actions[bot]",
-                        "id": 41898282,
-                        "node_id": "MDM6Qm90NDE4OTgyODI=",
-                        "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
-                        "gravatar_id": "",
-                        "url": "https://api.github.com/users/github-actions%5Bbot%5D",
-                        "html_url": "https://github.com/apps/github-actions",
-                        "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
-                        "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
-                        "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
-                        "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
-                        "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
-                        "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
-                        "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
-                        "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
-                        "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
-                        "type": "Bot",
-                        "user_view_type": "public",
-                        "site_admin": False,
-                    },
-                    "content_type": "binary/octet-stream",
-                    "state": "uploaded",
-                    "size": 195054843,
-                    "digest": "sha256:c487e7a1cd6b5dd7acdc558c3f491eb4b61822ac80cfda06894ff01baf5c79a7",
-                    "download_count": 0,
-                    "created_at": "2025-10-12T21:36:39Z",
-                    "updated_at": "2025-10-12T21:36:46Z",
-                    "browser_download_url": "https://github.com/Ja-Tar/Launkey/releases/download/0.2.0/launkey-0.2.0-1.fc40.x86_64.rpm",
-                },
-                {
-                    "url": "https://api.github.com/repos/Ja-Tar/Launkey/releases/assets/303479811",
-                    "id": 303479811,
-                    "node_id": "RA_kwDOPBJdK84SFrwD",
-                    "name": "Launkey-0.2.0.msi",
-                    "label": "",
-                    "uploader": {
-                        "login": "github-actions[bot]",
-                        "id": 41898282,
-                        "node_id": "MDM6Qm90NDE4OTgyODI=",
-                        "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
-                        "gravatar_id": "",
-                        "url": "https://api.github.com/users/github-actions%5Bbot%5D",
-                        "html_url": "https://github.com/apps/github-actions",
-                        "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
-                        "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
-                        "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
-                        "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
-                        "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
-                        "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
-                        "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
-                        "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
-                        "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
-                        "type": "Bot",
-                        "user_view_type": "public",
-                        "site_admin": False,
-                    },
-                    "content_type": "binary/octet-stream",
-                    "state": "uploaded",
-                    "size": 217735328,
-                    "digest": "sha256:dc351299fe79c2a3363e1a47f633934d3984a0cd76f0e05e1c4702a8b36962d7",
-                    "download_count": 1,
-                    "created_at": "2025-10-12T21:33:10Z",
-                    "updated_at": "2025-10-12T21:33:16Z",
-                    "browser_download_url": "https://github.com/Ja-Tar/Launkey/releases/download/0.2.0/Launkey-0.2.0.msi",
-                },
-                {
-                    "url": "https://api.github.com/repos/Ja-Tar/Launkey/releases/assets/303479809",
-                    "id": 303479809,
-                    "node_id": "RA_kwDOPBJdK84SFrwB",
-                    "name": "Launkey-0.2.0.wixpdb",
-                    "label": "",
-                    "uploader": {
-                        "login": "github-actions[bot]",
-                        "id": 41898282,
-                        "node_id": "MDM6Qm90NDE4OTgyODI=",
-                        "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
-                        "gravatar_id": "",
-                        "url": "https://api.github.com/users/github-actions%5Bbot%5D",
-                        "html_url": "https://github.com/apps/github-actions",
-                        "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
-                        "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
-                        "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
-                        "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
-                        "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
-                        "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
-                        "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
-                        "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
-                        "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
-                        "type": "Bot",
-                        "user_view_type": "public",
-                        "site_admin": False,
-                    },
-                    "content_type": "binary/octet-stream",
-                    "state": "uploaded",
-                    "size": 2044514,
-                    "digest": "sha256:609ea892a3f18611b1a88a30eeb6b2244c1066f0323198653d7dace5d554287c",
-                    "download_count": 0,
-                    "created_at": "2025-10-12T21:33:09Z",
-                    "updated_at": "2025-10-12T21:33:09Z",
-                    "browser_download_url": "https://github.com/Ja-Tar/Launkey/releases/download/0.2.0/Launkey-0.2.0.wixpdb",
-                },
-                {
-                    "url": "https://api.github.com/repos/Ja-Tar/Launkey/releases/assets/303479793",
-                    "id": 303479793,
-                    "node_id": "RA_kwDOPBJdK84SFrvx",
-                    "name": "launkey_0.2.0-1.ubuntu-noble_amd64.deb",
-                    "label": "",
-                    "uploader": {
-                        "login": "github-actions[bot]",
-                        "id": 41898282,
-                        "node_id": "MDM6Qm90NDE4OTgyODI=",
-                        "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
-                        "gravatar_id": "",
-                        "url": "https://api.github.com/users/github-actions%5Bbot%5D",
-                        "html_url": "https://github.com/apps/github-actions",
-                        "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
-                        "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
-                        "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
-                        "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
-                        "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
-                        "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
-                        "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
-                        "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
-                        "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
-                        "type": "Bot",
-                        "user_view_type": "public",
-                        "site_admin": False,
-                    },
-                    "content_type": "binary/octet-stream",
-                    "state": "uploaded",
-                    "size": 194533786,
-                    "digest": "sha256:ed24ba90b9873868b9f1056b002a6d6c1d558bd5d0ebd0a9b1ac3772a3349b5d",
-                    "download_count": 0,
-                    "created_at": "2025-10-12T21:32:56Z",
-                    "updated_at": "2025-10-12T21:33:00Z",
-                    "browser_download_url": "https://github.com/Ja-Tar/Launkey/releases/download/0.2.0/launkey_0.2.0-1.ubuntu-noble_amd64.deb",
-                },
-            ],
-            "tarball_url": "https://api.github.com/repos/Ja-Tar/Launkey/tarball/0.2.0",
-            "zipball_url": "https://api.github.com/repos/Ja-Tar/Launkey/zipball/0.2.0",
-            "body": '# HOW TO TEST (IMPORTANT)\r\n\r\n> [!NOTE]\r\n> Linux version is working now, but see #32 or [WIKI](https://github.com/Ja-Tar/Launkey/wiki/Troubleshooting#launchpad-connection-issues-launchpad-not-found-error-1)\r\n\r\nIf you don\'t have a launchpad you can use [Test mode](https://github.com/Ja-Tar/Launkey/wiki/User-Interface#test-mode)\r\n\r\n## What\'s Changed\r\n- Settings window added\r\n- Theme options added (**for now only magic one is working**)\r\n- Fixes\r\n\r\n### Dependencies \r\n* Bump briefcase from 0.3.24 to 0.3.25 by @dependabot[bot] in https://github.com/Ja-Tar/Launkey/pull/41\r\n* Bump pyside6 from 6.9.2 to 6.9.3 by @dependabot[bot] in https://github.com/Ja-Tar/Launkey/pull/42\r\n* Bump pyside6-essentials from 6.9.2 to 6.9.3 by @dependabot[bot] in https://github.com/Ja-Tar/Launkey/pull/40\r\n\r\n# Screenshot\r\n\r\n<img width="802" height="632" alt="obraz" src="https://github.com/user-attachments/assets/3c3610ea-9941-483d-9d72-ddeb6beb4bfe" />\r\n\r\n**Full Changelog**: https://github.com/Ja-Tar/Launkey/compare/0.1.3...0.2.0',
-            "mentions_count": 1,
-        } # REMOVE
+        req = requests.get('https://api.github.com/repos/Ja-Tar/Launkey/releases/latest')
+        if req.status_code != 200:
+            self.errors.append(f"Failed to get info from github, code: {req.status_code}")
+            return False
+        json = req.json()
 
         self.newestVersion = json.get("tag_name", "")
-        self.assets = json.get("assets", [])
+        for asset in json.get("assets", []):
+            fileEndings = tuple(e for e in FileToOS.__members__ if FileToOS[e].value == self.main_window.os)
+            for ending in fileEndings:
+                if str(asset["name"]).endswith(ending):
+                    cutAsset = {
+                        "name": asset["name"],
+                        "browser_download_url": asset["browser_download_url"]
+                        }
+                    self.assets.append(cutAsset)
 
         if len(self.assets) < 1:
             self.errors.append("Failed to get newest assets. Check again later.")
@@ -280,8 +112,26 @@ class UpdateManager:
             parent=self.main_window
         )
         if messagebox.exec() == QMessageBox.StandardButton.Yes:
-            # QDesktopServices.openUrl()
-            pass
+            if self.main_window.os == OS.windows:
+                if len(self.assets) == 1:
+                    QDesktopServices.openUrl(self.assets[0]["browser_download_url"])
+                else:
+                    self.errors.append(f"Wrong asset count for windows found: {len(self.assets)}")
+                    raise NotImplementedError("Wrong asset count for windows!!!")
+            elif self.main_window.os == OS.linux:
+                if len(self.assets) == 1:
+                    QDesktopServices.openUrl(self.assets[0]["browser_download_url"])
+                else:
+                    items = [e["name"] for e in self.assets]
+                    item, ok = QInputDialog.getItem(
+                        self.main_window,
+                        "Update",
+                        "Choose file to download:",
+                        items,
+                        editable=False
+                    )
+                    if ok:
+                        QDesktopServices.openUrl(self.assets[items.index(item)]["browser_download_url"])
         else:
             messagebox2 = QMessageBox(
                 QMessageBox.Icon.Information,
@@ -291,10 +141,17 @@ class UpdateManager:
             )
             messagebox2.exec()
 
-
 async def checkForUpdates(main_window: "Launkey", /, manual: bool = False):
     um = UpdateManager(main_window)
     
     if await um.updateNeeded(manual):
         um.displayUpdatePopup()
+    elif manual:
+        messagebox = QMessageBox(
+            QMessageBox.Icon.Information,
+            "Update",
+            "This is the newest version",
+            parent=main_window
+        )
+        messagebox.exec()
     um.saveData()
