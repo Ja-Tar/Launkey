@@ -34,11 +34,11 @@ def checkForLinux() -> bool:
     return False
 
 class Launkey(QMainWindow):
-    def __init__(self, root: bool, os: OS):
+    def __init__(self, root: bool, currentOS: OS):
         super(Launkey, self).__init__()
         self.ui = Ui_MainWindow()
         self.root = root
-        self.os = os
+        self.currentOS = currentOS
         self.ui.setupUi(self)
         self.lpclose = None
     
@@ -78,12 +78,12 @@ def main():
 
     if checkForLinux():
         root = relaunchAsRoot()
-        os = OS.linux
+        currentOS = OS.linux
     else:
         root = True
-        os = OS.windows
+        currentOS = OS.windows
 
-    main_window = Launkey(root, os)
+    main_window = Launkey(root, currentOS)
     loadAppIcon(main_window)
     main_window.show()
     sys.exit(QtAsyncio.run(mainWindowScript(main_window)))

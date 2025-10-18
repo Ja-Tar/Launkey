@@ -68,7 +68,7 @@ class UpdateManager:
 
         self.newestVersion = json.get("tag_name", "")
         for asset in json.get("assets", []):
-            fileEndings = tuple(e for e in FileToOS.__members__ if FileToOS[e].value == self.main_window.os)
+            fileEndings = tuple(e for e in FileToOS.__members__ if FileToOS[e].value == self.main_window.currentOS)
             for ending in fileEndings:
                 if str(asset["name"]).endswith(ending):
                     cutAsset = {
@@ -112,13 +112,13 @@ class UpdateManager:
             parent=self.main_window
         )
         if messagebox.exec() == QMessageBox.StandardButton.Yes:
-            if self.main_window.os == OS.windows:
+            if self.main_window.currentOS == OS.windows:
                 if len(self.assets) == 1:
                     QDesktopServices.openUrl(self.assets[0]["browser_download_url"])
                 else:
                     self.errors.append(f"Wrong asset count for windows found: {len(self.assets)}")
                     raise NotImplementedError("Wrong asset count for windows!!!")
-            elif self.main_window.os == OS.linux:
+            elif self.main_window.currentOS == OS.linux:
                 if len(self.assets) == 1:
                     QDesktopServices.openUrl(self.assets[0]["browser_download_url"])
                 else:
