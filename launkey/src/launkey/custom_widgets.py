@@ -76,7 +76,7 @@ class QSplitterNoHandle(QSplitter):
         super().__init__(parent)
         self.setChildrenCollapsible(False)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        self.setStyleSheet("QSplitter::handle { color: transparent; }")
+        self.setStyleSheet("QSplitter::handle { image: none; }")
 
 class QAutoStatusBar(QStatusBar):
     def __init__(self, parent: QWidget | None = None):

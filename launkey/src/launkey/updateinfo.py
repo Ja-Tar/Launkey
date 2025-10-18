@@ -28,11 +28,15 @@ class UpdateManager:
     def __init__(self, main_window: "Launkey") -> None:
         self.main_window = main_window
         self.settingLoader = QSettings("Ja-Tar", "Launkey")
-        self.errors: list[str] = self.settingLoader.value("update/errors", []) # type: ignore
+        self.errors: list[str] = self.settingLoader.value("update/errors", [])  # type: ignore
         self.lastChecked: date = self.settingLoader.value("update/lastChecked") # type: ignore
         self.assets: list[dict] = []
         self.installedVersion: str
         self.newestVersion: str
+        
+        if not self.errors or not self.lastChecked:
+            self.errors = []
+            self.lastChecked = date.fromtimestamp(0)
 
     async def updateNeeded(self, manual: bool):
         # This needs to:
@@ -46,7 +50,7 @@ class UpdateManager:
         if self.lastChecked and date.today() - timedelta(days=2) < self.lastChecked and not manual:
             print("Update has been checked in last 2 days")
             return False
-        elif len(self.errors) >= 5:
+        elif self.errors and len(self.errors) >= 5:
             messagebox = QMessageBox(
                 QMessageBox.Icon.Critical,
                 "Update Error",
