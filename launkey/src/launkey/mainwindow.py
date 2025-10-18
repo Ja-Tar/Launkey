@@ -4,16 +4,15 @@ from pathlib import Path
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QSettings
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
-from PySide6.QtAsyncio import QAsyncioEventLoop
 
 from .ui_dialogtemplates import Ui_Dialog
 from .ui_settings import Ui_Settings
 from .custom_widgets import QDialogNoDefault, TemplateDisplay, QLabelInfo, ShortcutDisplay
 from .templates import Template, TemplateItem, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
 from .launchpad_control import LaunchpadWrapper, KeyboardTester
-from .theme_loader import AppTheme, loadTheme
+from .theme_loader import loadTheme
 from .updateinfo import checkForUpdates
 
 if TYPE_CHECKING:

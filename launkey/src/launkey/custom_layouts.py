@@ -1,5 +1,5 @@
 from typing import Literal
-from PySide6.QtWidgets import QGridLayout, QFormLayout, QWidget
+from PySide6.QtWidgets import QGridLayout, QWidget
 from PySide6.QtCore import Qt, QTimer
 
 from .custom_widgets import PlusButton, ToggleButton

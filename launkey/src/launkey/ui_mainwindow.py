@@ -8,7 +8,7 @@ from PySide6.QtGui import (QAction, QColor)
 from PySide6.QtWidgets import (
     QFrame, QGroupBox, QHBoxLayout,
     QLayout, QMainWindow, QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QStatusBar, QVBoxLayout, QWidget,
+    QVBoxLayout, QWidget,
     QScrollArea, QSplitter, QStackedWidget
 )
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
