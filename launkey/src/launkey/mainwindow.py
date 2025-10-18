@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, QSettings
 from PySide6.QtWidgets import QInputDialog, QMessageBox, QErrorMessage
+from PySide6.QtAsyncio import QAsyncioEventLoop
 
 from .ui_dialogtemplates import Ui_Dialog
 from .ui_settings import Ui_Settings
@@ -18,7 +19,7 @@ from .updateinfo import checkForUpdates
 if TYPE_CHECKING:
     from .app import Launkey
 
-def mainWindowScript(main_window: "Launkey"):
+async def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
     main_window.ui.actionSettings.triggered.connect(lambda: loadSettingsWindow(main_window))
     
