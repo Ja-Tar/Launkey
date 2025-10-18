@@ -9,10 +9,10 @@ from PySide6.QtWidgets import (
     QFrame, QGroupBox, QHBoxLayout,
     QLayout, QMainWindow, QMenu, QMenuBar, QPushButton, QSizePolicy,
     QVBoxLayout, QWidget,
-    QScrollArea, QSplitter, QStackedWidget
+    QScrollArea, QStackedWidget
 )
 from .custom_layouts import DynamicGridLayout  # Import the custom layout class
-from .custom_widgets import QAutoStatusBar, QLabelInfo
+from .custom_widgets import QAutoStatusBar, QLabelInfo, QSplitterNoHandle
 from .launchpad_control import LaunchpadTable
 
 class Ui_MainWindow:
@@ -82,7 +82,7 @@ class Ui_MainWindow:
         self.buttonPanelLayout.setContentsMargins(0, 0, 0, 0)
 
         # Button splitter
-        self.buttonSplitter = QSplitter(self.buttonPanel)
+        self.buttonSplitter = QSplitterNoHandle(self.buttonPanel)
         self.buttonSplitter.setOrientation(Qt.Orientation.Vertical)
         self.buttonSplitter.setObjectName("buttonSplitter")
         self.buttonSplitter.setHandleWidth(10)

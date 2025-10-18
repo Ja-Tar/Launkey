@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtWidgets import (
     QWidget, QPushButton, QSizePolicy,
     QDialog, QLabel, QFrame, QVBoxLayout,
-    QMessageBox, QStatusBar
+    QMessageBox, QStatusBar, QSplitter
 )
 from PySide6.QtCore import Qt, QSize, QRect, QMimeData, QPoint
 from PySide6.QtGui import (
@@ -70,6 +70,13 @@ class QDialogNoDefault(QDialog):
             self.reject()
         else:
             event.ignore()
+            
+class QSplitterNoHandle(QSplitter):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setChildrenCollapsible(False)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.setStyleSheet("QSplitter::handle { color: transparent; }")
 
 class QAutoStatusBar(QStatusBar):
     def __init__(self, parent: QWidget | None = None):

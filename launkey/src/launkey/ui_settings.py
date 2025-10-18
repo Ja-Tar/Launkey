@@ -2,10 +2,11 @@ from typing import Any
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QDialog, QComboBox, QVBoxLayout, QSizePolicy,
-    QFrame, QSplitter, QPushButton, QWidget
+    QFrame, QPushButton, QWidget
 )
 #from PySide6.QtGui
 
+from .custom_widgets import QSplitterNoHandle
 from .theme_loader import AppTheme
 from .settings import AutoFormLayout, SettingsWrapper, SettingsAll, SettingsGroup, Setting
 
@@ -15,7 +16,7 @@ class Ui_Settings:
         self.mainLayout: QVBoxLayout
         self.groupSettingsSelect: SettingsGrupSelector
         self.optionsPanel: QFrame
-        self.buttonGroup: QSplitter
+        self.buttonGroup: QSplitterNoHandle
         self.closeButton: QPushButton
         self.saveButton: QPushButton
         self.optionsPanelLayout: AutoFormLayout
@@ -57,7 +58,7 @@ class Ui_Settings:
         
         self.groupSettingsSelect.loadSettings()
         
-        self.buttonGroup = QSplitter(dialog)
+        self.buttonGroup = QSplitterNoHandle(dialog)
         self.buttonGroup.setOrientation(Qt.Orientation.Horizontal)
         self.buttonGroup.setObjectName("buttonGroup")
         self.mainLayout.addWidget(self.buttonGroup)

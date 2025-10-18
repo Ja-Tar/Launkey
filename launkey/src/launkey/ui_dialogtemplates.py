@@ -10,11 +10,11 @@ from typing import List
 from PySide6.QtCore import QCoreApplication, QSize, QMetaObject, Qt, QEvent, QStandardPaths
 from PySide6.QtWidgets import (
     QDialog, QFrame, QMessageBox, QHBoxLayout, QPushButton, 
-    QSizePolicy, QWidget, QVBoxLayout, QSplitter, QProgressDialog
+    QSizePolicy, QWidget, QVBoxLayout, QProgressDialog
 )
 
 from .custom_layouts import TemplateGridLayout
-from .custom_widgets import ToggleButton, AreYouSureDialog
+from .custom_widgets import ToggleButton, AreYouSureDialog, QSplitterNoHandle
 from .template_options_widgets import TemplateOptionsList
 from .templates import Template, TemplateItem, getTemplateFolderPath, sterilizeTemplateName, getTemplateType
 
@@ -26,7 +26,7 @@ class Ui_Dialog:
         self.mainLayout: QHBoxLayout
         self.optionsPanel: QWidget
         self.optionsList: TemplateOptionsList
-        self.buttonSeparatorH: QSplitter
+        self.buttonSeparatorH: QSplitterNoHandle
         self.closeButton: QPushButton
         self.saveButton: QPushButton
         self.separator: QFrame
@@ -68,7 +68,7 @@ class Ui_Dialog:
         optionsPanelLayout.addWidget(self.optionsList)  # type: ignore
 
         # Button vertical separator layout
-        self.buttonSeparatorV = QSplitter(dialog)
+        self.buttonSeparatorV = QSplitterNoHandle(dialog)
         self.buttonSeparatorV.setOrientation(Qt.Orientation.Vertical)
         self.buttonSeparatorV.setObjectName("buttonSeparatorLayout")
         optionsPanelLayout.addWidget(self.buttonSeparatorV)
@@ -81,7 +81,7 @@ class Ui_Dialog:
         self.closeButton.clicked.connect(lambda: self.closeTemplateEditor(dialog))
 
         # Button separator
-        self.buttonSeparatorH = QSplitter(dialog)
+        self.buttonSeparatorH = QSplitterNoHandle(dialog)
         self.buttonSeparatorH.setOrientation(Qt.Orientation.Horizontal)
         self.buttonSeparatorH.setObjectName("buttonSeparator")
         self.buttonSeparatorV.addWidget(self.buttonSeparatorH)
