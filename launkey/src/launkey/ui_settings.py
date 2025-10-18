@@ -1,5 +1,4 @@
 from typing import Any
-from copy import deepcopy
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QDialog, QComboBox, QVBoxLayout, QSizePolicy,

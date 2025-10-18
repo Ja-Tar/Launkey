@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Any
 
-from PySide6.QtCore import QSettings, Qt, QSize
-from PySide6.QtGui import QPainter, QFocusEvent
+from PySide6.QtCore import QSettings, Qt
+from PySide6.QtGui import QFocusEvent
 from PySide6.QtWidgets import (
     QFormLayout, QWidget, QLineEdit, QSizePolicy,
     QComboBox, QLabel, 
