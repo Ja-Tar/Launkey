@@ -1,4 +1,19 @@
 # This project was generated with 0.3.23 using template: https://github.com/beeware/briefcase-template @ v0.3.23
+
+[project]
+dynamic = ["version"]
+name = "Launkey"
+dependencies = [
+    "PySide6-Essentials==6.9.3",
+    "PySide6-Addons==6.9.3",
+    "launchpad_py==0.9.1",
+    # "PySide6_Essentials==6.9.3",
+    "keyboard==0.13.5",
+    "pygame==2.6.1",
+    "regex==2025.9.18",
+    "requests",
+]
+
 [tool.briefcase]
 project_name = "Launkey"
 bundle = "com.example"
@@ -21,16 +36,7 @@ test_sources = [
     "tests",
 ]
 
-requires = [
-    "PySide6-Essentials==6.9.3",
-    "PySide6-Addons==6.9.3",
-    "launchpad_py==0.9.1",
-    # "PySide6_Essentials==6.9.3",
-    "keyboard==0.13.5",
-    "pygame==2.6.1",
-    "regex==2025.9.18",
-    "requests",
-]
+# requires - moved to 'dependencies'
 test_requires = [
     "pytest",
 ]
