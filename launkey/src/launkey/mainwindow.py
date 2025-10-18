@@ -13,6 +13,7 @@ from .custom_widgets import QDialogNoDefault, TemplateDisplay, QLabelInfo, Short
 from .templates import Template, TemplateItem, getTemplateFolderPath, objectFromJson, checkTemplate, sterilizeTemplateName, loadedTemplates
 from .launchpad_control import LaunchpadWrapper, KeyboardTester
 from .theme_loader import AppTheme, loadTheme
+from .updateinfo import checkForUpdates
 
 if TYPE_CHECKING:
     from .app import Launkey
@@ -21,9 +22,7 @@ def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
     main_window.ui.actionSettings.triggered.connect(lambda: loadSettingsWindow(main_window))
     
-    settingLoader = QSettings("Ja-Tar", "Launkey")
     loadTheme(main_window)
-    
     importTemplates(main_window)
     lpWrapper = LaunchpadWrapper(main_window.ui.tableLaunchpad)
 
@@ -34,24 +33,9 @@ def mainWindowScript(main_window: "Launkey"):
         main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(buttonRun(main_window, lpWrapper)))
         main_window.ui.buttonRun.setEnabled(True)
     else:
-        main_window.ui.statusbar.addWidget(QLabelInfo("Launchpad not found", colour="red"))
-        shortcutDisplay = ShortcutDisplay(main_window)
-        keyboardTester = KeyboardTester(main_window, lpWrapper, shortcutDisplay)
-        main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
-        main_window.ui.actionTestMode.triggered.connect(keyboardTester.checkTestMode)
-
-        warningTitle = "Launchpad Error"
-        warningText = "Launchpad not found. Please connect your Launchpad and try again."
-        if main_window.root is False:
-            warningTitle = "Permissions Error"
-            warningText = "To use launchpad, run app with sudo / as root"
-
-        QMessageBox.warning(
-            main_window,
-            warningTitle,
-            warningText,
-            QMessageBox.StandardButton.Ok
-        )
+        launchpadLoadingFallback(main_window, lpWrapper)
+    
+    asyncio.create_task(checkForUpdates(main_window))
 
 def importTemplates(main_window: "Launkey", currentTemplateDisplayName: str | None = None):
     print("Importing templates...")
@@ -152,6 +136,44 @@ async def listenForButtonPress(lpWrapper: LaunchpadWrapper) -> str:
             if event[2] == 0:  # Button released
                 asyncio.create_task(lpWrapper.buttonUnpressed((event[0], event[1])), name="buttonUnpressed")
         await asyncio.sleep(0.01)
+        
+def launchpadLoadingFallback(main_window: "Launkey", lpWrapper: LaunchpadWrapper):
+    main_window.ui.statusbar.addWidget(QLabelInfo("Launchpad not found", colour="red"))
+    shortcutDisplay = ShortcutDisplay(main_window)
+    keyboardTester = KeyboardTester(main_window, lpWrapper, shortcutDisplay)
+    main_window.ui.buttonRun.clicked.connect(lambda: asyncio.ensure_future(keyboardTester.testModeRun()))
+    main_window.ui.actionTestMode.triggered.connect(keyboardTester.checkTestMode)
+
+    showConnectionError(main_window)
+
+def showConnectionError(main_window: "Launkey"):
+    warningTitle = "Launchpad Error"
+    warningText = "Launchpad not found. Please connect your Launchpad and try again."
+    if main_window.root is False:
+        warningTitle = "Permissions Error"
+        warningText = "To use launchpad, run app with sudo / as root"
+
+    QMessageBox.warning(
+            main_window,
+            warningTitle,
+            warningText,
+            QMessageBox.StandardButton.Ok
+        )
+
+def newTemplatePopup(main_window: "Launkey"):
+    template_type = selectTemplateTypePopup(main_window)
+    if template_type is None:
+        return
+
+    dialog = QDialogNoDefault(main_window)
+    ui = Ui_Dialog()
+    ui.setupUi(dialog, template_type)
+    ui.deleteButton.setDisabled(True)
+    dialog.setWindowTitle("New Template")
+    dialog.show()
+
+    if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
+        importTemplates(main_window) # BUG if template is overwritten it doesn't refresh 
 
 def selectTemplateTypePopup(main_window: "Launkey"):
     popup = QInputDialog(main_window)
@@ -168,21 +190,6 @@ def selectTemplateTypePopup(main_window: "Launkey"):
     if not ok:
         return None
     return Template.Type[template_type]
-
-def newTemplatePopup(main_window: "Launkey"):
-    template_type = selectTemplateTypePopup(main_window)
-    if template_type is None:
-        return
-
-    dialog = QDialogNoDefault(main_window)
-    ui = Ui_Dialog()
-    ui.setupUi(dialog, template_type)
-    ui.deleteButton.setDisabled(True)
-    dialog.setWindowTitle("New Template")
-    dialog.show()
-
-    if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
-        importTemplates(main_window) # BUG if template is overwritten it doesn't refresh 
 
 def editTemplatePopup(main_window: "Launkey", templateDisplayName: str):
     templateFileName = sterilizeTemplateName(templateDisplayName) + ".json"

@@ -85,7 +85,7 @@ def main():
     mainWindowScript(main_window)
     sys.exit(QtAsyncio.run())
 
-def loadAppIcon(main_window):
+def loadAppIcon(main_window: "Launkey"):
     pixmap = QPixmap()
     pixmap.loadFromData(icon)
     appIcon = QIcon(pixmap)
