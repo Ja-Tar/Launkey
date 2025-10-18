@@ -35,6 +35,8 @@ class Ui_MainWindow:
         self.actionSettings.setObjectName("actionSettings")
 
         # Help menu actions
+        self.checkForUpdates = QAction(MainWindow)
+        self.checkForUpdates.setObjectName("checkForUpdates")
         self.actionAbout = QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
 
@@ -183,6 +185,8 @@ class Ui_MainWindow:
         self.menuConfig.addAction(self.actionTestMode)
         self.menuConfig.addSeparator()
         self.menuConfig.addAction(self.actionSettings)
+        self.menuHelp.addAction(self.checkForUpdates)
+        self.menuHelp.addSeparator()
         self.menuHelp.addAction(self.actionAbout)
 
         self.retranslateUi(MainWindow)
@@ -196,8 +200,9 @@ class Ui_MainWindow:
         self.actionSave.setText(QCoreApplication.translate("MainWindow", "Save"))
         self.actionLoad.setText(QCoreApplication.translate("MainWindow", "Load"))
         self.actionTestMode.setText(QCoreApplication.translate("MainWindow", "Test Mode"))
-        self.actionAbout.setText(QCoreApplication.translate("MainWindow", "About"))
         self.actionSettings.setText(QCoreApplication.translate("MainWindow", "Settings"))
+        self.checkForUpdates.setText(QCoreApplication.translate("MainWindow", "Check for updates"))
+        self.actionAbout.setText(QCoreApplication.translate("MainWindow", "About"))
 
         # Button and group titles
         self.buttonRun.setText(QCoreApplication.translate("MainWindow", "Run"))

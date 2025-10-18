@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 async def mainWindowScript(main_window: "Launkey"):
     main_window.ui.buttonAddTemplate.clicked.connect(lambda: newTemplatePopup(main_window))
     main_window.ui.actionSettings.triggered.connect(lambda: loadSettingsWindow(main_window))
+    main_window.ui.checkForUpdates.triggered.connect(lambda: asyncio.create_task(checkForUpdates(main_window, manual=True)))
     
     loadTheme(main_window)
     importTemplates(main_window)
