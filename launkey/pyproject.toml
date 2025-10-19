@@ -18,7 +18,7 @@ dependencies = [
 [tool.briefcase]
 project_name = "Launkey"
 bundle = "com.example"
-version = "0.2.0"
+version = "0.3.0"
 url = "https://example.com/launkey"
 license.file = "LICENSE"
 author = "Ja Tar"
