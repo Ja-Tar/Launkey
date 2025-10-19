@@ -37,9 +37,7 @@ def loadTheme(main_window: "Launkey"):
     
     settingLoader = QSettings("Ja-Tar", "Launkey")
     themeID = AppTheme(settingLoader.value("Appearance/Theme", AppTheme.system.value, int))
-    
-    print()
-    
+        
     if themeID == AppTheme.default:
         QGuiApplication.setPalette(QPalette())
         

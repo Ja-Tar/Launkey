@@ -33,6 +33,7 @@ class Ui_Dialog:
         self.mainActionButton: ToggleButton
         self.editorFrame: QFrame
         self.gridLayout: TemplateGridLayout
+        self.templateNameForOverwrite: str | None = None
 
     def loadTemplate(self, dialog: QDialog, template: List[Template | TemplateItem]):
         self.loadedTemplate = template
@@ -145,7 +146,6 @@ class Ui_Dialog:
 
         # Centered grid layout for editor frame
         self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame, template=loadedTemplate)
-        print(self.gridLayout)
         self.gridLayout.setupOptionsListConnection()
         self.editorFrame.setLayout(self.gridLayout)
 
@@ -169,9 +169,11 @@ class Ui_Dialog:
         templateName = self.optionsList.getTemplateName().strip()
         templateFileName = sterilizeTemplateName(templateName)
         filePath = fullPath / f"{templateFileName}.json"
-        if filePath.exists() and not self.askForFileOverwrite(templateName):
-            self.enableUIAfterSaving()
-            return
+        if filePath.exists():
+            if not self.askForFileOverwrite(templateName):
+                self.enableUIAfterSaving()
+                return
+            self.templateNameForOverwrite = templateName
 
         progress = QProgressDialog("Saving template...", "Cancel", 0, 100, minimumDuration=500)
         progress.setWindowTitle("Saving")
@@ -181,7 +183,7 @@ class Ui_Dialog:
         self.saveTemplateData(filePath, pathOnSystem, progress)
 
         progress.setValue(100)
-
+        
         dialog.accept()
 
     def askForFileOverwrite(self, templateName: str) -> bool:

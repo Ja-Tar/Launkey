@@ -174,7 +174,7 @@ def newTemplatePopup(main_window: "Launkey"):
     dialog.show()
 
     if dialog.exec() == QDialogNoDefault.DialogCode.Accepted:
-        importTemplates(main_window) # BUG if template is overwritten it doesn't refresh 
+        importTemplates(main_window, ui.templateNameForOverwrite)
 
 def selectTemplateTypePopup(main_window: "Launkey"):
     popup = QInputDialog(main_window)
