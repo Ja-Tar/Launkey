@@ -57,5 +57,3 @@ def loadTheme(main_window: "Launkey"):
             pass
         case AppTheme.magic:
             QGuiApplication.setPalette(Magic.palette)
-    
-    

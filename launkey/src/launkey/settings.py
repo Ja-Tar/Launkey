@@ -167,7 +167,7 @@ class AutoFormLayout(QFormLayout):
             raise NotImplementedError(f"Unsupported property type: {setting.itemType}")
         
     def setChangedSetting(self, settingLoc: str, item: Any):
-        if item not in [AppTheme.magic, AppTheme.default]: # REMOVE after theme update
+        if item in [AppTheme.magic.value, AppTheme.default.value]: # REMOVE after theme update
             self.changedSettings[settingLoc] = item
         
     def addRow(self, setting: Setting, groupName: str):

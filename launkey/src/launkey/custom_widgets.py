@@ -3,7 +3,7 @@ import struct
 
 from typing import TYPE_CHECKING
 from PySide6.QtWidgets import (
-    QWidget, QPushButton, QSizePolicy,
+    QSplitterHandle, QWidget, QPushButton, QSizePolicy,
     QDialog, QLabel, QFrame, QVBoxLayout,
     QMessageBox, QStatusBar, QSplitter
 )
@@ -76,8 +76,12 @@ class QSplitterNoHandle(QSplitter):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setChildrenCollapsible(False)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.setStyleSheet("QSplitter::handle { image: none; }")
+        
+    def createHandle(self) -> QSplitterHandle:
+        handle = super().createHandle()
+        handle.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        return handle
 
 class QAutoStatusBar(QStatusBar):
     def __init__(self, parent: QWidget | None = None):
