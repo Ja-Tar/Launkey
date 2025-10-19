@@ -22,9 +22,10 @@ if TYPE_CHECKING:
 class SquareButton(QPushButton):
     def __init__(self, text: str, parent: QWidget | None = None): 
         super().__init__(text, parent)
-        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.setSizePolicy(sizePolicy)
         self.setMinimumSize(QSize(60, 60))
-
+        
     def hasHeightForWidth(self) -> bool: # skipcq: PYL-R0201
         return True
 
@@ -46,7 +47,7 @@ class ToggleButton(SquareButton):
         self.setChecked(False)
         self.setStyleSheet("border-color: darkgray; border-width: 1px;")
         self.toggled.connect(self.onToggled)
-
+        
         self.buttonID = buttonID
 
     def onToggled(self, checked: bool):
@@ -83,7 +84,7 @@ class QAutoStatusBar(QStatusBar):
         super().__init__(parent)
         self.setSizeGripEnabled(False)
 
-    def removeWidget(self, widget: QWidget) -> None:
+    def removeWidget(self, widget: QWidget):
         super().removeWidget(widget)
         widget.deleteLater()
 

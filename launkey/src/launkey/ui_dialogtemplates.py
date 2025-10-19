@@ -45,8 +45,8 @@ class Ui_Dialog:
     def setupUi(self, dialog: QDialog, template_type: Template.Type, loadedTemplate: List[Template | TemplateItem] | None = None):
         if not dialog.objectName():
             dialog.setObjectName("Dialog")
-        dialog.resize(1000, 600)
-        dialog.setMinimumSize(QSize(1000, 600))
+        dialog.resize(900, 660)
+        dialog.setMinimumSize(QSize(900, 660))
 
         # Main horizontal layout
         self.mainLayout = QHBoxLayout(dialog)
@@ -55,9 +55,10 @@ class Ui_Dialog:
         # Left panel for options
         self.optionsPanel = QWidget(dialog)
         self.optionsPanel.setObjectName("optionsPanel")
-        optionsPanelSizePolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-        optionsPanelSizePolicy.setHorizontalStretch(6)
+        optionsPanelSizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        #optionsPanelSizePolicy.setHorizontalStretch(6)
         self.optionsPanel.setSizePolicy(optionsPanelSizePolicy)
+        self.optionsPanel.setMaximumWidth(400)
         optionsPanelLayout = QVBoxLayout()
         optionsPanelLayout.setContentsMargins(0, 0, 0, 0)
         self.optionsPanel.setLayout(optionsPanelLayout)
@@ -65,7 +66,9 @@ class Ui_Dialog:
 
         # List of templates
         self.optionsList = TemplateOptionsList(template_type, self.optionsPanel, loadedTemplate)
-        optionsPanelLayout.addWidget(self.optionsList)  # type: ignore
+        optionsListSizePolicy = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
+        self.optionsList.setSizePolicy(optionsListSizePolicy)
+        optionsPanelLayout.addWidget(self.optionsList)
 
         # Button vertical separator layout
         self.buttonSeparatorV = QSplitterNoHandle(dialog)
@@ -124,9 +127,9 @@ class Ui_Dialog:
         self.editorFrame.setFrameShape(QFrame.Shape.StyledPanel)
 
         # Editor frame size policy
-        editorFrameSizePolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-        editorFrameSizePolicy.setHorizontalStretch(10)
-        editorFrameSizePolicy.setVerticalStretch(0)
+        editorFrameSizePolicy = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
+        #editorFrameSizePolicy.setHorizontalStretch(10)
+        #editorFrameSizePolicy.setVerticalStretch(0)
         self.editorFrame.setSizePolicy(editorFrameSizePolicy)
 
         # Flow for loading main action button
@@ -142,6 +145,7 @@ class Ui_Dialog:
 
         # Centered grid layout for editor frame
         self.gridLayout = TemplateGridLayout(self.mainActionButton, self.optionsList, self.editorFrame, template=loadedTemplate)
+        print(self.gridLayout)
         self.gridLayout.setupOptionsListConnection()
         self.editorFrame.setLayout(self.gridLayout)
 

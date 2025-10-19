@@ -58,14 +58,13 @@ class DynamicGridLayout(QGridLayout):
                 col = 0
                 row += 1
 
-
+# BUG This needs to be rewritten (bugs out with size changes)
 class TemplateGridLayout(QGridLayout):
     def __init__(self, mainWidget: ToggleButton, optionsList: TemplateOptionsList, parent=None, rows: int = 8, cols: int = 8, template: list[Template | TemplateItem] | None = None):
         super().__init__(parent)
         self.setContentsMargins(5, 5, 5, 5)
         self.setSpacing(0)
         self.setObjectName("launcherGridLayout")
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.rows = rows
         self.cols = cols
@@ -136,7 +135,14 @@ class TemplateGridLayout(QGridLayout):
                 # ----------------------------------------------------
                 # Old: [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
                 # 8 directions around the widget
-                if ((row + addRow, col + addCol) not in self.getOccupiedPositions() and (row + addRow, col + addCol) != self.mainWidgetLocation and row + addRow >= 0 and col + addCol >= 0 and row + addRow < self.rows and col + addCol < self.cols):
+                if (
+                    (row + addRow, col + addCol) not in self.getOccupiedPositions()
+                    and row + addRow >= 0
+                    and col + addCol >= 0
+                    and row + addRow < self.rows
+                    and col + addCol < self.cols
+                ):
+                    print(f"created for {(row, col)} in {(row + addRow, col + addCol)}")
                     button = PlusButton()
                     button.clicked.connect(lambda _, r=row + addRow, c=col + addCol: self._plusButtonClick(r, c))
                     super().addWidget(button, row + addRow, col + addCol, Qt.AlignmentFlag.AlignCenter)
@@ -252,7 +258,6 @@ class TemplateGridLayout(QGridLayout):
 
         super().addWidget(widget, row, col, rowSpan, colSpan, alignment)
         self.otherWidgets.append((widget, (row, col)))
-        self.updateLayout()
 
     def getAllWidgets(self):
         # Plus buttons are automatically generated so only main and other widgets are included
