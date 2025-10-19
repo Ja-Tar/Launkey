@@ -34,19 +34,11 @@ class UpdateManager:
         self.installedVersion: str
         self.newestVersion: str
         
-        if not self.errors or not self.lastChecked:
+        if self.errors is None or not self.lastChecked:
             self.errors = []
             self.lastChecked = date.fromtimestamp(0)
 
     async def updateNeeded(self, manual: bool):
-        # This needs to:
-        # [x] send a signal to github API
-        # [x] receive information and add it to object variable
-        # [x] check if current version is the same as received one
-        # [x] save that version was checked on <DATE>
-        # [x] count how many times error occurred
-        # [x] inform about errors when more then 5 is counted
-
         if self.lastChecked and date.today() - timedelta(days=2) < self.lastChecked and not manual:
             print("Update has been checked in last 2 days")
             return False
