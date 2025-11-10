@@ -11,7 +11,7 @@ dependencies = [
     # "PySide6_Essentials==6.9.3",
     "keyboard==0.13.5",
     "pygame==2.6.1",
-    "regex==2025.9.18",
+    "regex==2025.11.3",
     "requests==2.32.5",
 ]
 
