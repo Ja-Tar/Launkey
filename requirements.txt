@@ -1,1 +1,1 @@
-briefcase==0.3.25
+briefcase==0.3.26
